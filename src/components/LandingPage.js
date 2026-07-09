@@ -39,14 +39,15 @@ export default function LandingPage() {
     };
   }, []);
 
-  // Funkce vrací 3 barvy pro 3 pohybující se vrstvy
+// Funkce vrací 3 barvy a průhlednost pro 3 pohybující se vrstvy
   const getGradientColors = () => {
     switch (activeSeason) {
-      case 'winter': return { c1: '#E2929C', c2: '#7A5B6B', c3: '#2B3A67' };
-      case 'spring': return { c1: '#9FCBA4', c2: '#5C8A69', c3: '#2B5C5D' };
-      case 'summer': return { c1: '#F0BB6C', c2: '#E25B5B', c3: '#9A2A54' };
-      case 'autumn': return { c1: '#E0875B', c2: '#8B3A2B', c3: '#C98A2C' };
-      default: return { c1: '#382F3E', c2: '#2C2531', c3: '#1a161e' };
+      case 'winter': return { c1: '#E2929C', c2: '#7A5B6B', c3: '#2B3A67', op: 0.7 };
+      case 'spring': return { c1: '#9FCBA4', c2: '#5C8A69', c3: '#2B5C5D', op: 0.7 };
+      case 'summer': return { c1: '#F0BB6C', c2: '#E25B5B', c3: '#9A2A54', op: 0.7 };
+      case 'autumn': return { c1: '#E0875B', c2: '#8B3A2B', c3: '#C98A2C', op: 0.7 };
+      // Výchozí stav (když to zapneš): Jemný mix růžové, žluté a zelené s nižší průhledností
+      default: return { c1: '#E2929C', c2: '#F0BB6C', c3: '#5C8A69', op: 0.25 };
     }
   };
 
@@ -223,10 +224,11 @@ export default function LandingPage() {
         }
       `}} />
 
+{/* TADY SE DĚJE TA MAGIE S POHYBUJÍCÍM SE POZADÍM */}
       <div className="mesh-background">
-        <div className="mesh-orb orb-1" style={{ background: colors.c1 }}></div>
-        <div className="mesh-orb orb-2" style={{ background: colors.c2 }}></div>
-        <div className="mesh-orb orb-3" style={{ background: colors.c3 }}></div>
+        <div className="mesh-orb orb-1" style={{ background: colors.c1, opacity: colors.op }}></div>
+        <div className="mesh-orb orb-2" style={{ background: colors.c2, opacity: colors.op }}></div>
+        <div className="mesh-orb orb-3" style={{ background: colors.c3, opacity: colors.op }}></div>
       </div>
       <div className="noise-overlay"></div>
 
