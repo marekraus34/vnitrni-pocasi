@@ -1,5 +1,6 @@
 "use client";
 
+import LandingPage from "@/components/LandingPage";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -137,9 +138,7 @@ export default function Home() {
 
   // Načtení dat z MongoDB po přihlášení
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-    } else if (status === "authenticated") {
+    if (status === "authenticated") {
       fetch("/api/user")
         .then(res => res.json())
         .then(data => {
@@ -217,9 +216,10 @@ export default function Home() {
     setJMood(null); setJSleep(null); setJStress(null); setJSymptoms([]); setJNote("");
   };
 
-  if (loading || status === "loading") {
-    return <p className="loading-msg" style={{ marginTop: "40px" }}>Načítám...</p>;
-  }
+  // ====== TADY JSOU TY PODMÍNKY ======
+  if (status === "loading") return <p className="loading-msg" style={{ marginTop: "40px" }}>Načítám...</p>;
+  if (status === "unauthenticated") return <LandingPage />;
+  if (loading) return <p className="loading-msg" style={{ marginTop: "40px" }}>Načítám...</p>;
   if (!session) return null;
 
   // Renderování Onboardingu
@@ -467,7 +467,6 @@ export default function Home() {
                   required 
                 />
               </label>
-
               <RatingRow label={t('j_rating_legend')} val={jMood} setter={setJMood} />
               <RatingRow label={t('j_sleep_legend')} val={jSleep} setter={setJSleep} />
               <RatingRow label={t('j_stress_legend')} val={jStress} setter={setJStress} />
