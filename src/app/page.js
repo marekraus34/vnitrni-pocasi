@@ -176,6 +176,29 @@ export default function Home() {
     syncData(newSettings, journal);
   };
 
+  // Uložení Profilu (z hlavní stránky)
+  const handleProfileSave = (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    syncData({
+      ...settings,
+      age: fd.get('age'),
+      activity: fd.get('activity'),
+      contraception: fd.get('pill') === 'on'
+    }, journal);
+  };
+
+  // Uložení Systému (Délka cyklu/menstruace)
+  const handleSystemSave = (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    syncData({
+      ...settings,
+      cycleLength: parseInt(fd.get('cycleLength')),
+      periodLength: parseInt(fd.get('periodLength'))
+    }, journal);
+  };
+
   // Přidání nové menstruace
   const handleAddPeriod = (e) => {
     e.preventDefault();
@@ -212,15 +235,15 @@ export default function Home() {
           <h2>{t('ob_h2')}</h2>
           <form onSubmit={handleOnboarding}>
             <label className="field"><span>{t('ob_start_label')}</span><input type="date" name="start" required /></label>
-            <div className="row-2">
-              <label className="field"><span>{t('ob_cycle_label')}</span><input type="number" name="cycle" defaultValue="28" required /></label>
-              <label className="field"><span>{t('ob_period_label')}</span><input type="number" name="period" defaultValue="5" required /></label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
+              <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('ob_cycle_label')}</span><input type="number" name="cycle" defaultValue="28" required /></label>
+              <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('ob_period_label')}</span><input type="number" name="period" defaultValue="5" required /></label>
             </div>
             <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid var(--border)" }}>
               <span style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink-dim)", marginBottom: "12px", textTransform: "uppercase" }}>{t('profile_summary')}</span>
-              <div className="row-2">
-                <label className="field"><span>{t('prof_age')}</span><input type="number" name="age" /></label>
-                <label className="field">
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
+                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('prof_age')}</span><input type="number" name="age" /></label>
+                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}>
                   <span>{t('prof_activity')}</span>
                   <select name="activity" defaultValue="light">
                     <option value="sedentary">{t('act_sedentary')}</option>
@@ -284,7 +307,7 @@ export default function Home() {
   const RatingRow = ({ label, val, setter }) => (
     <fieldset className="field-group">
       <legend>{label}</legend>
-      <div className="rating-buttons">
+      <div className="rating-buttons" style={{ flexWrap: "wrap" }}>
         {[1, 2, 3, 4, 5].map(v => (
           <button key={v} type="button" className={`rating-btn ${val === v ? 'active' : ''}`} onClick={() => setter(v)}>{v}</button>
         ))}
@@ -402,16 +425,42 @@ export default function Home() {
           </div>
         </details>
 
+        {/* Profil a životní styl */}
+        <details className="settings" style={{ marginTop: "14px" }}>
+          <summary><span className="summary-title">{t('profile_summary')}</span></summary>
+          <div className="settings-body">
+            <form onSubmit={handleProfileSave}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
+                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}>
+                  <span>{t('prof_age')}</span>
+                  <input type="number" name="age" defaultValue={settings.age} />
+                </label>
+                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}>
+                  <span>{t('prof_activity')}</span>
+                  <select name="activity" defaultValue={settings.activity}>
+                    <option value="sedentary">{t('act_sedentary')}</option>
+                    <option value="light">{t('act_light')}</option>
+                    <option value="active">{t('act_active')}</option>
+                    <option value="athlete">{t('act_athlete')}</option>
+                  </select>
+                </label>
+              </div>
+              <label className="field checkbox" style={{ flexDirection: "row", alignItems: "center", gap: "12px" }}>
+                <input type="checkbox" name="pill" defaultChecked={settings.contraception} /> <span>{t('prof_pill')}</span>
+              </label>
+              <button type="submit" className="btn-primary" style={{ marginTop: "12px" }}>{t('settings_submit')}</button>
+            </form>
+          </div>
+        </details>
+
         {/* Deník */}
         <details className="settings" style={{ marginTop: "14px" }}>
           <summary><span className="summary-title">{t('journal_summary')}</span></summary>
           <div className="settings-body">
             <form onSubmit={handleSaveJournal}>
               <RatingRow label={t('j_rating_legend')} val={jMood} setter={setJMood} />
-              <div className="row-2">
-                <RatingRow label={t('j_sleep_legend')} val={jSleep} setter={setJSleep} />
-                <RatingRow label={t('j_stress_legend')} val={jStress} setter={setJStress} />
-              </div>
+              <RatingRow label={t('j_sleep_legend')} val={jSleep} setter={setJSleep} />
+              <RatingRow label={t('j_stress_legend')} val={jStress} setter={setJStress} />
               <fieldset className="field-group">
                 <legend>{t('j_symptoms_legend')}</legend>
                 <div className="symptom-tags">
@@ -463,6 +512,19 @@ export default function Home() {
         </details>
 
         {/* Systém a Odhlášení */}
+        <details className="settings" style={{ marginTop: "14px" }}>
+          <summary><span className="summary-title">{t('settings_summary')}</span></summary>
+          <div className="settings-body">
+            <form onSubmit={handleSystemSave}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
+                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('set_cycle_label')}</span><input type="number" name="cycleLength" defaultValue={settings.cycleLength} required /></label>
+                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('set_period_label')}</span><input type="number" name="periodLength" defaultValue={settings.periodLength} required /></label>
+              </div>
+              <button type="submit" className="btn-primary">{t('settings_submit')}</button>
+            </form>
+          </div>
+        </details>
+
         <div style={{ marginTop: "28px", textAlign: "center" }}>
           <p style={{ fontSize: "13px", color: "var(--ink-dim)", marginBottom: "12px" }}>Přihlášen jako: {session.user.email}</p>
           <button onClick={() => signOut()} style={{ background: "none", border: "1px solid var(--border)", color: "var(--ink)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", cursor: "pointer" }}>Odhlásit se</button>
