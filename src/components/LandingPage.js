@@ -1,9 +1,25 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 export default function LandingPage() {
+  // Stav, který sleduje, nad jakým ročním obdobím má uživatel zrovna myš
+  const [hoveredSeason, setHoveredSeason] = useState(null);
+
+  // Funkce, která mění pozadí podle aktivního období
+  const getDynamicBackground = () => {
+    switch (hoveredSeason) {
+      case 'winter': return 'radial-gradient(circle at 50% 60%, rgba(226,146,156,0.18) 0%, var(--bg) 70%)';
+      case 'spring': return 'radial-gradient(circle at 50% 60%, rgba(159,203,164,0.18) 0%, var(--bg) 70%)';
+      case 'summer': return 'radial-gradient(circle at 50% 60%, rgba(240,187,108,0.18) 0%, var(--bg) 70%)';
+      case 'autumn': return 'radial-gradient(circle at 50% 60%, rgba(224,135,91,0.18) 0%, var(--bg) 70%)';
+      default: return 'radial-gradient(circle at 50% 0%, rgba(245,238,232,0.04) 0%, var(--bg) 60%)';
+    }
+  };
+
   return (
     <div className="landing-wrapper">
-      {/* Speciální CSS jen pro Landing Page (animace, hover efekty, organický vzhled) */}
       <style dangerouslySetInnerHTML={{ __html: `
         .landing-wrapper {
           --glass: rgba(44, 37, 49, 0.4);
@@ -11,48 +27,37 @@ export default function LandingPage() {
           position: relative;
           overflow-x: hidden;
           padding: 0 18px;
+          min-height: 100vh;
         }
         
-        /* Dýchající organické pozadí (simulace počasí) */
-        .ambient-bg {
-          position: absolute;
-          top: -10%; left: 50%;
-          transform: translateX(-50%);
-          width: 800px; height: 800px;
-          background: radial-gradient(circle, rgba(226,146,156,0.08) 0%, rgba(159,203,164,0.05) 35%, rgba(34,29,39,0) 70%);
-          filter: blur(80px);
-          z-index: -1;
-          animation: breathe 12s ease-in-out infinite alternate;
+        /* Nové dynamické pozadí měnící se podle ročních období */
+        .dynamic-ambient-bg {
+          position: fixed;
+          inset: 0;
+          z-index: -2;
+          transition: background 1s cubic-bezier(0.2, 0.8, 0.2, 1);
           pointer-events: none;
         }
 
-        @keyframes breathe {
-          0% { transform: translateX(-50%) scale(0.9); opacity: 0.6; }
-          100% { transform: translateX(-50%) scale(1.1); opacity: 1; }
-        }
-
-        /* Elegantní typografie z inspirace */
         .hero-title {
           font-family: var(--font-display);
-          font-size: clamp(42px, 10vw, 72px);
+          font-size: clamp(42px, 10vw, 76px);
           font-weight: 500;
           line-height: 1.05;
           letter-spacing: -0.02em;
           margin-bottom: 24px;
-          background: linear-gradient(180deg, var(--ink) 0%, var(--ink-dim) 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+          color: var(--ink);
         }
 
         .section-title {
           font-family: var(--font-display);
-          font-size: clamp(28px, 6vw, 42px);
+          font-size: clamp(32px, 6vw, 48px);
           font-weight: 500;
           margin-bottom: 16px;
           color: var(--ink);
         }
 
-        /* Interaktivní karty 4 ročních období */
+        /* Karty období */
         .season-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -66,8 +71,8 @@ export default function LandingPage() {
           backdrop-filter: blur(12px);
           border-radius: var(--radius);
           padding: 32px 24px;
-          transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-          cursor: default;
+          transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+          cursor: pointer;
           position: relative;
           overflow: hidden;
         }
@@ -77,93 +82,82 @@ export default function LandingPage() {
           position: absolute;
           top: 0; left: 0; right: 0; height: 4px;
           background: var(--card-accent);
-          opacity: 0.3;
-          transition: opacity 0.4s;
+          opacity: 0;
+          transition: opacity 0.5s;
         }
 
         .season-card:hover {
-          transform: translateY(-5px);
+          transform: translateY(-8px) scale(1.02);
           border-color: var(--card-accent);
-          background: rgba(44, 37, 49, 0.8);
-          box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+          background: rgba(44, 37, 49, 0.9);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
         .season-card:hover::before {
           opacity: 1;
         }
 
-        .season-icon {
-          font-size: 32px;
-          margin-bottom: 16px;
-          display: block;
+        /* Nový realistický rámeček pro tvůj screenshot */
+        .real-mockup {
+          width: 100%;
+          max-width: 300px;
+          aspect-ratio: 9/19;
+          margin: 60px auto 0;
+          border-radius: 36px;
+          background: var(--surface-2);
+          box-shadow: 0 40px 80px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.1);
+          border: 10px solid #1a161e;
+          position: relative;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: 20px;
+        }
+        
+        .real-mockup img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          z-index: 2;
         }
 
-        .season-name {
+        .mockup-placeholder-text {
           font-family: var(--font-mono);
-          font-size: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.15em;
-          color: var(--card-accent);
-          margin-bottom: 8px;
-        }
-
-        .season-desc {
-          font-size: 15px;
+          font-size: 13px;
           color: var(--ink-dim);
-          line-height: 1.6;
+          line-height: 1.5;
+          z-index: 1;
         }
 
-        /* Sekce "Jak to funguje" */
         .step-row {
           display: flex;
           align-items: flex-start;
           gap: 24px;
-          padding: 24px 0;
+          padding: 32px 0;
           border-bottom: 1px solid var(--glass-border);
         }
         
         .step-num {
           font-family: var(--font-display);
-          font-size: 48px;
+          font-size: 56px;
           color: var(--surface-2);
           line-height: 0.8;
           font-style: italic;
         }
-
-        /* Mockup telefonu (Placeholder pro tvůj screen) */
-        .phone-mockup {
-          width: 100%;
-          max-width: 320px;
-          aspect-ratio: 9/19;
-          margin: 60px auto 0;
-          border-radius: 40px;
-          border: 8px solid var(--surface-2);
-          background: linear-gradient(145deg, var(--surface) 0%, var(--bg) 100%);
-          box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,255,255,0.05);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .mockup-circle {
-          width: 140px; height: 140px;
-          border-radius: 50%;
-          border: 12px solid var(--summer);
-          border-top-color: var(--surface-2);
-          transform: rotate(-45deg);
-        }
       `}} />
 
-      <div className="ambient-bg"></div>
+      {/* Tento div se plynule přebarvuje podle Hoveru */}
+      <div className="dynamic-ambient-bg" style={{ background: getDynamicBackground() }}></div>
 
       <div style={{ maxWidth: "900px", margin: "0 auto", paddingBottom: "100px" }}>
         
         {/* HERO SEKCE */}
-        <header style={{ textAlign: "center", paddingTop: "80px", paddingBottom: "40px" }}>
-          <p className="eyebrow" style={{ color: "var(--summer)", marginBottom: "16px" }}>Seznamte se: Vnitřní počasí</p>
+        <header style={{ textAlign: "center", paddingTop: "100px", paddingBottom: "40px" }}>
+          <p className="eyebrow" style={{ color: "var(--ink-dim)", marginBottom: "20px" }}>Seznamte se: Vnitřní počasí</p>
           <h1 className="hero-title">
             Pochopte její cyklus.<br />Předpovězte náladu.
           </h1>
@@ -180,91 +174,87 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Vizuál (Telefon) */}
-          <div className="phone-mockup">
-            <div className="mockup-circle"></div>
-            <div style={{ marginTop: "24px", width: "60%", height: "8px", background: "var(--surface-2)", borderRadius: "4px" }}></div>
-            <div style={{ marginTop: "12px", width: "40%", height: "8px", background: "var(--surface-2)", borderRadius: "4px" }}></div>
+          {/* Vizuál - Rámeček připravený na tvůj screenshot */}
+          <div className="real-mockup">
+            {/* Po nahrání fotky se automaticky zobrazí. Dokud fotka není, ukazuje se text pod ní. */}
+            <img src="/app-preview.png" alt="Ukázka aplikace" onError={(e) => e.target.style.display='none'} />
+            <div className="mockup-placeholder-text">
+              Nahraj snímek obrazovky<br/><br/>Pojmenuj ho:<br/><strong>app-preview.png</strong><br/><br/>a vlož ho do složky <strong>public</strong>.
+            </div>
           </div>
         </header>
 
-        {/* PROBLÉM VS. ŘEŠENÍ */}
-        <section style={{ marginTop: "120px", textAlign: "center", maxWidth: "600px", margin: "120px auto 0" }}>
-          <h2 className="section-title">Včera to byl skvělý nápad. Dnes je to důvod k hádce.</h2>
-          <p style={{ fontSize: "16px", color: "var(--ink-dim)", lineHeight: "1.7" }}>
-            Znáte ten pocit, kdy plánujete výlet, ale ona chce najednou zůstat doma pod dekou? Problém není ve vás. Během 28 dnů se v ženském těle vystřídají 4 různé hormonální fáze. Každá vyžaduje jiný přístup.
-          </p>
-        </section>
-
-        {/* 4 ROČNÍ OBDOBÍ (Interaktivní) */}
-        <section style={{ marginTop: "80px" }}>
+        {/* 4 ROČNÍ OBDOBÍ (S hover efektem) */}
+        <section style={{ marginTop: "120px" }}>
           <h2 className="section-title" style={{ textAlign: "center" }}>4 Fáze. 4 Roční období.</h2>
-          <div className="season-grid">
+          <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px" }}>Přejeďte myší přes období pro změnu atmosféry.</p>
+          
+          <div className="season-grid" onMouseLeave={() => setHoveredSeason(null)}>
             
-            <div className="season-card" style={{ '--card-accent': 'var(--winter)' }}>
-              <span className="season-icon">❄️</span>
-              <h3 className="season-name">Zima (Menstruace)</h3>
-              <p className="season-desc">Energie je na minimu. Tělo potřebuje klid. Skvělý čas na termofor, horký čaj a film na gauči. Náročné plány odložte.</p>
+            <div className="season-card" style={{ '--card-accent': 'var(--winter)' }} onMouseEnter={() => setHoveredSeason('winter')}>
+              <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>❄️</span>
+              <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--winter)", marginBottom: "8px" }}>Zima (Menstruace)</h3>
+              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie je na minimu. Tělo potřebuje klid. Skvělý čas na termofor a film. Náročné plány odložte.</p>
             </div>
 
-            <div className="season-card" style={{ '--card-accent': 'var(--spring)' }}>
-              <span className="season-icon">🌱</span>
-              <h3 className="season-name">Jaro (Folikulární)</h3>
-              <p className="season-desc">Hormony se probouzí. Její nálada stoupá, roste chuť do nových věcí. Ideální čas navrhnout nový sport nebo výlet.</p>
+            <div className="season-card" style={{ '--card-accent': 'var(--spring)' }} onMouseEnter={() => setHoveredSeason('spring')}>
+              <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>🌱</span>
+              <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--spring)", marginBottom: "8px" }}>Jaro (Folikulární)</h3>
+              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Hormony se probouzí. Její nálada stoupá, roste chuť do nových věcí. Ideální čas navrhnout nový sport nebo výlet.</p>
             </div>
 
-            <div className="season-card" style={{ '--card-accent': 'var(--summer)' }}>
-              <span className="season-icon">☀️</span>
-              <h3 className="season-name">Léto (Ovulace)</h3>
-              <p className="season-desc">Vrchol měsíce. Energie a sebevědomí jsou na maximu. Nejlepší doba na velké společenské akce a těžké rozhovory.</p>
+            <div className="season-card" style={{ '--card-accent': 'var(--summer)' }} onMouseEnter={() => setHoveredSeason('summer')}>
+              <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>☀️</span>
+              <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--summer)", marginBottom: "8px" }}>Léto (Ovulace)</h3>
+              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Vrchol měsíce. Energie a sebevědomí jsou na maximu. Nejlepší doba na společenské akce a těžké rozhovory.</p>
             </div>
 
-            <div className="season-card" style={{ '--card-accent': 'var(--autumn)' }}>
-              <span className="season-icon">🍂</span>
-              <h3 className="season-name">Podzim (Luteální)</h3>
-              <p className="season-desc">Energie klesá, přichází PMS. Může být citlivější a podrážděná. Buďte trpěliví a uberte na nárocích i stresu.</p>
+            <div className="season-card" style={{ '--card-accent': 'var(--autumn)' }} onMouseEnter={() => setHoveredSeason('autumn')}>
+              <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>🍂</span>
+              <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--autumn)", marginBottom: "8px" }}>Podzim (Luteální)</h3>
+              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie klesá, přichází PMS. Může být podrážděná. Buďte trpěliví a uberte na nárocích i stresu.</p>
             </div>
 
           </div>
         </section>
 
         {/* JAK TO FUNGUJE */}
-        <section style={{ marginTop: "120px", maxWidth: "600px", margin: "120px auto 0" }}>
+        <section style={{ marginTop: "140px", maxWidth: "600px", margin: "140px auto 0" }}>
           <h2 className="section-title">Jak to funguje?</h2>
           
           <div className="step-row">
             <span className="step-num">1</span>
             <div>
-              <h3 style={{ fontSize: "18px", marginBottom: "8px" }}>Zadejte základní data</h3>
-              <p style={{ color: "var(--ink-dim)", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Zeptejte se jí, kdy naposledy začala krvácet a jak zhruba dlouhý má cyklus. To je vše, co potřebujete do začátku.</p>
+              <h3 style={{ fontSize: "20px", marginBottom: "8px" }}>Zadejte základní data</h3>
+              <p style={{ color: "var(--ink-dim)", fontSize: "16px", lineHeight: "1.6", margin: 0 }}>Zeptejte se jí, kdy naposledy začala krvácet a jak zhruba dlouhý má cyklus. To je vše, co do začátku potřebujete.</p>
             </div>
           </div>
           
           <div className="step-row">
             <span className="step-num">2</span>
             <div>
-              <h3 style={{ fontSize: "18px", marginBottom: "8px" }}>Sledujte radar a tipy</h3>
-              <p style={{ color: "var(--ink-dim)", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Aplikace vám každý den ukáže, v jakém je období a navrhne vám, co přesně dělat (a čemu se vyvarovat).</p>
+              <h3 style={{ fontSize: "20px", marginBottom: "8px" }}>Sledujte radar a tipy</h3>
+              <p style={{ color: "var(--ink-dim)", fontSize: "16px", lineHeight: "1.6", margin: 0 }}>Aplikace vám každý den ukáže, v jakém je období a navrhne vám, co přesně dělat (a čemu se raději vyhnout).</p>
             </div>
           </div>
           
           <div className="step-row" style={{ borderBottom: "none" }}>
             <span className="step-num">3</span>
             <div>
-              <h3 style={{ fontSize: "18px", marginBottom: "8px" }}>Získávejte kontext</h3>
-              <p style={{ color: "var(--ink-dim)", fontSize: "15px", lineHeight: "1.6", margin: 0 }}>Zapisujte si její stres nebo špatný spánek. Aplikace to vyhodnotí a upozorní vás, když bude potřebovat více vaší podpory.</p>
+              <h3 style={{ fontSize: "20px", marginBottom: "8px" }}>Získávejte kontext</h3>
+              <p style={{ color: "var(--ink-dim)", fontSize: "16px", lineHeight: "1.6", margin: 0 }}>Zapisujte si její stres nebo špatný spánek. Aplikace data analyzuje a upozorní vás, když bude potřebovat více podpory.</p>
             </div>
           </div>
         </section>
 
         {/* FOOTER */}
-        <footer style={{ marginTop: "120px", textAlign: "center", paddingTop: "40px", borderTop: "1px solid var(--glass-border)" }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "28px", marginBottom: "24px" }}>Jste připraveni vylepšit svůj vztah?</h2>
-          <Link href="/register" className="btn-primary" style={{ textDecoration: "none", width: "auto", padding: "14px 32px", display: "inline-block" }}>
-            Začít používat aplikaci
+        <footer style={{ marginTop: "120px", textAlign: "center", paddingTop: "60px", borderTop: "1px solid var(--glass-border)" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", marginBottom: "24px" }}>Jste připraveni mít ve vztahu jasno?</h2>
+          <Link href="/register" className="btn-primary" style={{ textDecoration: "none", width: "auto", padding: "16px 36px", display: "inline-block", fontSize: "16px" }}>
+            Vytvořit účet a začít
           </Link>
           <p style={{ marginTop: "40px", color: "var(--ink-dim)", fontSize: "12px", fontFamily: "var(--font-mono)" }}>
-            ZÁRUKA SOUKROMÍ: Data jsou bezpečně šifrována na cloudu a nejsou sdílena s třetími stranami.
+            Vaše data jsou u nás v bezpečí a plně šifrovaná.
             <br/><br/>
             © 2026 Vnitřní počasí
           </p>
