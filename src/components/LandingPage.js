@@ -1,24 +1,52 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function LandingPage() {
-  const [hoveredSeason, setHoveredSeason] = useState(null);
+  const [activeSeason, setActiveSeason] = useState(null);
 
-  // Funkce vrací 3 barvy pro 3 pohybující se vrstvy podle vybrané fáze
+  // Sledování scrollování a zjišťování, co je zrovna uprostřed obrazovky
+  useEffect(() => {
+    // Sledujeme karty ročních období (spustí se, když je karta zhruba uprostřed obrazovky)
+    const cardObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setActiveSeason(entry.target.dataset.season);
+        }
+      });
+    }, { 
+      // Ignoruje vrchních a spodních 35% obrazovky. Reaguje jen na prostředek.
+      rootMargin: "-35% 0px -35% 0px" 
+    });
+
+    const cards = document.querySelectorAll('.season-card');
+    cards.forEach(card => cardObserver.observe(card));
+
+    // Sledujeme hlavičku, aby se pozadí vrátilo do normálu, když vyjedeš úplně nahoru
+    const headerObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setActiveSeason(null);
+      }
+    }, { threshold: 0.3 });
+    
+    const header = document.getElementById('landing-header');
+    if (header) headerObserver.observe(header);
+
+    return () => {
+      cardObserver.disconnect();
+      headerObserver.disconnect();
+    };
+  }, []);
+
+  // Funkce vrací 3 barvy pro 3 pohybující se vrstvy
   const getGradientColors = () => {
-    switch (hoveredSeason) {
-      case 'winter': 
-        return { c1: '#E2929C', c2: '#7A5B6B', c3: '#2B3A67' }; // Růžová, tlumená fialová, temně modrá
-      case 'spring': 
-        return { c1: '#9FCBA4', c2: '#5C8A69', c3: '#2B5C5D' }; // Zelená, mechová, teal (modrozelená)
-      case 'summer': 
-        return { c1: '#F0BB6C', c2: '#E25B5B', c3: '#9A2A54' }; // Žlutooranžová, červená, magenta
-      case 'autumn': 
-        return { c1: '#E0875B', c2: '#8B3A2B', c3: '#C98A2C' }; // Oranžová, cihlová, zlatá
-      default: 
-        return { c1: '#382F3E', c2: '#2C2531', c3: '#1a161e' }; // Výchozí (skoro neviditelné, tmavé tóny)
+    switch (activeSeason) {
+      case 'winter': return { c1: '#E2929C', c2: '#7A5B6B', c3: '#2B3A67' };
+      case 'spring': return { c1: '#9FCBA4', c2: '#5C8A69', c3: '#2B5C5D' };
+      case 'summer': return { c1: '#F0BB6C', c2: '#E25B5B', c3: '#9A2A54' };
+      case 'autumn': return { c1: '#E0875B', c2: '#8B3A2B', c3: '#C98A2C' };
+      default: return { c1: '#382F3E', c2: '#2C2531', c3: '#1a161e' };
     }
   };
 
@@ -36,39 +64,34 @@ export default function LandingPage() {
           min-height: 100vh;
         }
         
-        /* 1. ZÁKLADNÍ POZADÍ */
         .mesh-background {
           position: fixed;
           inset: 0;
           z-index: -3;
-          background: var(--bg); /* Základní barva #221D27 */
+          background: var(--bg);
           overflow: hidden;
         }
 
-        /* 2. POHYBUJÍCÍ SE BAREVNÉ VRSTVY (AURORA EFEKT) */
         .mesh-orb {
           position: absolute;
           border-radius: 50%;
-          filter: blur(100px); /* Extrémní rozostření pro vytvoření gradientu */
+          filter: blur(100px);
           opacity: 0.6;
           transition: background 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        /* Spodní široká vlna */
         .orb-1 {
           width: 120vw; height: 60vh;
           bottom: -30vh; left: -10vw;
           animation: float1 14s infinite alternate ease-in-out;
         }
         
-        /* Pravá zvedající se vlna */
         .orb-2 {
           width: 80vw; height: 80vh;
           bottom: -40vh; right: -20vw;
           animation: float2 18s infinite alternate-reverse ease-in-out;
         }
 
-        /* Levá stoupající aura */
         .orb-3 {
           width: 90vw; height: 70vh;
           bottom: -20vh; left: -20vw;
@@ -88,7 +111,6 @@ export default function LandingPage() {
           100% { transform: translate(10vw, -15vh) rotate(-5deg) scale(1.2); }
         }
 
-        /* 3. TAJNÁ PŘÍSADA: ŠUM (NOISE TEXTURE) PRO PRÉMIOVÝ VZHLED */
         .noise-overlay {
           position: fixed;
           inset: 0;
@@ -98,7 +120,6 @@ export default function LandingPage() {
           pointer-events: none;
         }
 
-        /* Zbytek stylů pro UI (karty, texty) */
         .hero-title {
           font-family: var(--font-display);
           font-size: clamp(42px, 10vw, 76px);
@@ -107,7 +128,7 @@ export default function LandingPage() {
           letter-spacing: -0.02em;
           margin-bottom: 24px;
           color: var(--ink);
-          text-shadow: 0 4px 20px rgba(0,0,0,0.3); /* Lehce podbarvený text pro čitelnost na světlém pozadí */
+          text-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
         .section-title {
@@ -146,14 +167,15 @@ export default function LandingPage() {
           transition: opacity 0.5s;
         }
 
-        .season-card:hover {
+        /* Upraveno: Karta reaguje na hover myši i na .active třídu při scrollování */
+        .season-card:hover, .season-card.active {
           transform: translateY(-8px) scale(1.02);
           border-color: var(--card-accent);
           background: rgba(44, 37, 49, 0.7);
           box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
-        .season-card:hover::before {
+        .season-card:hover::before, .season-card.active::before {
           opacity: 1;
         }
 
@@ -201,7 +223,6 @@ export default function LandingPage() {
         }
       `}} />
 
-      {/* TADY SE DĚJE TA MAGIE S POHYBUJÍCÍM SE POZADÍM */}
       <div className="mesh-background">
         <div className="mesh-orb orb-1" style={{ background: colors.c1 }}></div>
         <div className="mesh-orb orb-2" style={{ background: colors.c2 }}></div>
@@ -211,8 +232,8 @@ export default function LandingPage() {
 
       <div style={{ maxWidth: "900px", margin: "0 auto", paddingBottom: "100px", position: "relative", zIndex: 1 }}>
         
-        {/* HERO SEKCE */}
-        <header style={{ textAlign: "center", paddingTop: "100px", paddingBottom: "40px" }}>
+        {/* HERO SEKCE (Při najetí na začátek stránky se pozadí zklidní) */}
+        <header id="landing-header" style={{ textAlign: "center", paddingTop: "100px", paddingBottom: "40px" }}>
           <p className="eyebrow" style={{ color: "var(--ink-dim)", marginBottom: "20px" }}>Seznamte se: Vnitřní počasí</p>
           <h1 className="hero-title">
             Pochopte její cyklus.<br />Předpovězte náladu.
@@ -241,29 +262,49 @@ export default function LandingPage() {
         {/* 4 ROČNÍ OBDOBÍ */}
         <section style={{ marginTop: "120px" }}>
           <h2 className="section-title" style={{ textAlign: "center" }}>4 Fáze. 4 Roční období.</h2>
-          <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px" }}>Přejeďte myší přes období a sledujte, jak se změní atmosféra.</p>
+          <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px" }}>Jak budete posouvat stránku, prostředí se bude automaticky měnit.</p>
           
-          <div className="season-grid" onMouseLeave={() => setHoveredSeason(null)}>
+          <div className="season-grid" onMouseLeave={() => setActiveSeason(null)}>
             
-            <div className="season-card" style={{ '--card-accent': 'var(--winter)' }} onMouseEnter={() => setHoveredSeason('winter')}>
+            <div 
+              className={`season-card ${activeSeason === 'winter' ? 'active' : ''}`} 
+              data-season="winter"
+              style={{ '--card-accent': 'var(--winter)' }} 
+              onMouseEnter={() => setActiveSeason('winter')}
+            >
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>❄️</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--winter)", marginBottom: "8px" }}>Zima (Menstruace)</h3>
               <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie je na minimu. Tělo potřebuje klid. Skvělý čas na termofor a film. Náročné plány odložte.</p>
             </div>
 
-            <div className="season-card" style={{ '--card-accent': 'var(--spring)' }} onMouseEnter={() => setHoveredSeason('spring')}>
+            <div 
+              className={`season-card ${activeSeason === 'spring' ? 'active' : ''}`} 
+              data-season="spring"
+              style={{ '--card-accent': 'var(--spring)' }} 
+              onMouseEnter={() => setActiveSeason('spring')}
+            >
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>🌱</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--spring)", marginBottom: "8px" }}>Jaro (Folikulární)</h3>
               <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Hormony se probouzí. Její nálada stoupá, roste chuť do nových věcí. Ideální čas navrhnout nový sport nebo výlet.</p>
             </div>
 
-            <div className="season-card" style={{ '--card-accent': 'var(--summer)' }} onMouseEnter={() => setHoveredSeason('summer')}>
+            <div 
+              className={`season-card ${activeSeason === 'summer' ? 'active' : ''}`} 
+              data-season="summer"
+              style={{ '--card-accent': 'var(--summer)' }} 
+              onMouseEnter={() => setActiveSeason('summer')}
+            >
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>☀️</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--summer)", marginBottom: "8px" }}>Léto (Ovulace)</h3>
               <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Vrchol měsíce. Energie a sebevědomí jsou na maximu. Nejlepší doba na společenské akce a těžké rozhovory.</p>
             </div>
 
-            <div className="season-card" style={{ '--card-accent': 'var(--autumn)' }} onMouseEnter={() => setHoveredSeason('autumn')}>
+            <div 
+              className={`season-card ${activeSeason === 'autumn' ? 'active' : ''}`} 
+              data-season="autumn"
+              style={{ '--card-accent': 'var(--autumn)' }} 
+              onMouseEnter={() => setActiveSeason('autumn')}
+            >
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>🍂</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--autumn)", marginBottom: "8px" }}>Podzim (Luteální)</h3>
               <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie klesá, přichází PMS. Může být podrážděná. Buďte trpěliví a uberte na nárocích i stresu.</p>
