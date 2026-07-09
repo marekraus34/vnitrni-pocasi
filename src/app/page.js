@@ -458,6 +458,16 @@ export default function Home() {
           <summary><span className="summary-title">{t('journal_summary')}</span></summary>
           <div className="settings-body">
             <form onSubmit={handleSaveJournal}>
+              <label className="field" style={{ marginBottom: "16px" }}>
+                <span>{t('j_date_label')}</span>
+                <input 
+                  type="date" 
+                  value={toIso(selectedDate)} 
+                  onChange={e => e.target.value && setSelectedDate(new Date(e.target.value))} 
+                  required 
+                />
+              </label>
+
               <RatingRow label={t('j_rating_legend')} val={jMood} setter={setJMood} />
               <RatingRow label={t('j_sleep_legend')} val={jSleep} setter={setJSleep} />
               <RatingRow label={t('j_stress_legend')} val={jStress} setter={setJStress} />
