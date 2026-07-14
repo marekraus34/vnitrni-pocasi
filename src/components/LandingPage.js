@@ -315,32 +315,139 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* JAK TO FUNGUJE */}
-        <section style={{ marginTop: "140px", maxWidth: "600px", margin: "140px auto 0" }}>
-          <h2 className="section-title">Jak to funguje?</h2>
+{/* BENTO BOX GRID (Jak to funguje) */}
+        <section style={{ marginTop: "160px", position: "relative", zIndex: 10 }}>
+          <h2 className="section-title" style={{ textAlign: "center", marginBottom: "16px" }}>Všechno, co potřebujete, v jedné aplikaci</h2>
+          <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px", fontSize: "16px" }}>Žádné složité tabulky. Jen čistá data a jasné instrukce.</p>
           
-          <div className="step-row">
-            <span className="step-num">1</span>
-            <div>
-              <h3 style={{ fontSize: "20px", marginBottom: "8px" }}>Zadejte základní data</h3>
-              <p style={{ color: "var(--ink-dim)", fontSize: "16px", lineHeight: "1.6", margin: 0 }}>Zeptejte se jí, kdy naposledy začala krvácet a jak zhruba dlouhý má cyklus. To je vše, co do začátku potřebujete.</p>
+          <style dangerouslySetInnerHTML={{ __html: `
+            .bento-grid {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              grid-auto-rows: 240px;
+              gap: 20px;
+            }
+            .bento-card {
+              background: linear-gradient(145deg, rgba(44, 37, 49, 0.6) 0%, rgba(30, 25, 34, 0.8) 100%);
+              border: 1px solid rgba(255, 255, 255, 0.05);
+              backdrop-filter: blur(20px);
+              border-radius: 32px;
+              padding: 32px;
+              display: flex;
+              flex-direction: column;
+              position: relative;
+              overflow: hidden;
+              transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+            .bento-card:hover { 
+              transform: translateY(-8px) scale(1.01); 
+              border-color: rgba(255, 255, 255, 0.15);
+              box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            }
+            .bento-card h3 { font-family: var(--font-display); font-size: 26px; margin-bottom: 12px; color: var(--ink); z-index: 2; }
+            .bento-card p { color: var(--ink-dim); font-size: 15px; line-height: 1.6; z-index: 2; margin: 0; }
+            
+            .wide { grid-column: span 2; }
+            .tall { grid-row: span 2; justify-content: flex-end; }
+            
+            /* Vizuální prvky uvnitř karet */
+            .bento-visual {
+              position: absolute;
+              z-index: 1;
+              transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+            .bento-card:hover .bento-visual { transform: scale(1.05) translate(-5px, 5px); }
+            
+            /* Radar Graphic */
+            .mini-radar {
+              width: 140px; height: 140px;
+              border-radius: 50%;
+              border: 16px solid var(--surface-2);
+              border-top-color: var(--summer);
+              border-right-color: var(--summer);
+              transform: rotate(-15deg);
+              box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            }
+
+            /* Graph Graphic */
+            .mini-graph {
+              display: flex;
+              align-items: flex-end;
+              gap: 8px;
+              height: 120px;
+            }
+            .bar { width: 24px; background: var(--surface-2); border-radius: 4px 4px 0 0; }
+            .bar.active { background: var(--autumn); }
+
+            /* Tags Graphic */
+            .mini-tags {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 8px;
+              margin-top: 24px;
+            }
+            .mini-tag {
+              background: var(--surface-2);
+              color: var(--ink-dim);
+              padding: 6px 12px;
+              border-radius: 99px;
+              font-size: 11px;
+              font-family: var(--font-mono);
+              border: 1px solid var(--border);
+            }
+            .mini-tag.highlight { background: var(--winter); color: var(--bg); border-color: var(--winter); }
+
+            @media (max-width: 800px) {
+              .bento-grid { grid-template-columns: 1fr; grid-auto-rows: auto; min-height: 240px; }
+              .wide, .tall { grid-column: span 1; grid-row: span 1; }
+            }
+          `}} />
+
+          <div className="bento-grid">
+            
+            {/* Karta 1: Radar */}
+            <div className="bento-card wide" style={{ background: "linear-gradient(145deg, rgba(240,187,108,0.1), rgba(30,25,34,0.8))" }}>
+              <div className="bento-visual" style={{ top: "-20px", right: "-20px" }}>
+                <div className="mini-radar"></div>
+              </div>
+              <div style={{ marginTop: "auto", maxWidth: "60%" }}>
+                <h3>Přesný radar fází</h3>
+                <p>Žádné zmatky. Okamžitě vidíte, v jakém ročním období se nachází, a kolik jí zbývá energie na vaše společné plány.</p>
+              </div>
             </div>
-          </div>
-          
-          <div className="step-row">
-            <span className="step-num">2</span>
-            <div>
-              <h3 style={{ fontSize: "20px", marginBottom: "8px" }}>Sledujte radar a tipy</h3>
-              <p style={{ color: "var(--ink-dim)", fontSize: "16px", lineHeight: "1.6", margin: 0 }}>Aplikace vám každý den ukáže, v jakém je období a navrhne vám, co přesně dělat (a čemu se raději vyhnout).</p>
+            
+            {/* Karta 2: Deník a příznaky */}
+            <div className="bento-card">
+              <h3>Deník nálad</h3>
+              <p>Zaznamenejte si, co zrovna prožívá.</p>
+              <div className="mini-tags">
+                <div className="mini-tag highlight">Křeče</div>
+                <div className="mini-tag">Únava</div>
+                <div className="mini-tag">Podrážděnost</div>
+              </div>
             </div>
-          </div>
-          
-          <div className="step-row" style={{ borderBottom: "none" }}>
-            <span className="step-num">3</span>
-            <div>
-              <h3 style={{ fontSize: "20px", marginBottom: "8px" }}>Získávejte kontext</h3>
-              <p style={{ color: "var(--ink-dim)", fontSize: "16px", lineHeight: "1.6", margin: 0 }}>Zapisujte si její stres nebo špatný spánek. Aplikace data analyzuje a upozorní vás, když bude potřebovat více podpory.</p>
+
+            {/* Karta 3: Analýza (Vysoká) */}
+            <div className="bento-card tall" style={{ background: "linear-gradient(180deg, rgba(226,146,156,0.1), rgba(30,25,34,0.8))" }}>
+              <div className="bento-visual" style={{ top: "40px", left: "32px", right: "32px" }}>
+                <div className="mini-graph">
+                  <div className="bar" style={{ height: "40%" }}></div>
+                  <div className="bar" style={{ height: "60%" }}></div>
+                  <div className="bar" style={{ height: "80%" }}></div>
+                  <div className="bar active" style={{ height: "100%" }}></div>
+                  <div className="bar" style={{ height: "50%" }}></div>
+                </div>
+              </div>
+              <h3>Trendová analýza</h3>
+              <p>Aplikace se učí z vašich záznamů. Zjistěte, jak moc stres ovlivňuje délku jejího cyklu, a předvídejte krize dřív, než nastanou.</p>
             </div>
+
+            {/* Karta 4: Tipy a kontext */}
+            <div className="bento-card">
+              <h3 style={{ color: "var(--spring)" }}>Konkrétní tipy</h3>
+              <p>Ke každému dni dostanete seznam "Co dělat" a "Čemu se vyhnout". Třeba kdy ji vzít na rande a kdy koupit čokoládu.</p>
+            </div>
+
           </div>
         </section>
 
