@@ -124,6 +124,10 @@ export default function Home() {
   const [settings, setSettings] = useState(null);
   const [journal, setJournal] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  // Přidán stav pro Plynulé Akordeony a Dark/Light Mode
+  const [openSection, setOpenSection] = useState(null);
+  const [theme, setTheme] = useState("dark"); // Výchozí je Dark
 
   const [jMood, setJMood] = useState(null);
   const [jSleep, setJSleep] = useState(null);
@@ -197,27 +201,44 @@ export default function Home() {
     setJMood(null); setJSleep(null); setJStress(null); setJSymptoms([]); setJNote("");
   };
 
-  if (status === "loading") return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "#09070b" }}>Načítám...</div>;
+  // PLYNULÉ OTEVÍRÁNÍ: Funkce, která sekci otevře a měkce na ni sroluje
+  const toggleSection = (sectionId) => {
+    if (openSection === sectionId) {
+      setOpenSection(null); // Zavřít
+    } else {
+      setOpenSection(sectionId); // Otevřít
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.scrollY - 90;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 300); // Počká na CSS animaci rozevření (300ms) a pak plynule sroluje
+    }
+  };
+
+  if (status === "loading") return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "var(--bg)" }}>Načítám...</div>;
   if (status === "unauthenticated") return <LandingPage />;
-  if (loading) return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "#09070b" }}>Načítám data...</div>;
+  if (loading) return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "var(--bg)" }}>Načítám data...</div>;
   if (!session) return null;
 
   if (!settings || !settings.periods || settings.periods.length === 0) {
     return (
-      <div className="app-wrapper">
+      <div className="app-wrapper" data-theme={theme}>
         <style dangerouslySetInnerHTML={{ __html: `
-          .app-wrapper { background: #09070b; min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; color: #fff; }
+          :root { --bg: #09070b; }
+          .app-wrapper { background: var(--bg); min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; color: var(--ink, #fff); }
           .ios-glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(255, 255, 255, 0.25); border-left: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2); border-radius: 32px; padding: 40px; width: 100%; max-width: 500px; }
           .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-          .field span { font-size: 13px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; }
-          input, select { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 14px; border-radius: 16px; color: #fff; font-size: 16px; outline: none; transition: border 0.3s; }
+          .field span { font-size: 13px; color: var(--ink-dim, rgba(255,255,255,0.7)); text-transform: uppercase; letter-spacing: 1px; }
+          input, select { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 14px; border-radius: 16px; color: inherit; font-size: 16px; outline: none; transition: border 0.3s; }
           input:focus, select:focus { border-color: rgba(255,255,255,0.4); }
           .btn-primary { background: #fff; color: #000; padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
           .btn-primary:hover { transform: scale(1.02); }
         `}} />
         <div className="ios-glass">
           <h2 style={{ fontSize: "28px", marginBottom: "8px", fontFamily: "var(--font-display)" }}>{t('ob_h2')}</h2>
-          <p style={{ color: "rgba(255,255,255,0.7)", marginBottom: "32px", fontSize: "15px" }}>Vyplňte základní údaje pro kalibraci radaru.</p>
+          <p style={{ color: "var(--ink-dim)", marginBottom: "32px", fontSize: "15px" }}>Vyplňte základní údaje pro kalibraci radaru.</p>
           <form onSubmit={handleOnboarding}>
             <label className="field"><span>{t('ob_start_label')}</span><input type="date" name="start" required /></label>
             <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
@@ -238,11 +259,11 @@ export default function Home() {
 
   const getGradientColors = (phase) => {
     switch (phase) {
-      case 'winter': return { c1: '#E2929C', c2: '#6B4C9A', c3: '#2B3A67', op: 0.65 };
-      case 'spring': return { c1: '#9FCBA4', c2: '#5C8A69', c3: '#185A63', op: 0.65 };
-      case 'summer': return { c1: '#F0BB6C', c2: '#E25B5B', c3: '#8E1E4F', op: 0.65 };
-      case 'autumn': return { c1: '#E0875B', c2: '#A64B2A', c3: '#5C2A3A', op: 0.65 };
-      default: return { c1: '#E2929C', c2: '#F0BB6C', c3: '#5C8A69', op: 0.3 };
+      case 'winter': return { c1: '#E2929C', c2: '#6B4C9A', c3: '#2B3A67' };
+      case 'spring': return { c1: '#9FCBA4', c2: '#5C8A69', c3: '#185A63' };
+      case 'summer': return { c1: '#F0BB6C', c2: '#E25B5B', c3: '#8E1E4F' };
+      case 'autumn': return { c1: '#E0875B', c2: '#A64B2A', c3: '#5C2A3A' };
+      default: return { c1: '#E2929C', c2: '#F0BB6C', c3: '#5C8A69' };
     }
   };
   const colors = getGradientColors(phaseKey);
@@ -269,10 +290,10 @@ export default function Home() {
 
   const RatingRow = ({ label, val, setter }) => (
     <fieldset style={{ border: "none", margin: "0 0 20px 0", padding: 0 }}>
-      <legend style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", textTransform: "uppercase", marginBottom: "8px" }}>{label}</legend>
+      <legend style={{ fontSize: "13px", color: "var(--ink-dim)", textTransform: "uppercase", marginBottom: "8px" }}>{label}</legend>
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         {[1, 2, 3, 4, 5].map(v => (
-          <button key={v} type="button" onClick={() => setter(v)} style={{ flex: 1, minWidth: "40px", padding: "12px 0", borderRadius: "12px", background: val === v ? "var(--summer)" : "rgba(255,255,255,0.08)", color: val === v ? "#000" : "#fff", border: "1px solid rgba(255,255,255,0.15)", fontWeight: val === v ? "bold" : "normal", cursor: "pointer", transition: "all 0.2s" }}>
+          <button key={v} type="button" onClick={() => setter(v)} style={{ flex: 1, minWidth: "40px", padding: "12px 0", borderRadius: "12px", background: val === v ? "var(--summer)" : "var(--input-bg)", color: val === v ? "#000" : "var(--ink)", border: "1px solid var(--input-border)", fontWeight: val === v ? "bold" : "normal", cursor: "pointer", transition: "all 0.2s" }}>
             {v}
           </button>
         ))}
@@ -280,52 +301,67 @@ export default function Home() {
     </fieldset>
   );
 
-  const openAndScroll = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.open = true;
-      setTimeout(() => {
-        const y = element.getBoundingClientRect().top + window.scrollY - 90;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }, 50);
-    }
-  };
-
-  const scrollToRadar = () => {
-    const element = document.getElementById('top-radar');
-    if (element) {
-      const y = element.getBoundingClientRect().top + window.scrollY - 90;
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    }
-  };
-
   return (
-    <div className="app-wrapper">
+    <div className="app-wrapper" data-theme={theme}>
       <style dangerouslySetInnerHTML={{ __html: `
+        /* DYNAMICKÉ CSS PROMĚNNÉ PRO DARK & LIGHT MODE */
         :root {
           --winter: #E2929C;
           --spring: #9FCBA4;
           --summer: #F0BB6C;
           --autumn: #E0875B;
+          
+          /* Dark Mode Výchozí */
           --bg: #09070b;
-          --surface-2: rgba(255,255,255,0.05);
           --ink: #ffffff;
           --ink-dim: rgba(255,255,255,0.6);
+          --surface-2: rgba(255,255,255,0.05);
+          --glass-bg: rgba(30, 25, 34, 0.45);
+          --glass-border: rgba(255, 255, 255, 0.08);
+          --glass-border-top: rgba(255, 255, 255, 0.25);
+          --glass-border-left: rgba(255, 255, 255, 0.15);
+          --glass-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
+          --input-bg: rgba(255,255,255,0.08);
+          --input-border: rgba(255,255,255,0.15);
+          --btn-bg: #fff;
+          --btn-text: #000;
+          --mesh-op: 0.65;
           --card-pad: 32px;
         }
 
-        .app-wrapper { position: relative; min-height: 100vh; color: #fff; overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; }
+        [data-theme="light"] {
+          --bg: #f2f2f7;
+          --ink: #111111;
+          --ink-dim: rgba(0,0,0,0.5);
+          --surface-2: rgba(0,0,0,0.05);
+          --glass-bg: rgba(255, 255, 255, 0.65);
+          --glass-border: rgba(0, 0, 0, 0.05);
+          --glass-border-top: rgba(255, 255, 255, 0.8);
+          --glass-border-left: rgba(255, 255, 255, 0.5);
+          --glass-shadow: 0 20px 40px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,1);
+          --input-bg: rgba(0,0,0,0.04);
+          --input-border: rgba(0,0,0,0.1);
+          --btn-bg: #111;
+          --btn-text: #fff;
+          --mesh-op: 0.4; /* Orbs jsou slabší, aby text zůstal čitelný na bílé */
+        }
+
+        .app-wrapper { position: relative; min-height: 100vh; color: var(--ink); background: var(--bg); overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; transition: background 0.5s ease; }
         h1, h2, h3, p, span, li, legend { color: inherit; }
 
-        .mesh-background { position: fixed; inset: 0; z-index: -3; background: #09070b; overflow: hidden; }
-        .mesh-orb { position: absolute; border-radius: 50%; filter: blur(100px); transition: background 2s ease, opacity 2s ease; }
-        .orb-1 { width: 120vw; height: 60vh; bottom: -30vh; left: -10vw; animation: float1 14s infinite alternate ease-in-out; }
-        .orb-2 { width: 80vw; height: 80vh; bottom: -40vh; right: -20vw; animation: float2 18s infinite alternate-reverse ease-in-out; }
-        .orb-3 { width: 90vw; height: 70vh; bottom: -20vh; left: -20vw; animation: float3 22s infinite alternate ease-in-out; }
+        /* OPRAVA POZADÍ (Nyní dýchá a zabírá celý displej) */
+        .mesh-background { position: fixed; inset: 0; z-index: -3; background: var(--bg); transition: background 0.5s ease; }
+        .mesh-orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: var(--mesh-op); transition: background 2s ease, opacity 0.5s ease; pointer-events: none; }
+        /* Orb 1: Vlevo Nahoře */
+        .orb-1 { width: 80vw; height: 80vw; top: -20vh; left: -20vw; animation: float1 14s infinite alternate ease-in-out; }
+        /* Orb 2: Vpravo Uprostřed */
+        .orb-2 { width: 90vw; height: 90vw; top: 30vh; right: -30vw; animation: float2 18s infinite alternate-reverse ease-in-out; }
+        /* Orb 3: Vlevo Dole */
+        .orb-3 { width: 100vw; height: 100vw; bottom: -30vh; left: -10vw; animation: float3 22s infinite alternate ease-in-out; }
 
-        @keyframes float1 { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(-5vh) scale(1.1); } }
-        @keyframes float2 { 0% { transform: translateX(0) scale(1); } 100% { transform: translateX(-15vw) scale(1.15); } }
-        @keyframes float3 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(10vw, -15vh) scale(1.2); } }
+        @keyframes float1 { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(5vh) scale(1.1); } }
+        @keyframes float2 { 0% { transform: translateX(0) scale(1); } 100% { transform: translateX(-5vw) scale(1.15); } }
+        @keyframes float3 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(5vw, -5vh) scale(1.2); } }
 
         .noise-overlay {
           position: fixed; inset: 0; z-index: -2;
@@ -334,78 +370,72 @@ export default function Home() {
         }
 
         .ios-glass {
-          background: rgba(30, 25, 34, 0.45);
+          background: var(--glass-bg);
           backdrop-filter: blur(48px) saturate(200%);
           -webkit-backdrop-filter: blur(48px) saturate(200%);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-top: 1px solid rgba(255, 255, 255, 0.25);
-          border-left: 1px solid rgba(255, 255, 255, 0.15);
-          box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
+          border: 1px solid var(--glass-border);
+          border-top: 1px solid var(--glass-border-top);
+          border-left: 1px solid var(--glass-border-left);
+          box-shadow: var(--glass-shadow);
           border-radius: 32px;
           position: relative;
           overflow: hidden;
+          transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
         }
-
-        section { scroll-margin-top: 100px; }
-        details { transition: all 0.3s ease; scroll-margin-top: 100px; }
 
         .glass-nav {
           position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 600px;
-          height: 64px; border-radius: 99px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 24px; z-index: 100;
+          height: 64px; border-radius: 99px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 16px; z-index: 100;
         }
-        
-        .nav-brand-icon { display: none; }
 
-        .nav-badge { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 99px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+        .nav-badge { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--input-border); }
         .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .glass-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(10px); flex-shrink: 0; }
-        .glass-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        .glass-btn { background: var(--surface-2); border: 1px solid var(--input-border); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ink); font-size: 18px; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(10px); flex-shrink: 0; }
+        .glass-btn:hover { background: var(--input-border); transform: translateY(-2px); }
 
         .main-container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; padding: 0 16px; position: relative; z-index: 1; }
         
-        .liquid-glow { position: absolute; border-radius: 50%; filter: blur(60px); z-index: 0; opacity: 0.3; pointer-events: none; }
+        .liquid-glow { position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; opacity: 0.3; pointer-events: none; }
+        [data-theme="light"] .liquid-glow { opacity: 0.6; filter: blur(60px); }
+
         .glass-content { position: relative; z-index: 2; padding: var(--card-pad); }
 
-        input[type="date"] {
-          -webkit-appearance: none;
-          appearance: none;
-          min-height: 52px;
-          line-height: normal;
-          text-align: center;
-        }
+        input[type="date"] { -webkit-appearance: none; appearance: none; min-height: 52px; line-height: normal; text-align: center; color: var(--ink); }
+        .glass-date-pill { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--ink); padding: 10px 20px; border-radius: 99px; font-family: inherit; font-size: 15px; font-weight: 500; outline: none; cursor: pointer; transition: border 0.3s; }
+        .glass-date-pill:focus { border-color: var(--ink-dim); }
+        
+        /* Ikonka kalendáře musí zčernat v light mode */
+        ::-webkit-calendar-picker-indicator { cursor: pointer; filter: invert(1); }
+        [data-theme="light"] ::-webkit-calendar-picker-indicator { filter: invert(0); }
 
-        .glass-date-pill {
-          background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 10px 20px;
-          border-radius: 99px; font-family: inherit; font-size: 15px; font-weight: 500; outline: none; cursor: pointer; transition: border 0.3s;
-        }
-        .glass-date-pill:focus { border-color: rgba(255,255,255,0.4); }
-        ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
-
-        input:not(.glass-date-pill), select, textarea { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 14px; border-radius: 16px; color: #fff; font-size: 16px; outline: none; width: 100%; transition: border 0.3s; box-sizing: border-box; }
-        input:focus:not(.glass-date-pill), select:focus, textarea:focus { border-color: rgba(255,255,255,0.4); }
-        .field span { display: block; font-size: 13px; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 8px; }
-        .btn-primary { background: #fff; color: #000; padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
+        input:not(.glass-date-pill), select, textarea { background: var(--input-bg); border: 1px solid var(--input-border); padding: 14px; border-radius: 16px; color: var(--ink); font-size: 16px; outline: none; width: 100%; transition: border 0.3s; box-sizing: border-box; }
+        input:focus:not(.glass-date-pill), select:focus, textarea:focus { border-color: var(--ink-dim); }
+        .field span { display: block; font-size: 13px; color: var(--ink-dim); text-transform: uppercase; margin-bottom: 8px; }
+        .btn-primary { background: var(--btn-bg); color: var(--btn-text); padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
         .btn-primary:hover { transform: scale(1.02); }
 
-        .emoji-icon {
-          font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-          line-height: normal;
-          padding: 4px 0;
-          display: inline-block;
-          vertical-align: middle;
-        }
+        .emoji-icon { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; line-height: normal; padding: 4px 0; display: inline-flex; align-items: center; justify-content: center; }
 
-        /* OPRAVA POZICE PLUSKA (margin-right) */
-        summary { cursor: pointer; font-family: var(--font-display); font-size: 22px; color: #fff; display: flex; align-items: center; justify-content: space-between; list-style: none; padding: var(--card-pad); margin: calc(var(--card-pad) * -1); }
-        summary::-webkit-details-marker { display: none; }
-        summary::after { content: '+'; font-size: 28px; font-weight: 300; transition: transform 0.3s; margin-right: 16px; } 
-        details[open] summary::after { transform: rotate(45deg); }
-        details[open] summary { border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: var(--card-pad); padding-bottom: var(--card-pad); }
+        /* PLYNULÝ AKORDEON (CSS Grid) */
+        section.accordion-wrapper { scroll-margin-top: 100px; }
+        .accordion-header {
+          padding: var(--card-pad); cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; position: relative; z-index: 3;
+        }
+        .accordion-title { font-family: var(--font-display); font-size: 22px; color: var(--ink); display: flex; align-items: center; padding-left: 12px; }
         
+        .chevron { font-size: 28px; font-weight: 300; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); margin-right: 16px; }
+        .chevron.open { transform: rotate(45deg); }
+        
+        .accordion-body {
+          display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .accordion-body.open { grid-template-rows: 1fr; border-top: 1px solid var(--input-border); }
+        .accordion-content-inner { overflow: hidden; }
+
         .forecast-strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
-        .forecast-chip { min-width: 70px; display: flex; flex-direction: column; align-items: center; padding: 16px 12px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.2s; }
+        .forecast-chip { min-width: 70px; display: flex; flex-direction: column; align-items: center; padding: 16px 12px; border-radius: 20px; background: var(--surface-2); border: 1px solid var(--input-border); cursor: pointer; transition: transform 0.2s; }
         .forecast-chip.active { background: var(--accent); color: #000; border: none; font-weight: 600; }
-        .forecast-chip:hover:not(.active) { background: rgba(255,255,255,0.1); }
+        .forecast-chip:hover:not(.active) { background: var(--input-border); }
 
         @media (max-width: 600px) {
           :root { --card-pad: 24px; }
@@ -414,8 +444,6 @@ export default function Home() {
           h2 { font-size: 26px !important; }
           
           .nav-brand-text { display: none !important; }
-          .nav-brand-icon { display: block !important; }
-          
           .forecast-chip { min-width: 52px; padding: 10px 6px; border-radius: 14px; }
           .forecast-chip > span:nth-child(1) { font-size: 10px !important; }
           .forecast-chip > span:nth-child(2) { font-size: 15px !important; margin: 2px 0 !important; }
@@ -423,25 +451,31 @@ export default function Home() {
         }
       `}} />
 
+      {/* DYNAMICKÉ POZADÍ */}
       <div className="mesh-background">
-        <div className="mesh-orb orb-1" style={{ background: colors.c1, opacity: colors.op }}></div>
-        <div className="mesh-orb orb-2" style={{ background: colors.c2, opacity: colors.op }}></div>
-        <div className="mesh-orb orb-3" style={{ background: colors.c3, opacity: colors.op }}></div>
+        <div className="mesh-orb orb-1" style={{ background: colors.c1 }}></div>
+        <div className="mesh-orb orb-2" style={{ background: colors.c2 }}></div>
+        <div className="mesh-orb orb-3" style={{ background: colors.c3 }}></div>
       </div>
       <div className="noise-overlay"></div>
 
+      {/* CHYTRÁ HORNÍ LIŠTA S DARK MODE PŘEPÍNAČEM */}
       <nav className="glass-nav ios-glass">
         <div style={{ display: 'flex', alignItems: 'center' }}>
+          <button 
+            onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')} 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px', marginRight: '8px', outline: 'none' }}
+          >
+            <span className="emoji-icon" style={{ fontSize: "22px" }}>
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </span>
+          </button>
           <span className="nav-brand-text" style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px" }}>Vnitřní počasí</span>
-          <svg className="nav-brand-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="4"></circle>
-            <path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M4.93 4.93l1.41 1.41"></path><path d="M17.66 17.66l1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="M4.93 19.07l1.41-1.41"></path><path d="M17.66 6.34l1.41-1.41"></path>
-          </svg>
         </div>
         
         <div style={{ display: "flex", gap: "12px", alignItems: "center", marginLeft: "auto" }}>
           
-          <div className="nav-badge" onClick={scrollToRadar} style={{cursor: 'pointer'}}>
+          <div className="nav-badge" onClick={() => document.getElementById('top-radar').scrollIntoView({behavior: 'smooth'})} style={{cursor: 'pointer'}}>
             <span className="nav-dot" style={{ background: `var(${PHASE_ACCENTS[phaseKey]})`, boxShadow: `0 0 10px var(${PHASE_ACCENTS[phaseKey]})` }}></span>
             <span style={{ fontSize: "13px", fontFamily: "var(--font-mono)", letterSpacing: "0.02em", display: "flex", alignItems: "center", gap: "6px" }}>
               <span className="emoji-icon" style={{ fontSize: "15px" }}>{phaseData.emoji}</span> 
@@ -449,8 +483,10 @@ export default function Home() {
             </span>
           </div>
 
-          <button className="glass-btn" onClick={() => openAndScroll('journal-details')}>➕</button>
-          <button className="glass-btn" onClick={() => openAndScroll('settings-details')}>⚙️</button>
+          <button className="glass-btn" onClick={() => toggleSection('journal')}>
+            <span style={{ position: "relative", top: "-1px", left: "1px" }}>➕</span>
+          </button>
+          <button className="glass-btn" onClick={() => toggleSection('settings')}>⚙️</button>
         </div>
       </nav>
 
@@ -474,14 +510,14 @@ export default function Home() {
             </div>
 
             <div style={{ position: "relative", width: "240px", height: "240px", margin: "0 auto" }}>
-              <svg viewBox="0 0 240 240" style={{ filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.5))" }}>
+              <svg viewBox="0 0 240 240" style={{ filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.3))" }}>
                 <g transform="rotate(-90 120 120)">
                   {wheelSegments}
-                  <circle cx={120 + 88 * Math.cos(markerAngle)} cy={120 + 88 * Math.sin(markerAngle)} r="12" fill="#fff" strokeWidth="4" stroke={`var(${PHASE_ACCENTS[phaseKey]})`} style={{ transition: 'all 0.5s' }} />
+                  <circle cx={120 + 88 * Math.cos(markerAngle)} cy={120 + 88 * Math.sin(markerAngle)} r="12" fill="var(--bg)" strokeWidth="4" stroke={`var(${PHASE_ACCENTS[phaseKey]})`} style={{ transition: 'all 0.5s' }} />
                 </g>
               </svg>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "1px" }}>{t('wheel_day_label')}</span>
+                <span style={{ fontSize: "12px", color: "var(--ink-dim)", textTransform: "uppercase", letterSpacing: "1px" }}>{t('wheel_day_label')}</span>
                 <span style={{ fontSize: "48px", fontFamily: "var(--font-display)", fontWeight: 500, lineHeight: 1 }}>{currentDay}</span>
                 <span style={{ fontSize: "14px", color: `var(${PHASE_ACCENTS[phaseKey]})`, fontWeight: 600, marginTop: "4px" }}>{phaseData.season}</span>
               </div>
@@ -493,14 +529,14 @@ export default function Home() {
         <section className="ios-glass">
           <div className="glass-content">
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", marginBottom: "8px" }}>{phaseData.name}</h2>
-            <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.6, marginBottom: "24px" }}>{phaseData.mood}</p>
+            <p style={{ fontSize: "16px", color: "var(--ink)", opacity: 0.8, lineHeight: 1.6, marginBottom: "24px" }}>{phaseData.mood}</p>
             
-            <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: "20px", padding: "20px", marginBottom: "24px", border: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ background: "var(--surface-2)", borderRadius: "20px", padding: "20px", marginBottom: "24px", border: "1px solid var(--input-border)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "14px" }}>
-                <span style={{ color: "rgba(255,255,255,0.7)" }}>{t('energy_label')}</span>
+                <span style={{ color: "var(--ink-dim)" }}>{t('energy_label')}</span>
                 <span style={{ fontWeight: 600, color: `var(${PHASE_ACCENTS[phaseKey]})` }}>{phaseData.energy_label}</span>
               </div>
-              <div style={{ height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "99px", overflow: "hidden" }}>
+              <div style={{ height: "6px", background: "var(--input-border)", borderRadius: "99px", overflow: "hidden" }}>
                 <div style={{ height: "100%", width: `${PHASE_ENERGY_PCT[phaseKey]}%`, background: `var(${PHASE_ACCENTS[phaseKey]})`, borderRadius: "99px", transition: "width 1s cubic-bezier(0.2, 0.8, 0.2, 1)" }}></div>
               </div>
             </div>
@@ -510,11 +546,11 @@ export default function Home() {
             </h3>
             
             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px 0", display: "flex", flexDirection: "column", gap: "12px" }}>
-              {ctxTips.map((tip, i) => <li key={`ctx-${i}`} style={{ background: "rgba(255,255,255,0.05)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px", borderLeft: "3px solid var(--summer)" }}>{tip}</li>)}
-              {phaseData.dos.map((tip, i) => <li key={`dos-${i}`} style={{ background: "rgba(255,255,255,0.05)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px" }}>{tip}</li>)}
+              {ctxTips.map((tip, i) => <li key={`ctx-${i}`} style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px", borderLeft: "3px solid var(--summer)" }}>{tip}</li>)}
+              {phaseData.dos.map((tip, i) => <li key={`dos-${i}`} style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px" }}>{tip}</li>)}
             </ul>
 
-            <div style={{ background: "rgba(226,146,156,0.1)", border: "1px solid rgba(226,146,156,0.2)", padding: "16px", borderRadius: "16px", color: "rgba(255,255,255,0.9)", fontSize: "15px" }}>
+            <div style={{ background: "rgba(226,146,156,0.1)", border: "1px solid rgba(226,146,156,0.2)", padding: "16px", borderRadius: "16px", color: "var(--ink)", fontSize: "15px" }}>
               <strong style={{ color: "var(--winter)" }}>{t('avoid_label')}</strong> {phaseData.avoid}
             </div>
           </div>
@@ -532,7 +568,7 @@ export default function Home() {
                   <div key={i} className={`forecast-chip ${i === 0 ? 'active' : ''}`} style={{ '--accent': `var(${PHASE_ACCENTS[fPk]})` }} onClick={() => setSelectedDate(d)}>
                     <span style={{ fontSize: "12px", textTransform: "uppercase", opacity: i === 0 ? 1 : 0.6 }}>{t('dow_short')[d.getDay()]}</span>
                     <span style={{ fontSize: "18px", fontWeight: 600, margin: "4px 0" }}>{d.getDate()}.</span>
-                    <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: i === 0 ? "#000" : `var(${PHASE_ACCENTS[fPk]})` }}></span>
+                    <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: i === 0 ? "var(--btn-bg)" : `var(${PHASE_ACCENTS[fPk]})` }}></span>
                   </div>
                 );
               })}
@@ -540,27 +576,23 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="ios-glass">
-          <details id="journal-details">
-            <summary>
-              {/* OPRAVA POZICE TEXTU (paddingLeft) */}
-              <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '12px' }}>
-                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}>📝</span>
-                {t('journal_summary')}
-              </div>
-            </summary>
-            
-            <div className="glass-content" style={{ paddingTop: 0 }}>
+        {/* PLYNULÝ AKORDEON: DENÍK */}
+        <section id="journal" className="ios-glass accordion-wrapper">
+          <div className="accordion-header" onClick={() => toggleSection('journal')}>
+            <div className="accordion-title">
+              <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}>📝</span>
+              {t('journal_summary')}
+            </div>
+            <span className={`chevron ${openSection === 'journal' ? 'open' : ''}`}>+</span>
+          </div>
+          
+          <div className={`accordion-body ${openSection === 'journal' ? 'open' : ''}`}>
+            <div className="accordion-content-inner glass-content" style={{ paddingTop: "24px" }}>
               <form onSubmit={handleSaveJournal}>
                 
                 <label className="field" style={{ marginBottom: "24px" }}>
                   <span>{t('j_date_label')}</span>
-                  <input 
-                    type="date" 
-                    value={toIso(selectedDate)} 
-                    onChange={e => e.target.value && setSelectedDate(new Date(e.target.value))} 
-                    required 
-                  />
+                  <input type="date" value={toIso(selectedDate)} onChange={e => e.target.value && setSelectedDate(new Date(e.target.value))} required />
                 </label>
 
                 <RatingRow label={t('j_rating_legend')} val={jMood} setter={setJMood} />
@@ -568,10 +600,10 @@ export default function Home() {
                 <RatingRow label={t('j_stress_legend')} val={jStress} setter={setJStress} />
                 
                 <div style={{ marginBottom: "24px" }}>
-                  <span style={{ display: "block", fontSize: "13px", color: "rgba(255,255,255,0.7)", textTransform: "uppercase", marginBottom: "12px" }}>{t('j_symptoms_legend')}</span>
+                  <span style={{ display: "block", fontSize: "13px", color: "var(--ink-dim)", textTransform: "uppercase", marginBottom: "12px" }}>{t('j_symptoms_legend')}</span>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                     {SYMPTOM_KEYS.map(k => (
-                      <button key={k} type="button" onClick={() => setJSymptoms(jSymptoms.includes(k) ? jSymptoms.filter(x => x !== k) : [...jSymptoms, k])} style={{ background: jSymptoms.includes(k) ? "var(--winter)" : "rgba(255,255,255,0.08)", color: jSymptoms.includes(k) ? "#000" : "#fff", border: "1px solid rgba(255,255,255,0.15)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", cursor: "pointer", transition: "all 0.2s" }}>
+                      <button key={k} type="button" onClick={() => setJSymptoms(jSymptoms.includes(k) ? jSymptoms.filter(x => x !== k) : [...jSymptoms, k])} style={{ background: jSymptoms.includes(k) ? "var(--winter)" : "var(--input-bg)", color: jSymptoms.includes(k) ? "#000" : "var(--ink)", border: "1px solid var(--input-border)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", cursor: "pointer", transition: "all 0.2s" }}>
                         {t('symptoms')[k] || k}
                       </button>
                     ))}
@@ -588,34 +620,35 @@ export default function Home() {
 
               <div style={{ marginTop: "32px", display: "flex", flexDirection: "column", gap: "12px" }}>
                 {[...journal].sort((a,b) => a.date < b.date ? 1 : -1).map(j => (
-                  <div key={j.date} style={{ background: "rgba(0,0,0,0.2)", padding: "16px", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div key={j.date} style={{ background: "var(--surface-2)", padding: "16px", borderRadius: "16px", border: "1px solid var(--input-border)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                       <span style={{ fontWeight: 600 }}>{formatDate(new Date(j.date))}</span>
-                      <button type="button" onClick={() => syncData(settings, journal.filter(x => x.date !== j.date))} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: "20px", cursor: "pointer" }}>×</button>
+                      <button type="button" onClick={() => syncData(settings, journal.filter(x => x.date !== j.date))} style={{ background: "none", border: "none", color: "var(--ink-dim)", fontSize: "20px", cursor: "pointer" }}>×</button>
                     </div>
                     <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                      {j.mood && <span style={{ fontSize: "12px", background: "rgba(255,255,255,0.1)", padding: "4px 8px", borderRadius: "6px" }}>Nálada: {j.mood}</span>}
+                      {j.mood && <span style={{ fontSize: "12px", background: "var(--input-bg)", border: "1px solid var(--input-border)", padding: "4px 8px", borderRadius: "6px" }}>Nálada: {j.mood}</span>}
                       {j.stress >= 4 && <span style={{ fontSize: "12px", background: "rgba(226,146,156,0.2)", color: "var(--winter)", padding: "4px 8px", borderRadius: "6px" }}>Vysoký stres</span>}
                     </div>
-                    {j.note && <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", marginTop: "12px", marginBottom: 0 }}>{j.note}</p>}
+                    {j.note && <p style={{ fontSize: "14px", color: "var(--ink)", opacity: 0.8, marginTop: "12px", marginBottom: 0 }}>{j.note}</p>}
                   </div>
                 ))}
               </div>
             </div>
-          </details>
+          </div>
         </section>
 
-        <section className="ios-glass">
-          <details id="settings-details">
-            <summary>
-              {/* OPRAVA POZICE TEXTU (paddingLeft) */}
-              <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '12px' }}>
-                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}>⚙️</span>
-                {t('settings_summary')}
-              </div>
-            </summary>
+        {/* PLYNULÝ AKORDEON: NASTAVENÍ */}
+        <section id="settings" className="ios-glass accordion-wrapper">
+          <div className="accordion-header" onClick={() => toggleSection('settings')}>
+            <div className="accordion-title">
+              <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}>⚙️</span>
+              {t('settings_summary')}
+            </div>
+            <span className={`chevron ${openSection === 'settings' ? 'open' : ''}`}>+</span>
+          </div>
 
-            <div className="glass-content" style={{ paddingTop: 0 }}>
+          <div className={`accordion-body ${openSection === 'settings' ? 'open' : ''}`}>
+            <div className="accordion-content-inner glass-content" style={{ paddingTop: "24px" }}>
               
               <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>Parametry cyklu</h3>
               <form onSubmit={handleSystemSave} style={{ marginBottom: "32px" }}>
@@ -626,7 +659,7 @@ export default function Home() {
                 <button type="submit" className="btn-primary" style={{ padding: "12px", fontSize: "15px" }}>{t('settings_submit')}</button>
               </form>
 
-              <h3 style={{ fontSize: "18px", marginBottom: "16px", paddingTop: "24px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>{t('history_summary')}</h3>
+              <h3 style={{ fontSize: "18px", marginBottom: "16px", paddingTop: "24px", borderTop: "1px solid var(--input-border)" }}>{t('history_summary')}</h3>
               <form onSubmit={handleAddPeriod} style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
                 <input type="date" value={newPeriodDate} onChange={e => setNewPeriodDate(e.target.value)} required style={{ flex: "1 1 200px" }} />
                 <button type="submit" className="btn-primary" style={{ flex: "0 0 auto", width: "auto", padding: "0 24px" }}>{t('history_add_btn')}</button>
@@ -634,17 +667,17 @@ export default function Home() {
               
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                 {ascPeriods.reverse().map(p => (
-                  <li key={p} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <li key={p} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid var(--surface-2)" }}>
                     <span>{formatDate(new Date(p))}</span>
                     <button type="button" onClick={() => syncData({ ...settings, periods: settings.periods.filter(x => x !== p) }, journal)} style={{ background: "none", border: "none", color: "var(--autumn)", fontSize: "16px", cursor: "pointer" }}>Smazat</button>
                   </li>
                 ))}
               </ul>
 
-              <div style={{ marginTop: "40px", paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.1)", textAlign: "center" }}>
-                <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)", marginBottom: "16px" }}>Přihlášen jako: {session.user.email}</p>
+              <div style={{ marginTop: "40px", paddingTop: "32px", borderTop: "1px solid var(--input-border)", textAlign: "center" }}>
+                <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px" }}>Přihlášen jako: {session.user.email}</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <button onClick={() => signOut()} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", padding: "14px", borderRadius: "16px", fontSize: "15px", fontWeight: 600, cursor: "pointer", transition: "background 0.2s" }}>
+                  <button onClick={() => signOut()} style={{ background: "var(--surface-2)", border: "1px solid var(--input-border)", color: "var(--ink)", padding: "14px", borderRadius: "16px", fontSize: "15px", fontWeight: 600, cursor: "pointer", transition: "background 0.2s" }}>
                     Odhlásit (Nechat e-mail v paměti)
                   </button>
                   <button onClick={() => { localStorage.removeItem("lastUserEmail"); signOut(); }} style={{ background: "rgba(226,146,156,0.15)", border: "1px solid rgba(226,146,156,0.3)", color: "var(--winter)", padding: "14px", borderRadius: "16px", fontSize: "15px", fontWeight: 600, cursor: "pointer" }}>
@@ -654,7 +687,7 @@ export default function Home() {
               </div>
 
             </div>
-          </details>
+          </div>
         </section>
 
       </div>
