@@ -53,20 +53,17 @@ export default function LandingPage() {
           min-height: 100vh;
         }
         
-        /* APPLE iOS GLASS EFEKT - Toto se nyní aplikuje na vše */
         .ios-glass {
-          background: rgba(255, 255, 255, 0.03); /* Velmi jemný mléčný nádech */
+          background: rgba(255, 255, 255, 0.03);
           backdrop-filter: blur(48px) saturate(200%);
           -webkit-backdrop-filter: blur(48px) saturate(200%);
           border: 1px solid rgba(255, 255, 255, 0.08);
-          /* Odlesky světla zleva a shora (Klíč k realistickému sklu) */
           border-top: 1px solid rgba(255, 255, 255, 0.25);
           border-left: 1px solid rgba(255, 255, 255, 0.15);
           box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
           border-radius: 40px;
         }
 
-        /* Navigace plovoucí nahoře */
         .glass-nav {
           position: fixed;
           top: 16px; left: 50%;
@@ -74,7 +71,7 @@ export default function LandingPage() {
           width: calc(100% - 32px);
           max-width: 900px;
           height: 64px;
-          border-radius: 99px; /* Pilulka */
+          border-radius: 99px;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -82,18 +79,10 @@ export default function LandingPage() {
           z-index: 100;
         }
         
-        .mesh-background {
-          position: fixed;
-          inset: 0;
-          z-index: -3;
-          background: var(--bg);
-          overflow: hidden;
-        }
+        .mesh-background { position: fixed; inset: 0; z-index: -3; background: var(--bg); overflow: hidden; }
 
         .mesh-orb {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(100px);
+          position: absolute; border-radius: 50%; filter: blur(100px);
           transition: background 1.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 1.5s ease;
         }
 
@@ -106,43 +95,25 @@ export default function LandingPage() {
         @keyframes float3 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(10vw, -15vh) scale(1.2); } }
 
         .noise-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: -2;
+          position: fixed; inset: 0; z-index: -2;
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-          opacity: 0.05;
-          pointer-events: none;
+          opacity: 0.05; pointer-events: none;
         }
 
         .hero-title {
-          font-family: var(--font-display);
-          font-size: clamp(42px, 10vw, 76px);
-          font-weight: 500;
-          line-height: 1.05;
-          letter-spacing: -0.02em;
-          margin-bottom: 24px;
-          color: var(--ink);
+          font-family: var(--font-display); font-size: clamp(42px, 10vw, 76px); font-weight: 500;
+          line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 24px; color: var(--ink);
           text-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
         .section-title { font-family: var(--font-display); font-size: clamp(32px, 6vw, 48px); font-weight: 500; margin-bottom: 16px; color: var(--ink); }
 
-        /* KARTY 4 OBDOBÍ - Nyní ze stejného skla */
         .season-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 40px; }
-        .season-card {
-          padding: 32px 24px;
-          transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-          cursor: pointer;
-          position: relative;
-          overflow: hidden;
-        }
-        .season-card::before {
-          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--card-accent); opacity: 0; transition: opacity 0.5s;
-        }
+        .season-card { padding: 32px 24px; transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); cursor: pointer; position: relative; overflow: hidden; }
+        .season-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--card-accent); opacity: 0; transition: opacity 0.5s; }
         .season-card:hover, .season-card.active { transform: translateY(-8px) scale(1.02); box-shadow: 0 40px 80px rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,0.3); }
         .season-card:hover::before, .season-card.active::before { opacity: 1; }
 
-        /* MOCKUP TELEFONU - Nyní plovoucí skleněný panel */
         .real-mockup {
           width: 100%; max-width: 320px; aspect-ratio: 9/19; margin: 60px auto 0;
           position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px;
@@ -150,8 +121,14 @@ export default function LandingPage() {
         }
         .real-mockup img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; border-radius: 48px;}
 
-        /* BENTO GRID (Jak to funguje) */
-        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 280px; gap: 24px; margin-top: 40px;}
+        /* BENTO GRID (Jak to funguje) - Oprava dynamické výšky a zarovnání */
+        .bento-grid { 
+          display: grid; 
+          grid-template-columns: repeat(3, 1fr); 
+          grid-auto-rows: minmax(280px, auto); /* OPRAVA: Zabraňuje ořezání textu dole */
+          gap: 24px; 
+          margin-top: 40px;
+        }
         
         .bento-card {
           padding: 40px 32px;
@@ -167,25 +144,16 @@ export default function LandingPage() {
         .wide { grid-column: span 2; }
         .tall { grid-row: span 2; justify-content: flex-start; }
         
-        /* Zářící koule pod sklem */
         .liquid-glow { position: absolute; border-radius: 50%; filter: blur(50px); z-index: 0; opacity: 0.6; transition: transform 2s ease; }
         .bento-card:hover .liquid-glow { transform: scale(1.2); }
 
         .bento-visual { position: absolute; z-index: 1; transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .bento-card:hover .bento-visual { transform: scale(1.05) translate(-5px, 5px); }
         
-        /* OPRAVENÝ RADAR: Nyní je bezpečně zasazený uvnitř s paddingem */
-        .card-radar .bento-visual {
-          top: 32px; /* Odsazení odshora */
-          right: 32px; /* Odsazení zprava - zabrání oříznutí! */
-        }
+        .card-radar .bento-visual { top: 32px; right: 32px; }
         .mini-radar {
-          width: 150px; height: 150px; /* Mírně zmenšeno pro lepší fit */
-          border-radius: 50%;
-          border: 14px solid rgba(255,255,255,0.06);
-          border-top-color: var(--summer);
-          border-right-color: var(--summer);
-          transform: rotate(-15deg);
+          width: 150px; height: 150px; border-radius: 50%; border: 14px solid rgba(255,255,255,0.06);
+          border-top-color: var(--summer); border-right-color: var(--summer); transform: rotate(-15deg);
           box-shadow: inset 0 0 30px rgba(0,0,0,0.6), 0 0 40px rgba(240,187,108,0.2);
         }
 
@@ -193,26 +161,27 @@ export default function LandingPage() {
         .bar { width: 32px; background: rgba(255,255,255,0.08); border-radius: 8px 8px 0 0; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); border-bottom: none; }
         .bar.active { background: linear-gradient(180deg, var(--autumn) 0%, rgba(224,135,91,0.1) 100%); border-color: var(--autumn); box-shadow: 0 0 20px rgba(224,135,91,0.4); }
 
-        .mini-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 24px; }
-        .mini-tag { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9); padding: 8px 16px; border-radius: 99px; font-size: 12px; font-family: var(--font-mono); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(10px); }
-        .mini-tag.highlight { background: var(--winter); color: var(--bg); border-color: var(--winter); }
+        /* OPRAVA DENÍKU NÁLAD (Vycentrování textu a štítků) */
+        .card-journal {
+          align-items: center; 
+          text-align: center; 
+          justify-content: center;
+        }
+        .card-journal .text-content { max-width: 100%; }
+        
+        .mini-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 24px; }
+        .mini-tag { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9); padding: 8px 14px; border-radius: 99px; font-size: 12.5px; font-family: var(--font-mono); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(10px); }
+        .mini-tag.highlight { background: var(--winter); color: var(--bg); border-color: var(--winter); font-weight: 600; }
 
         .text-content { max-width: 60%; }
 
-        /* MOBILNÍ OPRAVY */
         @media (max-width: 900px) {
           .bento-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
           .wide, .tall { grid-column: span 1; grid-row: span 1; }
           .bento-card { min-height: 320px; padding: 32px 24px; }
           
-          /* Radar se na mobilu zmenší a usadí přesně do rohu bez překrytí textu */
           .card-radar .text-content { max-width: 100%; position: relative; z-index: 10; }
-          .card-radar .bento-visual { 
-            top: 24px; right: 24px; 
-            transform: scale(0.7); /* Zmenší se na 70% */
-            transform-origin: top right;
-            opacity: 0.3; /* Ustoupí do pozadí */
-          }
+          .card-radar .bento-visual { top: 24px; right: 24px; transform: scale(0.7); transform-origin: top right; opacity: 0.3; }
           
           .card-graph { padding-bottom: 180px; } 
           .card-graph .bento-visual { left: 0; right: 0; bottom: 0; }
@@ -221,7 +190,6 @@ export default function LandingPage() {
         }
       `}} />
 
-      {/* POZADÍ */}
       <div className="mesh-background">
         <div className="mesh-orb orb-1" style={{ background: colors.c1, opacity: colors.op }}></div>
         <div className="mesh-orb orb-2" style={{ background: colors.c2, opacity: colors.op }}></div>
@@ -229,7 +197,6 @@ export default function LandingPage() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* GLOBÁLNÍ GLASS NAVIGACE */}
       <nav className="glass-nav ios-glass">
         <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px", color: "var(--ink)" }}>Vnitřní počasí</span>
         <div style={{ display: "flex", gap: "12px" }}>
@@ -239,7 +206,6 @@ export default function LandingPage() {
 
       <div style={{ maxWidth: "900px", margin: "0 auto", paddingBottom: "100px", position: "relative", zIndex: 1 }}>
         
-        {/* HERO SEKCE */}
         <header id="landing-header" style={{ textAlign: "center", paddingTop: "140px", paddingBottom: "40px" }}>
           <p className="eyebrow" style={{ color: "var(--ink-dim)", marginBottom: "20px" }}>Odhalte její cyklus</p>
           <h1 className="hero-title">Předpovězte náladu.<br />Mějte ve vztahu jasno.</h1>
@@ -248,7 +214,6 @@ export default function LandingPage() {
           </p>
           
           <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
-            {/* Tlačítka z matného skla */}
             <Link href="/register" className="ios-glass" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", padding: "16px 36px", fontSize: "16px", color: "var(--ink)", fontWeight: 600, borderRadius: "99px" }}>
               Založit účet zdarma
             </Link>
@@ -262,41 +227,34 @@ export default function LandingPage() {
           </div>
         </header>
 
-        {/* 4 ROČNÍ OBDOBÍ */}
         <section style={{ marginTop: "120px" }}>
           <h2 className="section-title" style={{ textAlign: "center" }}>4 Fáze. 4 Roční období.</h2>
           <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px" }}>Posouvejte stránkou a vnímejte změny.</p>
           
           <div className="season-grid" onMouseLeave={() => setActiveSeason(null)}>
-            
             <div className={`season-card ios-glass ${activeSeason === 'winter' ? 'active' : ''}`} data-season="winter" style={{ '--card-accent': 'var(--winter)' }} onMouseEnter={() => setActiveSeason('winter')}>
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>❄️</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--winter)", marginBottom: "8px" }}>Zima (Menstruace)</h3>
               <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie je na minimu. Tělo potřebuje klid. Skvělý čas na termofor a film.</p>
             </div>
-
             <div className={`season-card ios-glass ${activeSeason === 'spring' ? 'active' : ''}`} data-season="spring" style={{ '--card-accent': 'var(--spring)' }} onMouseEnter={() => setActiveSeason('spring')}>
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>🌱</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--spring)", marginBottom: "8px" }}>Jaro (Folikulární)</h3>
               <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Hormony se probouzí. Ideální čas navrhnout nový sport nebo naplánovat výlet.</p>
             </div>
-
             <div className={`season-card ios-glass ${activeSeason === 'summer' ? 'active' : ''}`} data-season="summer" style={{ '--card-accent': 'var(--summer)' }} onMouseEnter={() => setActiveSeason('summer')}>
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>☀️</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--summer)", marginBottom: "8px" }}>Léto (Ovulace)</h3>
               <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Vrchol měsíce. Energie a sebevědomí jsou na maximu. Čas na společenské akce.</p>
             </div>
-
             <div className={`season-card ios-glass ${activeSeason === 'autumn' ? 'active' : ''}`} data-season="autumn" style={{ '--card-accent': 'var(--autumn)' }} onMouseEnter={() => setActiveSeason('autumn')}>
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>🍂</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--autumn)", marginBottom: "8px" }}>Podzim (Luteální)</h3>
               <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie klesá, přichází PMS. Může být podrážděná. Buďte trpěliví a uberte na nárocích.</p>
             </div>
-
           </div>
         </section>
 
-        {/* BENTO BOX GRID */}
         <section style={{ marginTop: "160px", position: "relative", zIndex: 10 }}>
           <h2 className="section-title" style={{ textAlign: "center", marginBottom: "16px" }}>Všechno, co potřebujete</h2>
           <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px", fontSize: "16px" }}>Žádné složité tabulky. Jen čistá data.</p>
@@ -331,16 +289,22 @@ export default function LandingPage() {
               </div>
             </div>
             
-            <div className="bento-card ios-glass">
-              <div className="liquid-glow" style={{ width: "150px", height: "150px", top: "50%", left: "-20px", background: "rgba(159,203,164,0.35)" }}></div>
+            {/* OPRAVENÁ KARTA: Deník nálad - Vše vycentrované + všechny štítky */}
+            <div className="bento-card ios-glass card-journal">
+              {/* Koule je přesně uprostřed karty pro vyvážený glow efekt */}
+              <div className="liquid-glow" style={{ width: "180px", height: "180px", top: "50%", left: "50%", marginTop: "-90px", marginLeft: "-90px", background: "rgba(159,203,164,0.3)" }}></div>
               <div className="text-content">
                 <h3>Deník nálad</h3>
                 <p>Zaznamenejte si, co zrovna prožívá.</p>
               </div>
               <div className="mini-tags">
                 <div className="mini-tag highlight">Křeče</div>
+                <div className="mini-tag">Bolest hlavy</div>
+                <div className="mini-tag">Nadýmání</div>
                 <div className="mini-tag">Únava</div>
-                <div className="mini-tag">Podrážděnost</div>
+                <div className="mini-tag highlight">Podrážděnost</div>
+                <div className="mini-tag">Úzkost</div>
+                <div className="mini-tag">Chuť na sladké</div>
               </div>
             </div>
 
