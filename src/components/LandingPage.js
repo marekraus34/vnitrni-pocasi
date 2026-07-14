@@ -315,7 +315,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-{/* BENTO BOX GRID (Jak to funguje) */}
+{/* BENTO BOX GRID (Liquid Glass & Mobile Fix) */}
         <section style={{ marginTop: "160px", position: "relative", zIndex: 10 }}>
           <h2 className="section-title" style={{ textAlign: "center", marginBottom: "16px" }}>Všechno, co potřebujete, v jedné aplikaci</h2>
           <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px", fontSize: "16px" }}>Žádné složité tabulky. Jen čistá data a jasné instrukce.</p>
@@ -323,34 +323,57 @@ export default function LandingPage() {
           <style dangerouslySetInnerHTML={{ __html: `
             .bento-grid {
               display: grid;
-              grid-template-columns: repeat(3, 1fr); /* Tady je hlavní změna: 3 sloupce vytvoří dokonalý obdélník */
-              grid-auto-rows: 260px; /* Zvýšeno na 260px, aby se text a štítky vešly */
-              gap: 20px;
+              grid-template-columns: repeat(3, 1fr);
+              grid-auto-rows: 280px;
+              gap: 24px;
             }
+            
+            /* LIQUID GLASS KARTY */
             .bento-card {
-              background: linear-gradient(145deg, rgba(44, 37, 49, 0.6) 0%, rgba(30, 25, 34, 0.8) 100%);
-              border: 1px solid rgba(255, 255, 255, 0.05);
-              backdrop-filter: blur(20px);
-              border-radius: 32px;
-              padding: 32px;
+              background: rgba(30, 25, 34, 0.35); /* Velmi průhledné pozadí */
+              border: 1px solid rgba(255, 255, 255, 0.08); /* Jemný skleněný okraj */
+              backdrop-filter: blur(40px) saturate(150%);
+              -webkit-backdrop-filter: blur(40px) saturate(150%);
+              border-radius: 40px; /* Extrémní zaoblení pro tekutý vzhled */
+              padding: 40px 32px;
               display: flex;
               flex-direction: column;
               position: relative;
               overflow: hidden;
               transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+              box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.15); /* Odlesk na horní hraně skla */
             }
+            
             .bento-card:hover { 
-              transform: translateY(-8px) scale(1.01); 
-              border-color: rgba(255, 255, 255, 0.15);
-              box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+              transform: translateY(-8px) scale(1.02); 
+              border-color: rgba(255, 255, 255, 0.25);
+              box-shadow: 0 40px 80px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.3);
             }
-            .bento-card h3 { font-family: var(--font-display); font-size: 26px; margin-bottom: 12px; color: var(--ink); z-index: 2; }
-            .bento-card p { color: var(--ink-dim); font-size: 15px; line-height: 1.6; z-index: 2; margin: 0; }
+
+            /* TEXTY NAD SKLEM */
+            .bento-card h3, .bento-card p, .mini-tags, .text-content {
+              position: relative;
+              z-index: 3; /* Udržuje text vždy nad grafikou a odlesky */
+            }
+            .bento-card h3 { font-family: var(--font-display); font-size: 28px; margin-bottom: 12px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+            .bento-card p { color: rgba(255,255,255,0.7); font-size: 16px; line-height: 1.6; margin: 0; }
             
+            /* GRID ROZLOŽENÍ */
             .wide { grid-column: span 2; }
-            .tall { grid-row: span 2; justify-content: flex-end; }
+            .tall { grid-row: span 2; justify-content: flex-start; }
             
-            /* Vizuální prvky uvnitř karet */
+            /* TEKUTÉ ZÁŘÍCÍ KOULE UVNITŘ KARET */
+            .liquid-glow {
+              position: absolute;
+              border-radius: 50%;
+              filter: blur(50px);
+              z-index: 0;
+              opacity: 0.5;
+              transition: transform 2s ease;
+            }
+            .bento-card:hover .liquid-glow { transform: scale(1.2); }
+
+            /* KONTEJNERY PRO GRAFIKU */
             .bento-visual {
               position: absolute;
               z-index: 1;
@@ -358,68 +381,99 @@ export default function LandingPage() {
             }
             .bento-card:hover .bento-visual { transform: scale(1.05) translate(-5px, 5px); }
             
-            /* Radar Graphic */
+            /* RADAR GRAFIKA */
             .mini-radar {
-              width: 140px; height: 140px;
+              width: 180px; height: 180px;
               border-radius: 50%;
-              border: 16px solid var(--surface-2);
+              border: 14px solid rgba(255,255,255,0.03);
               border-top-color: var(--summer);
               border-right-color: var(--summer);
               transform: rotate(-15deg);
-              box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+              box-shadow: inset 0 0 30px rgba(0,0,0,0.6), 0 0 40px rgba(240,187,108,0.2);
             }
 
-            /* Graph Graphic */
+            /* GRAF GRAFIKA */
             .mini-graph {
               display: flex;
               align-items: flex-end;
-              gap: 8px;
-              height: 120px;
+              justify-content: center;
+              gap: 12px;
+              height: 150px;
             }
-            .bar { width: 24px; background: var(--surface-2); border-radius: 4px 4px 0 0; }
-            .bar.active { background: var(--autumn); }
+            .bar { 
+              width: 32px; 
+              background: rgba(255,255,255,0.05); 
+              border-radius: 8px 8px 0 0; 
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255,255,255,0.1); 
+              border-bottom: none; 
+            }
+            .bar.active { 
+              background: linear-gradient(180deg, var(--autumn) 0%, rgba(224,135,91,0.1) 100%); 
+              border-color: var(--autumn); 
+              box-shadow: 0 0 20px rgba(224,135,91,0.4);
+            }
 
-            /* Tags Graphic */
-            .mini-tags {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 8px;
-              margin-top: auto; /* Tohle zajistí, že se štítky přilepí dolů a nebudou přes text */
-            }
+            /* ŠTÍTKY GRAFIKA */
+            .mini-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 24px; }
             .mini-tag {
-              background: var(--surface-2);
-              color: var(--ink-dim);
-              padding: 6px 12px;
+              background: rgba(255,255,255,0.05);
+              color: rgba(255,255,255,0.9);
+              padding: 8px 16px;
               border-radius: 99px;
-              font-size: 11px;
+              font-size: 12px;
               font-family: var(--font-mono);
-              border: 1px solid var(--border);
+              border: 1px solid rgba(255,255,255,0.1);
+              backdrop-filter: blur(10px);
             }
             .mini-tag.highlight { background: var(--winter); color: var(--bg); border-color: var(--winter); }
 
+            /* MOBILNÍ OPRAVY (Zabránění překrývání textu) */
+            .text-content { max-width: 60%; }
+
             @media (max-width: 900px) {
               .bento-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
-              .bento-card { min-height: 240px; }
               .wide, .tall { grid-column: span 1; grid-row: span 1; }
+              .bento-card { min-height: 320px; padding: 32px 24px; }
+              
+              /* Oprava Radar karty: Text na celou šířku, grafika ustoupí do pozadí */
+              .text-content { max-width: 100%; }
+              .card-radar .bento-visual { top: -60px; right: -60px; opacity: 0.25; }
+              
+              /* Oprava Graf karty: Přidán spodní padding, aby text nespadl do grafu */
+              .card-graph { padding-bottom: 180px; } 
+              .card-graph .bento-visual { left: 0; right: 0; bottom: 0; }
+              .mini-graph { gap: 8px; }
+              .bar { width: 24px; }
             }
           `}} />
 
           <div className="bento-grid">
             
-            {/* Karta 1: Radar (Široká - zabere 2 sloupce nahoře vlevo) */}
-            <div className="bento-card wide" style={{ background: "linear-gradient(145deg, rgba(240,187,108,0.1), rgba(30,25,34,0.8))" }}>
-              <div className="bento-visual" style={{ top: "-20px", right: "-20px" }}>
+            {/* Karta 1: Radar */}
+            <div className="bento-card wide card-radar">
+              <div className="liquid-glow" style={{ width: "200px", height: "200px", top: "-50px", right: "-50px", background: "rgba(240,187,108,0.3)" }}></div>
+              <div className="bento-visual" style={{ top: "-30px", right: "-30px" }}>
                 <div className="mini-radar"></div>
               </div>
-              <div style={{ marginTop: "auto", maxWidth: "60%" }}>
+              <div className="text-content" style={{ marginTop: "auto" }}>
                 <h3>Přesný radar fází</h3>
                 <p>Žádné zmatky. Okamžitě vidíte, v jakém ročním období se nachází, a kolik jí zbývá energie na vaše společné plány.</p>
               </div>
             </div>
 
-            {/* Karta 2: Analýza (Vysoká - zabere pravý sloupec a protáhne se dolů) */}
-            <div className="bento-card tall" style={{ background: "linear-gradient(180deg, rgba(226,146,156,0.1), rgba(30,25,34,0.8))" }}>
-              <div className="bento-visual" style={{ top: "40px", left: "32px", right: "32px" }}>
+            {/* Karta 2: Analýza */}
+            <div className="bento-card tall card-graph">
+              <div className="liquid-glow" style={{ width: "250px", height: "250px", bottom: "-50px", left: "50%", transform: "translateX(-50%)", background: "rgba(226,146,156,0.35)" }}></div>
+              
+              {/* Text je fixovaný nahoře */}
+              <div className="text-content">
+                <h3>Trendová analýza</h3>
+                <p>Aplikace se učí z vašich záznamů. Zjistěte, jak moc stres ovlivňuje délku cyklu, a předvídejte krize dřív, než nastanou.</p>
+              </div>
+
+              {/* Graf je fixovaný úplně dole */}
+              <div className="bento-visual" style={{ bottom: "0", left: "32px", right: "32px" }}>
                 <div className="mini-graph">
                   <div className="bar" style={{ height: "40%" }}></div>
                   <div className="bar" style={{ height: "60%" }}></div>
@@ -428,14 +482,15 @@ export default function LandingPage() {
                   <div className="bar" style={{ height: "50%" }}></div>
                 </div>
               </div>
-              <h3>Trendová analýza</h3>
-              <p>Aplikace se učí z vašich záznamů. Zjistěte, jak moc stres ovlivňuje délku jejího cyklu, a předvídejte krize dřív, než nastanou.</p>
             </div>
             
-            {/* Karta 3: Deník a příznaky (Spadne do spodního řádku doleva) */}
+            {/* Karta 3: Deník a příznaky */}
             <div className="bento-card">
-              <h3>Deník nálad</h3>
-              <p>Zaznamenejte si, co zrovna prožívá.</p>
+              <div className="liquid-glow" style={{ width: "150px", height: "150px", top: "50%", left: "-20px", background: "rgba(159,203,164,0.25)" }}></div>
+              <div className="text-content">
+                <h3>Deník nálad</h3>
+                <p>Zaznamenejte si, co zrovna prožívá.</p>
+              </div>
               <div className="mini-tags">
                 <div className="mini-tag highlight">Křeče</div>
                 <div className="mini-tag">Únava</div>
@@ -443,10 +498,13 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Karta 4: Tipy a kontext (Spadne do spodního řádku doprostřed) */}
+            {/* Karta 4: Tipy */}
             <div className="bento-card">
-              <h3 style={{ color: "var(--spring)" }}>Konkrétní tipy</h3>
-              <p>Ke každému dni dostanete seznam "Co dělat" a "Čemu se vyhnout". Třeba kdy ji vzít na rande a kdy koupit čokoládu.</p>
+              <div className="liquid-glow" style={{ width: "150px", height: "150px", bottom: "-20px", right: "-20px", background: "rgba(224,135,91,0.3)" }}></div>
+              <div className="text-content">
+                <h3 style={{ color: "var(--spring)", textShadow: "none" }}>Konkrétní tipy</h3>
+                <p>Ke každému dni dostanete seznam "Co dělat" a "Čemu se vyhnout".</p>
+              </div>
             </div>
 
           </div>
