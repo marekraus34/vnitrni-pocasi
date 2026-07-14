@@ -20,20 +20,20 @@ const I18N = {
     insights_summary: 'Přehledy a analýza', ins_trend_title: 'Trend délky cyklu',
     profile_summary: 'Profil a životní styl', prof_age: 'Věk', prof_activity: 'Úroveň fyzické aktivity',
     act_sedentary: 'Sedavý', act_light: 'Mírně aktivní', act_active: 'Aktivní (trénink, sport)', act_athlete: 'Sportovec / Vysoká zátěž',
-    prof_pill: 'Užívá hormonální antikoncepci', journal_summary: 'Deník', j_date_label: 'Datum',
+    prof_pill: 'Užívá hormonální antikoncepci', journal_summary: 'Deník nálad', j_date_label: 'Datum',
     j_rating_legend: 'Nálada (1-5)', j_sleep_legend: 'Spánek (1=špatný, 5=skvělý)', j_stress_legend: 'Stres (1=klid, 5=max)',
     j_symptoms_legend: 'Příznaky', j_note_label: 'Poznámka', journal_submit: 'Uložit zápis',
-    history_summary: 'Historie cyklů', history_add_btn: 'Přidat', settings_summary: 'Systém & Data',
-    set_cycle_label: 'Délka cyklu (dny)', set_period_label: 'Menstruace (dny)', settings_submit: 'Uložit',
+    history_summary: 'Historie cyklů', history_add_btn: 'Přidat', settings_summary: 'Systém & Účet',
+    set_cycle_label: 'Délka cyklu (dny)', set_period_label: 'Menstruace (dny)', settings_submit: 'Uložit změny',
     pill_warning: 'Při hormonální antikoncepci jsou přirozené hormonální výkyvy potlačeny. Fáze berte spíše jako orientační.',
     dow_short: ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'],
     symptoms: { cramps: 'Křeče', headache: 'Bolest hlavy', bloating: 'Nadýmání', fatigue: 'Únava', irritability: 'Podrážděnost', anxiety: 'Úzkost', sugar_cravings: 'Chuť na sladké' },
     ob_h2: 'Než začneme', ob_start_label: 'Začátek poslední menstruace', ob_cycle_label: 'Délka cyklu (dny)', ob_period_label: 'Délka menstruace', ob_submit: 'Uložit a začít',
     phases: {
-      menstrual: { season: 'Zima', name: 'Menstruační fáze', energy_label: 'Nízká', mood: 'Tělo zpomaluje a bere si zpátečku. Časté jsou křeče, únava a chuť stáhnout se do klidu.', dos: ['Navrhni klidný večer doma – deka, čaj, film.', 'Termofor nebo teplá koupel.', 'Dej jí prostor, pokud ho chce.'], avoid: 'Náročné výlety a bagatelizování bolesti.' },
-      follicular: { season: 'Jaro', name: 'Folikulární fáze', energy_label: 'Stoupající', mood: 'Hormony se probouzí. Nálada se zlepšuje a roste chuť do nových věcí.', dos: ['Navrhni něco nového – výlet, kurz.', 'Plánujte společné věci a dovolenou.', 'Podpoř její nápady.'], avoid: 'Nic zvláštního.' },
-      ovulatory: { season: 'Léto', name: 'Ovulační fáze', energy_label: 'Nejvyšší', mood: 'Vrchol cyklu. Energie a chuť na blízkost jsou na maximu.', dos: ['Naplánuj rande nebo společenskou akci.', 'Dobrý čas na důležité rozhovory.', 'Dej prostor spontánnosti.'], avoid: 'Rutina.' },
-      luteal: { season: 'Podzim', name: 'Luteální fáze', energy_label: 'Klesající', mood: 'Energie klesá. Poslední dny (PMS) často přináší podrážděnost nebo úzkost.', dos: ['Buď trpělivý – výkyvy nálad nejsou o tobě.', 'Držte volnější režim bez stresu.', 'Zeptej se, co právě potřebuje.'], avoid: 'Hádky o maličkosti a tlačení do akcí.' }
+      menstrual: { season: 'Zima', emoji: '❄️', name: 'Menstruační fáze', energy_label: 'Nízká', mood: 'Tělo zpomaluje a bere si zpátečku. Časté jsou křeče, únava a chuť stáhnout se do klidu.', dos: ['Navrhni klidný večer doma – deka, čaj, film.', 'Termofor nebo teplá koupel.', 'Dej jí prostor, pokud ho chce.'], avoid: 'Náročné výlety a bagatelizování bolesti.' },
+      follicular: { season: 'Jaro', emoji: '🌱', name: 'Folikulární fáze', energy_label: 'Stoupající', mood: 'Hormony se probouzí. Nálada se zlepšuje a roste chuť do nových věcí.', dos: ['Navrhni něco nového – výlet, kurz.', 'Plánujte společné věci a dovolenou.', 'Podpoř její nápady.'], avoid: 'Nic zvláštního.' },
+      ovulatory: { season: 'Léto', emoji: '☀️', name: 'Ovulační fáze', energy_label: 'Nejvyšší', mood: 'Vrchol cyklu. Energie a chuť na blízkost jsou na maximu.', dos: ['Naplánuj rande nebo společenskou akci.', 'Dobrý čas na důležité rozhovory.', 'Dej prostor spontánnosti.'], avoid: 'Rutina.' },
+      luteal: { season: 'Podzim', emoji: '🍂', name: 'Luteální fáze', energy_label: 'Klesající', mood: 'Energie klesá. Poslední dny (PMS) často přináší podrážděnost nebo úzkost.', dos: ['Buď trpělivý – výkyvy nálad nejsou o tobě.', 'Držte volnější režim bez stresu.', 'Zeptej se, co právě potřebuje.'], avoid: 'Hádky o maličkosti a tlačení do akcí.' }
     },
     ctx: {
       high_stress: 'V posledních dnech zaznamenán vyšší stres. Uberte na nárocích, dej jí dnes absolutní klid.',
@@ -54,17 +54,17 @@ const I18N = {
     prof_pill: 'Uses hormonal contraception', journal_summary: 'Journal', j_date_label: 'Date',
     j_rating_legend: 'Mood (1-5)', j_sleep_legend: 'Sleep (1-5)', j_stress_legend: 'Stress (1-5)',
     j_symptoms_legend: 'Symptoms', j_note_label: 'Note', journal_submit: 'Save entry',
-    history_summary: 'Cycle History', history_add_btn: 'Add', settings_summary: 'System & Data',
+    history_summary: 'Cycle History', history_add_btn: 'Add', settings_summary: 'System & Account',
     set_cycle_label: 'Cycle length', set_period_label: 'Period length', settings_submit: 'Save',
     pill_warning: 'Hormonal contraception suppresses natural fluctuations. Treat phases as a rough guide.',
     dow_short: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     symptoms: { cramps: 'Cramps', headache: 'Headache', bloating: 'Bloating', fatigue: 'Fatigue', irritability: 'Irritability', anxiety: 'Anxiety', sugar_cravings: 'Sugar cravings' },
     ob_h2: 'Before we start', ob_start_label: 'First day of last period', ob_cycle_label: 'Cycle length (days)', ob_period_label: 'Period length', ob_submit: 'Save and view',
     phases: {
-      menstrual: { season: 'Winter', name: 'Menstrual Phase', energy_label: 'Low', mood: 'Body slows down. Cramps and fatigue are common.', dos: ['Quiet evening at home.', 'Warm bath or hot water bottle.', 'Give her space.'], avoid: 'Demanding events.' },
-      follicular: { season: 'Spring', name: 'Follicular Phase', energy_label: 'Rising', mood: 'Energy and mood are lifting.', dos: ['Suggest something new.', 'Plan holidays or projects.', 'Support her ideas.'], avoid: 'Nothing in particular.' },
-      ovulatory: { season: 'Summer', name: 'Ovulatory Phase', energy_label: 'Peak', mood: 'Peak energy, confidence, and desire for closeness.', dos: ['Plan a date.', 'Good time for big talks.', 'Be spontaneous.'], avoid: 'Routine.' },
-      luteal: { season: 'Autumn', name: 'Luteal Phase', energy_label: 'Declining', mood: 'Energy fades. Late luteal (PMS) often brings irritability.', dos: ['Be patient.', 'Keep it low-stress.', 'Ask what she needs.'], avoid: 'Arguments over small things.' }
+      menstrual: { season: 'Winter', emoji: '❄️', name: 'Menstrual Phase', energy_label: 'Low', mood: 'Body slows down. Cramps and fatigue are common.', dos: ['Quiet evening at home.', 'Warm bath or hot water bottle.', 'Give her space.'], avoid: 'Demanding events.' },
+      follicular: { season: 'Spring', emoji: '🌱', name: 'Follicular Phase', energy_label: 'Rising', mood: 'Energy and mood are lifting.', dos: ['Suggest something new.', 'Plan holidays or projects.', 'Support her ideas.'], avoid: 'Nothing in particular.' },
+      ovulatory: { season: 'Summer', emoji: '☀️', name: 'Ovulatory Phase', energy_label: 'Peak', mood: 'Peak energy, confidence, and desire for closeness.', dos: ['Plan a date.', 'Good time for big talks.', 'Be spontaneous.'], avoid: 'Routine.' },
+      luteal: { season: 'Autumn', emoji: '🍂', name: 'Luteal Phase', energy_label: 'Declining', mood: 'Energy fades. Late luteal (PMS) often brings irritability.', dos: ['Be patient.', 'Keep it low-stress.', 'Ask what she needs.'], avoid: 'Arguments over small things.' }
     },
     ctx: {
       high_stress: 'High stress recorded recently. Lower expectations today and give her absolute peace.',
@@ -161,7 +161,6 @@ export default function Home() {
     });
   };
 
-  // Obsluha Onboardingu
   const handleOnboarding = (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -176,7 +175,6 @@ export default function Home() {
     syncData(newSettings, journal);
   };
 
-  // Uložení Profilu (z hlavní stránky)
   const handleProfileSave = (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -188,7 +186,6 @@ export default function Home() {
     }, journal);
   };
 
-  // Uložení Systému (Délka cyklu/menstruace)
   const handleSystemSave = (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -199,7 +196,6 @@ export default function Home() {
     }, journal);
   };
 
-  // Přidání nové menstruace
   const handleAddPeriod = (e) => {
     e.preventDefault();
     if (!newPeriodDate || settings.periods.includes(newPeriodDate)) return;
@@ -207,7 +203,6 @@ export default function Home() {
     setNewPeriodDate("");
   };
 
-  // Uložení deníku
   const handleSaveJournal = (e) => {
     e.preventDefault();
     const dateStr = toIso(selectedDate);
@@ -217,61 +212,61 @@ export default function Home() {
     setJMood(null); setJSleep(null); setJStress(null); setJSymptoms([]); setJNote("");
   };
 
-  // ====== TADY JSOU TY PODMÍNKY ======
-  if (status === "loading") return <p className="loading-msg" style={{ marginTop: "40px" }}>Načítám...</p>;
+  // Návratové stavy (Loading / Unauthenticated)
+  if (status === "loading") return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "#1a161e" }}>Načítám...</div>;
   if (status === "unauthenticated") return <LandingPage />;
-  if (loading) return <p className="loading-msg" style={{ marginTop: "40px" }}>Načítám...</p>;
+  if (loading) return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "#1a161e" }}>Načítám data...</div>;
   if (!session) return null;
 
-  // Renderování Onboardingu
+  // Onboarding (Pokud uživatel nemá data)
   if (!settings || !settings.periods || settings.periods.length === 0) {
     return (
-      <div className="app">
-        <header className="hero">
-          <p className="eyebrow">{t('eyebrow')}</p>
-          <h1 className="title">{t('title')}</h1>
-          <p className="subtitle">{t('subtitle')}</p>
-        </header>
-        <section className="card onboarding">
-          <h2>{t('ob_h2')}</h2>
+      <div className="app-wrapper">
+        <style dangerouslySetInnerHTML={{ __html: `
+          .app-wrapper { background: #1a161e; min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; color: #fff; }
+          .ios-glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(255, 255, 255, 0.25); border-left: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2); border-radius: 32px; padding: 40px; width: 100%; max-width: 500px; }
+          .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+          .field span { font-size: 13px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; }
+          input, select { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 14px; border-radius: 16px; color: #fff; font-size: 16px; outline: none; transition: border 0.3s; }
+          input:focus, select:focus { border-color: rgba(255,255,255,0.4); }
+          .btn-primary { background: #fff; color: #000; padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
+          .btn-primary:hover { transform: scale(1.02); }
+        `}} />
+        <div className="ios-glass">
+          <h2 style={{ fontSize: "28px", marginBottom: "8px", fontFamily: "var(--font-display)" }}>{t('ob_h2')}</h2>
+          <p style={{ color: "rgba(255,255,255,0.7)", marginBottom: "32px", fontSize: "15px" }}>Vyplňte základní údaje pro kalibraci radaru.</p>
           <form onSubmit={handleOnboarding}>
             <label className="field"><span>{t('ob_start_label')}</span><input type="date" name="start" required /></label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
-              <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('ob_cycle_label')}</span><input type="number" name="cycle" defaultValue="28" required /></label>
-              <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('ob_period_label')}</span><input type="number" name="period" defaultValue="5" required /></label>
+            <div style={{ display: "flex", gap: "16px" }}>
+              <label className="field" style={{ flex: 1 }}><span>{t('ob_cycle_label')}</span><input type="number" name="cycle" defaultValue="28" required /></label>
+              <label className="field" style={{ flex: 1 }}><span>{t('ob_period_label')}</span><input type="number" name="period" defaultValue="5" required /></label>
             </div>
-            <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid var(--border)" }}>
-              <span style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink-dim)", marginBottom: "12px", textTransform: "uppercase" }}>{t('profile_summary')}</span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
-                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('prof_age')}</span><input type="number" name="age" /></label>
-                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}>
-                  <span>{t('prof_activity')}</span>
-                  <select name="activity" defaultValue="light">
-                    <option value="sedentary">{t('act_sedentary')}</option>
-                    <option value="light">{t('act_light')}</option>
-                    <option value="active">{t('act_active')}</option>
-                    <option value="athlete">{t('act_athlete')}</option>
-                  </select>
-                </label>
-              </div>
-              <label className="field checkbox" style={{ flexDirection: "row", alignItems: "center", gap: "12px" }}>
-                <input type="checkbox" name="pill" /> <span>{t('prof_pill')}</span>
-              </label>
-            </div>
-            <button type="submit" className="btn-primary" style={{ marginTop: "20px" }}>{t('ob_submit')}</button>
+            <button type="submit" className="btn-primary" style={{ marginTop: "16px" }}>{t('ob_submit')}</button>
           </form>
-        </section>
+        </div>
       </div>
     );
   }
 
-  // Výpočty pro hlavní UI
+  // === VÝPOČTY PRO HLAVNÍ UI ===
   const ranges = getPhaseDayRanges(settings.cycleLength, settings.periodLength);
   const currentDay = getCycleDay(selectedDate, settings.periods, settings.cycleLength);
   const phaseKey = getPhaseKey(currentDay, ranges);
   const phaseData = I18N[lang].phases[phaseKey];
 
-  // Výpočet kruhu (SVG)
+  // Dynamické barvy pozadí podle fáze cyklu!
+  const getGradientColors = (phase) => {
+    switch (phase) {
+      case 'winter': return { c1: '#E2929C', c2: '#7A5B6B', c3: '#2B3A67', op: 0.8 };
+      case 'spring': return { c1: '#9FCBA4', c2: '#5C8A69', c3: '#2B5C5D', op: 0.8 };
+      case 'summer': return { c1: '#F0BB6C', c2: '#E25B5B', c3: '#9A2A54', op: 0.8 };
+      case 'autumn': return { c1: '#E0875B', c2: '#8B3A2B', c3: '#C98A2C', op: 0.8 };
+      default: return { c1: '#E2929C', c2: '#F0BB6C', c3: '#5C8A69', op: 0.35 };
+    }
+  };
+  const colors = getGradientColors(phaseKey);
+
+  // SVG Kruh
   const circ = 2 * Math.PI * 88;
   const wheelSegments = [['menstrual', ranges.menstrual], ['follicular', ranges.follicular], ['ovulatory', ranges.ovulatory], ['luteal', ranges.luteal]].map(p => {
     const len = (p[1].end - p[1].start + 1) / settings.cycleLength;
@@ -295,7 +290,6 @@ export default function Home() {
     if (phaseKey === 'follicular' || phaseKey === 'ovulatory') ctxTips.push(t('ctx').active_follicular);
   }
 
-  // Historie a Trendy
   const ascPeriods = [...settings.periods].sort();
   const diffs = [];
   for (let i = 1; i < ascPeriods.length; i++) {
@@ -304,251 +298,303 @@ export default function Home() {
   const avgCycle = diffs.length ? diffs.reduce((a, b) => a + b, 0) / diffs.length : settings.cycleLength;
   const maxDiff = diffs.length ? Math.max(...diffs) + 5 : 40;
 
-  // Komponenty pro hodnocení 1-5
   const RatingRow = ({ label, val, setter }) => (
-    <fieldset className="field-group">
-      <legend>{label}</legend>
-      <div className="rating-buttons" style={{ flexWrap: "wrap" }}>
+    <fieldset style={{ border: "none", margin: "0 0 20px 0", padding: 0 }}>
+      <legend style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", textTransform: "uppercase", marginBottom: "8px" }}>{label}</legend>
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         {[1, 2, 3, 4, 5].map(v => (
-          <button key={v} type="button" className={`rating-btn ${val === v ? 'active' : ''}`} onClick={() => setter(v)}>{v}</button>
+          <button key={v} type="button" onClick={() => setter(v)} style={{ flex: 1, minWidth: "40px", padding: "12px 0", borderRadius: "12px", background: val === v ? "var(--summer)" : "rgba(255,255,255,0.08)", color: val === v ? "#000" : "#fff", border: "1px solid rgba(255,255,255,0.15)", fontWeight: val === v ? "bold" : "normal", cursor: "pointer", transition: "all 0.2s" }}>
+            {v}
+          </button>
         ))}
       </div>
     </fieldset>
   );
 
   return (
-    <div className="app">
-      {/* Hlavička */}
-      <header className="hero">
-        <p className="eyebrow">{t('eyebrow')}</p>
-        <h1 className="title">{t('title')}</h1>
-        <p className="subtitle">{t('subtitle')}</p>
-        <div className="lang-switch">
-          <button className={`lang-btn ${lang === 'cs' ? 'active' : ''}`} onClick={() => setLang('cs')}>CZ</button>
-          <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>
-        </div>
-      </header>
+    <div className="app-wrapper">
+      <style dangerouslySetInnerHTML={{ __html: `
+        .app-wrapper { position: relative; min-height: 100vh; color: #fff; overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; }
+        
+        /* Ochrana před defaultním černým textem z původního CSS */
+        h1, h2, h3, p, span, li, legend { color: inherit; }
 
-      <main>
-        {/* Kruhový diagram */}
-        <section className="wheel-section">
-          <div className="wheel-wrap">
-            <svg viewBox="0 0 240 240">
-              <g transform="rotate(-90 120 120)">
-                {wheelSegments}
-                <circle className="wheel-marker" cx={120 + 88 * Math.cos(markerAngle)} cy={120 + 88 * Math.sin(markerAngle)} r="10" fill="var(--ink)" strokeWidth="5" stroke={`var(${PHASE_ACCENTS[phaseKey]})`} style={{ transition: 'all 0.5s' }} />
-              </g>
-            </svg>
-            <div className="wheel-center">
-              <span className="wheel-day-label">{t('wheel_day_label')}</span>
-              <span className="wheel-day">{currentDay}</span>
-              <span className="wheel-phase-label" style={{ color: `var(${PHASE_ACCENTS[phaseKey]})` }}>{phaseData.season}</span>
+        /* MESH POZADÍ (Mění se podle fáze cyklu!) */
+        .mesh-background { position: fixed; inset: 0; z-index: -3; background: #1a161e; overflow: hidden; }
+        .mesh-orb { position: absolute; border-radius: 50%; filter: blur(100px); transition: background 2s ease, opacity 2s ease; }
+        .orb-1 { width: 120vw; height: 60vh; bottom: -30vh; left: -10vw; animation: float1 14s infinite alternate ease-in-out; }
+        .orb-2 { width: 80vw; height: 80vh; bottom: -40vh; right: -20vw; animation: float2 18s infinite alternate-reverse ease-in-out; }
+        .orb-3 { width: 90vw; height: 70vh; bottom: -20vh; left: -20vw; animation: float3 22s infinite alternate ease-in-out; }
+
+        @keyframes float1 { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(-5vh) scale(1.1); } }
+        @keyframes float2 { 0% { transform: translateX(0) scale(1); } 100% { transform: translateX(-15vw) scale(1.15); } }
+        @keyframes float3 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(10vw, -15vh) scale(1.2); } }
+
+        .noise-overlay {
+          position: fixed; inset: 0; z-index: -2;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+          opacity: 0.05; pointer-events: none;
+        }
+
+        /* LIQUID GLASS EFEKT (Hlavní stavební kámen karet) */
+        .ios-glass {
+          background: rgba(30, 25, 34, 0.45);
+          backdrop-filter: blur(48px) saturate(200%);
+          -webkit-backdrop-filter: blur(48px) saturate(200%);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-top: 1px solid rgba(255, 255, 255, 0.25);
+          border-left: 1px solid rgba(255, 255, 255, 0.15);
+          box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
+          border-radius: 32px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        /* HORNÍ LIŠTA */
+        .glass-nav {
+          position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 600px;
+          height: 64px; border-radius: 99px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 24px; z-index: 100;
+        }
+        .nav-badge { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 99px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+        .nav-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .glass-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(10px); }
+        .glass-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+
+        /* OBSAH A KARTY */
+        .main-container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; padding: 0 16px; position: relative; z-index: 1; }
+        
+        .liquid-glow { position: absolute; border-radius: 50%; filter: blur(60px); z-index: 0; opacity: 0.3; pointer-events: none; }
+        .glass-content { position: relative; z-index: 2; padding: 32px; }
+
+        /* FORMULÁŘE */
+        input, select, textarea { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 14px; border-radius: 16px; color: #fff; font-size: 16px; outline: none; width: 100%; transition: border 0.3s; box-sizing: border-box; }
+        input:focus, select:focus, textarea:focus { border-color: rgba(255,255,255,0.4); }
+        .field span { display: block; font-size: 13px; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 8px; }
+        .btn-primary { background: #fff; color: #000; padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
+        .btn-primary:hover { transform: scale(1.02); }
+
+        /* AKORDEONY (Nastavení, Deník) */
+        details { transition: all 0.3s ease; }
+        summary { cursor: pointer; font-family: var(--font-display); font-size: 22px; color: #fff; display: flex; align-items: center; justify-content: space-between; list-style: none; padding: 32px; margin: -32px; }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: '+'; font-size: 28px; font-weight: 300; transition: transform 0.3s; }
+        details[open] summary::after { transform: rotate(45deg); }
+        details[open] summary { border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px; padding-bottom: 24px; }
+        
+        /* FORECAST STRIP */
+        .forecast-strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+        .forecast-chip { min-width: 70px; display: flex; flex-direction: column; align-items: center; padding: 16px 12px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.2s; }
+        .forecast-chip.active { background: var(--accent); color: #000; border: none; font-weight: 600; }
+        .forecast-chip:hover:not(.active) { background: rgba(255,255,255,0.1); }
+      `}} />
+
+      {/* DYNAMICKÉ POZADÍ (Reaguje na fázi cyklu) */}
+      <div className="mesh-background">
+        <div className="mesh-orb orb-1" style={{ background: colors.c1, opacity: colors.op }}></div>
+        <div className="mesh-orb orb-2" style={{ background: colors.c2, opacity: colors.op }}></div>
+        <div className="mesh-orb orb-3" style={{ background: colors.c3, opacity: colors.op }}></div>
+      </div>
+      <div className="noise-overlay"></div>
+
+      {/* CHYTRÁ HORNÍ LIŠTA */}
+      <nav className="glass-nav ios-glass">
+        <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px" }}>Vnitřní počasí</span>
+        
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          {/* Dynamický štítek */}
+          <div className="nav-badge" onClick={() => document.getElementById('top-radar').scrollIntoView({behavior: 'smooth'})} style={{cursor: 'pointer'}}>
+            <span className="nav-dot" style={{ background: `var(${PHASE_ACCENTS[phaseKey]})`, boxShadow: `0 0 10px var(${PHASE_ACCENTS[phaseKey]})` }}></span>
+            <span style={{ fontSize: "12.5px", fontFamily: "var(--font-mono)", letterSpacing: "0.02em" }}>
+              {phaseData.emoji} {currentDay}. den
+            </span>
+          </div>
+
+          <button className="glass-btn" onClick={() => document.getElementById('journal-section').scrollIntoView({behavior: 'smooth'})}>➕</button>
+          <button className="glass-btn" onClick={() => document.getElementById('settings-section').scrollIntoView({behavior: 'smooth'})}>⚙️</button>
+        </div>
+      </nav>
+
+      <div className="main-container">
+
+        {/* 1. RADAR (Upravený do skla) */}
+        <section id="top-radar" className="ios-glass" style={{ textAlign: "center", padding: "40px 20px" }}>
+          <div className="liquid-glow" style={{ width: "250px", height: "250px", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: `var(${PHASE_ACCENTS[phaseKey]})` }}></div>
+          <div style={{ position: "relative", zIndex: 2 }}>
+            
+            {/* Kalendářová navigace */}
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", marginBottom: "32px" }}>
+              <button className="glass-btn" onClick={() => setSelectedDate(new Date(selectedDate.getTime() - 86400000))}>‹</button>
+              <div style={{ background: "rgba(255,255,255,0.08)", padding: "10px 16px", borderRadius: "99px", border: "1px solid rgba(255,255,255,0.15)", fontSize: "15px", fontWeight: 500 }}>
+                {formatDate(selectedDate)}
+              </div>
+              <button className="glass-btn" onClick={() => setSelectedDate(new Date(selectedDate.getTime() + 86400000))}>›</button>
+            </div>
+
+            {/* Samotný kruh */}
+            <div style={{ position: "relative", width: "240px", height: "240px", margin: "0 auto" }}>
+              <svg viewBox="0 0 240 240" style={{ filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.5))" }}>
+                <g transform="rotate(-90 120 120)">
+                  {wheelSegments}
+                  <circle cx={120 + 88 * Math.cos(markerAngle)} cy={120 + 88 * Math.sin(markerAngle)} r="12" fill="#fff" strokeWidth="4" stroke={`var(${PHASE_ACCENTS[phaseKey]})`} style={{ transition: 'all 0.5s' }} />
+                </g>
+              </svg>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "1px" }}>{t('wheel_day_label')}</span>
+                <span style={{ fontSize: "48px", fontFamily: "var(--font-display)", fontWeight: 500, lineHeight: 1 }}>{currentDay}</span>
+                <span style={{ fontSize: "14px", color: `var(${PHASE_ACCENTS[phaseKey]})`, fontWeight: 600, marginTop: "4px" }}>{phaseData.season}</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* 2. DNEŠNÍ PŘEDPOVĚĎ A TIPY */}
+        <section className="ios-glass">
+          <div className="glass-content">
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", marginBottom: "8px" }}>{phaseData.name}</h2>
+            <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.8)", lineHeight: 1.6, marginBottom: "24px" }}>{phaseData.mood}</p>
+            
+            <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: "20px", padding: "20px", marginBottom: "24px", border: "1px solid rgba(255,255,255,0.05)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "14px" }}>
+                <span style={{ color: "rgba(255,255,255,0.7)" }}>{t('energy_label')}</span>
+                <span style={{ fontWeight: 600, color: `var(${PHASE_ACCENTS[phaseKey]})` }}>{phaseData.energy_label}</span>
+              </div>
+              <div style={{ height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "99px", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${PHASE_ENERGY_PCT[phaseKey]}%`, background: `var(${PHASE_ACCENTS[phaseKey]})`, borderRadius: "99px", transition: "width 1s cubic-bezier(0.2, 0.8, 0.2, 1)" }}></div>
+              </div>
+            </div>
+
+            <h3 style={{ fontSize: "18px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ background: "var(--spring)", color: "#000", padding: "2px 8px", borderRadius: "6px", fontSize: "12px" }}>DO</span> {t('dos_heading')}
+            </h3>
+            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px 0", display: "flex", flexDirection: "column", gap: "12px" }}>
+              {ctxTips.map((tip, i) => <li key={`ctx-${i}`} style={{ background: "rgba(255,255,255,0.05)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px", borderLeft: "3px solid var(--summer)" }}>{tip}</li>)}
+              {phaseData.dos.map((tip, i) => <li key={`dos-${i}`} style={{ background: "rgba(255,255,255,0.05)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px" }}>{tip}</li>)}
+            </ul>
+
+            <div style={{ background: "rgba(226,146,156,0.1)", border: "1px solid rgba(226,146,156,0.2)", padding: "16px", borderRadius: "16px", color: "rgba(255,255,255,0.9)", fontSize: "15px" }}>
+              <strong style={{ color: "var(--winter)" }}>{t('avoid_label')}</strong> {phaseData.avoid}
             </div>
           </div>
         </section>
 
-        {/* Navigace dny */}
-        <nav className="date-nav">
-          <button className="nav-btn" onClick={() => setSelectedDate(new Date(selectedDate.getTime() - 86400000))}>‹</button>
-          <input type="date" id="date-input" value={toIso(selectedDate)} onChange={(e) => e.target.value && setSelectedDate(new Date(e.target.value))} />
-          <button className="nav-btn" onClick={() => setSelectedDate(new Date(selectedDate.getTime() + 86400000))}>›</button>
-          <button className="today-btn" onClick={() => setSelectedDate(new Date())}>{t('today_btn')}</button>
-        </nav>
-
-        {/* Hlavní karta výsledku */}
-        <section className="card result-card" style={{ '--accent': `var(${PHASE_ACCENTS[phaseKey]})` }}>
-          <p className="result-date">{formatDate(selectedDate)} · {currentDay}. den</p>
-          {settings.contraception && <div className="pill-warning">{t('pill_warning')}</div>}
-          <p className="result-season" style={{ color: "var(--accent)" }}>{phaseData.season}</p>
-          <h2 className="result-phase">{phaseData.name}</h2>
-          
-          <div className="energy">
-            <span className="energy-label">{t('energy_label')}</span>
-            <div className="energy-track"><div className="energy-fill" style={{ width: `${PHASE_ENERGY_PCT[phaseKey]}%`, background: "var(--accent)" }}></div></div>
-            <span className="energy-value">{phaseData.energy_label}</span>
-          </div>
-          
-          <p className="result-mood">{phaseData.mood}</p>
-          
-          <div className="result-dos">
-            <h3>{t('dos_heading')}</h3>
-            <ul>
-              {ctxTips.map((tip, i) => <li key={`ctx-${i}`} className="ctx-tip">{tip}</li>)}
-              {phaseData.dos.map((tip, i) => <li key={`dos-${i}`}>{tip}</li>)}
-            </ul>
-          </div>
-          <p className="result-avoid"><strong>{t('avoid_label')}</strong> {phaseData.avoid}</p>
-        </section>
-
-        {/* Forecast Strip */}
-        <section className="forecast" style={{ marginTop: "28px" }}>
-          <h3>{t('forecast_heading')}</h3>
-          <div className="forecast-strip">
-            {Array.from({ length: 10 }).map((_, i) => {
-              const d = new Date(selectedDate); d.setDate(d.getDate() + i);
-              const fDay = getCycleDay(d, settings.periods, settings.cycleLength);
-              const fPk = getPhaseKey(fDay, ranges);
-              return (
-                <div key={i} className={`forecast-chip ${i === 0 ? 'active' : ''}`} style={{ '--accent': `var(${PHASE_ACCENTS[fPk]})` }} onClick={() => setSelectedDate(d)}>
-                  <span className="fc-dow">{t('dow_short')[d.getDay()]}</span>
-                  <span className="fc-date">{d.getDate()}.{d.getMonth() + 1}.</span>
-                  <span className="fc-dot"></span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Přehledy a analýza */}
-        <details className="settings" style={{ marginTop: "28px" }}>
-          <summary><span className="summary-title">{t('insights_summary')}</span></summary>
-          <div className="settings-body">
-            {diffs.length > 0 ? (
-              <div className="insights-block">
-                <h3>{t('ins_trend_title')}</h3>
-                <div className="trend-chart">
-                  {diffs.map((d, i) => (
-                    <div key={i} className="trend-bar-wrap">
-                      <div className="trend-bar" style={{ height: `${(d / maxDiff) * 100}%`, background: d > 35 || d < 21 ? 'var(--autumn)' : 'var(--surface-2)' }}></div>
-                      <span className="trend-val">{d}</span>
-                    </div>
-                  ))}
-                  <div className="avg-line" style={{ bottom: `${(avgCycle / maxDiff) * 100}%` }}></div>
-                </div>
-                <div className="insight-text-box" style={{ background: "var(--surface-2)", padding: "14px", borderRadius: "12px", marginTop: "12px", borderLeft: "3px solid var(--summer)", fontSize: "13.5px" }}>
-                  <strong>Průměr: {Math.round(avgCycle)} dní.</strong><br/>
-                  {diffs.length > 0 && Math.max(...diffs) - Math.min(...diffs) > 6 ? (journal.some(e => e.stress >= 4) ? t('ctx').trend_stress : `Cyklus kolísá (rozptyl ${Math.max(...diffs) - Math.min(...diffs)} dní).`) : t('ctx').trend_ok}
-                </div>
-              </div>
-            ) : (
-              <p className="hint">Pro zobrazení grafů přidejte alespoň 2 menstruace.</p>
-            )}
-          </div>
-        </details>
-
-        {/* Profil a životní styl */}
-        <details className="settings" style={{ marginTop: "14px" }}>
-          <summary><span className="summary-title">{t('profile_summary')}</span></summary>
-          <div className="settings-body">
-            <form onSubmit={handleProfileSave}>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
-                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}>
-                  <span>{t('prof_age')}</span>
-                  <input type="number" name="age" defaultValue={settings.age} />
-                </label>
-                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}>
-                  <span>{t('prof_activity')}</span>
-                  <select name="activity" defaultValue={settings.activity}>
-                    <option value="sedentary">{t('act_sedentary')}</option>
-                    <option value="light">{t('act_light')}</option>
-                    <option value="active">{t('act_active')}</option>
-                    <option value="athlete">{t('act_athlete')}</option>
-                  </select>
-                </label>
-              </div>
-              <label className="field checkbox" style={{ flexDirection: "row", alignItems: "center", gap: "12px" }}>
-                <input type="checkbox" name="pill" defaultChecked={settings.contraception} /> <span>{t('prof_pill')}</span>
-              </label>
-              <button type="submit" className="btn-primary" style={{ marginTop: "12px" }}>{t('settings_submit')}</button>
-            </form>
-          </div>
-        </details>
-
-        {/* Deník */}
-        <details className="settings" style={{ marginTop: "14px" }}>
-          <summary><span className="summary-title">{t('journal_summary')}</span></summary>
-          <div className="settings-body">
-            <form onSubmit={handleSaveJournal}>
-              <label className="field" style={{ marginBottom: "16px" }}>
-                <span>{t('j_date_label')}</span>
-                <input 
-                  type="date" 
-                  value={toIso(selectedDate)} 
-                  onChange={e => e.target.value && setSelectedDate(new Date(e.target.value))} 
-                  required 
-                />
-              </label>
-              <RatingRow label={t('j_rating_legend')} val={jMood} setter={setJMood} />
-              <RatingRow label={t('j_sleep_legend')} val={jSleep} setter={setJSleep} />
-              <RatingRow label={t('j_stress_legend')} val={jStress} setter={setJStress} />
-              <fieldset className="field-group">
-                <legend>{t('j_symptoms_legend')}</legend>
-                <div className="symptom-tags">
-                  {SYMPTOM_KEYS.map(k => (
-                    <button key={k} type="button" className={`tag-btn ${jSymptoms.includes(k) ? 'active' : ''}`} onClick={() => setJSymptoms(jSymptoms.includes(k) ? jSymptoms.filter(x => x !== k) : [...jSymptoms, k])}>
-                      {t('symptoms')[k] || k}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-              <label className="field"><span>{t('j_note_label')}</span><textarea rows="2" value={jNote} onChange={e => setJNote(e.target.value)}></textarea></label>
-              <button type="submit" className="btn-primary">{t('journal_submit')}</button>
-            </form>
-            <ul className="journal-list">
-              {[...journal].sort((a,b) => a.date < b.date ? 1 : -1).map(j => (
-                <li key={j.date} className="journal-item" style={{ flexDirection: "column", alignItems: "flex-start" }}>
-                  <div className="journal-item-meta" style={{ display: "flex", width: "100%", alignItems: "center", gap: "8px" }}>
-                    <span className="j-date">{formatDate(new Date(j.date))}</span>
-                    <div style={{ display: "flex", gap: "6px", marginRight: "auto" }}>
-                      {j.mood && <span style={{ fontSize: "11px", background: "var(--surface-2)", padding: "2px 6px", borderRadius: "4px" }}>Nálada {j.mood}</span>}
-                      {j.stress >= 4 && <span style={{ fontSize: "11px", background: "var(--surface-2)", padding: "2px 6px", borderRadius: "4px", color: "var(--autumn)" }}>Stres</span>}
-                    </div>
-                    <button type="button" className="delete-x" onClick={() => syncData(settings, journal.filter(x => x.date !== j.date))}>×</button>
+        {/* 3. VÝHLED (FORECAST) */}
+        <section className="ios-glass">
+          <div className="glass-content">
+            <h3 style={{ fontSize: "18px", marginBottom: "20px" }}>{t('forecast_heading')}</h3>
+            <div className="forecast-strip">
+              {Array.from({ length: 10 }).map((_, i) => {
+                const d = new Date(selectedDate); d.setDate(d.getDate() + i);
+                const fDay = getCycleDay(d, settings.periods, settings.cycleLength);
+                const fPk = getPhaseKey(fDay, ranges);
+                return (
+                  <div key={i} className={`forecast-chip ${i === 0 ? 'active' : ''}`} style={{ '--accent': `var(${PHASE_ACCENTS[fPk]})` }} onClick={() => setSelectedDate(d)}>
+                    <span style={{ fontSize: "12px", textTransform: "uppercase", opacity: i === 0 ? 1 : 0.6 }}>{t('dow_short')[d.getDay()]}</span>
+                    <span style={{ fontSize: "18px", fontWeight: 600, margin: "4px 0" }}>{d.getDate()}.</span>
+                    <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: i === 0 ? "#000" : `var(${PHASE_ACCENTS[fPk]})` }}></span>
                   </div>
-                  {j.note && <div style={{ fontSize: "12.5px", color: "var(--ink-dim)", marginTop: "4px" }}>{j.note}</div>}
-                </li>
-              ))}
-            </ul>
+                );
+              })}
+            </div>
           </div>
-        </details>
+        </section>
 
-        {/* Historie */}
-        <details className="settings" style={{ marginTop: "14px" }}>
-          <summary><span className="summary-title">{t('history_summary')}</span></summary>
-          <div className="settings-body">
-            <form className="inline-add-form" onSubmit={handleAddPeriod}>
-              <input type="date" value={newPeriodDate} onChange={e => setNewPeriodDate(e.target.value)} required />
-              <button type="submit" className="btn-small">{t('history_add_btn')}</button>
-            </form>
-            <ul className="history-list">
-              {ascPeriods.reverse().map(p => (
-                <li key={p} className="history-item" style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
-                  <span>{formatDate(new Date(p))}</span>
-                  <button type="button" className="delete-x" onClick={() => syncData({ ...settings, periods: settings.periods.filter(x => x !== p) }, journal)}>×</button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </details>
+        {/* 4. DENÍK */}
+        <section id="journal-section" className="ios-glass">
+          <details>
+            <summary>📝 {t('journal_summary')}</summary>
+            <div className="glass-content" style={{ paddingTop: 0 }}>
+              <form onSubmit={handleSaveJournal}>
+                <RatingRow label={t('j_rating_legend')} val={jMood} setter={setJMood} />
+                <RatingRow label={t('j_sleep_legend')} val={jSleep} setter={setJSleep} />
+                <RatingRow label={t('j_stress_legend')} val={jStress} setter={setJStress} />
+                
+                <div style={{ marginBottom: "24px" }}>
+                  <span style={{ display: "block", fontSize: "13px", color: "rgba(255,255,255,0.7)", textTransform: "uppercase", marginBottom: "12px" }}>{t('j_symptoms_legend')}</span>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                    {SYMPTOM_KEYS.map(k => (
+                      <button key={k} type="button" onClick={() => setJSymptoms(jSymptoms.includes(k) ? jSymptoms.filter(x => x !== k) : [...jSymptoms, k])} style={{ background: jSymptoms.includes(k) ? "var(--winter)" : "rgba(255,255,255,0.08)", color: jSymptoms.includes(k) ? "#000" : "#fff", border: "1px solid rgba(255,255,255,0.15)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", cursor: "pointer", transition: "all 0.2s" }}>
+                        {t('symptoms')[k] || k}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-        {/* Systém a Odhlášení */}
-        <details className="settings" style={{ marginTop: "14px" }}>
-          <summary><span className="summary-title">{t('settings_summary')}</span></summary>
-          <div className="settings-body">
-            <form onSubmit={handleSystemSave}>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
-                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('set_cycle_label')}</span><input type="number" name="cycleLength" defaultValue={settings.cycleLength} required /></label>
-                <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('set_period_label')}</span><input type="number" name="periodLength" defaultValue={settings.periodLength} required /></label>
+                <label className="field">
+                  <span>{t('j_note_label')}</span>
+                  <textarea rows="3" value={jNote} onChange={e => setJNote(e.target.value)}></textarea>
+                </label>
+                
+                <button type="submit" className="btn-primary" style={{ marginTop: "8px" }}>{t('journal_submit')}</button>
+              </form>
+
+              {/* Seznam starých zápisů */}
+              <div style={{ marginTop: "32px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                {[...journal].sort((a,b) => a.date < b.date ? 1 : -1).map(j => (
+                  <div key={j.date} style={{ background: "rgba(0,0,0,0.2)", padding: "16px", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                      <span style={{ fontWeight: 600 }}>{formatDate(new Date(j.date))}</span>
+                      <button type="button" onClick={() => syncData(settings, journal.filter(x => x.date !== j.date))} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: "20px", cursor: "pointer" }}>×</button>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      {j.mood && <span style={{ fontSize: "12px", background: "rgba(255,255,255,0.1)", padding: "4px 8px", borderRadius: "6px" }}>Nálada: {j.mood}</span>}
+                      {j.stress >= 4 && <span style={{ fontSize: "12px", background: "rgba(226,146,156,0.2)", color: "var(--winter)", padding: "4px 8px", borderRadius: "6px" }}>Vysoký stres</span>}
+                    </div>
+                    {j.note && <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", marginTop: "12px", marginBottom: 0 }}>{j.note}</p>}
+                  </div>
+                ))}
               </div>
-              <button type="submit" className="btn-primary">{t('settings_submit')}</button>
-            </form>
-          </div>
-        </details>
+            </div>
+          </details>
+        </section>
 
-{/* PŮVODNÍ OBYČEJNÉ ODHLÁŠENÍ SMAŽ A VLOŽ TOTO: */}
-        <div style={{ marginTop: "28px", textAlign: "center", display: "flex", flexDirection: "column", gap: "12px", alignItems: "center" }}>
-          <p style={{ fontSize: "13px", color: "var(--ink-dim)", marginBottom: "4px" }}>Přihlášen jako: {session.user.email}</p>
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
-            <button onClick={() => signOut()} style={{ background: "none", border: "1px solid var(--border)", color: "var(--ink)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", cursor: "pointer" }}>
-              Odhlásit se
-            </button>
-            <button onClick={() => { localStorage.removeItem("lastUserEmail"); signOut(); }} style={{ background: "none", border: "1px solid var(--border)", color: "var(--autumn)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", cursor: "pointer" }}>
-              Přihlásit se pod jiným účtem
-            </button>
-          </div>
-        </div>
+        {/* 5. NASTAVENÍ A ÚČET */}
+        <section id="settings-section" className="ios-glass">
+          <details>
+            <summary>⚙️ {t('settings_summary')}</summary>
+            <div className="glass-content" style={{ paddingTop: 0 }}>
+              
+              <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>Parametry cyklu</h3>
+              <form onSubmit={handleSystemSave} style={{ marginBottom: "32px" }}>
+                <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+                  <label className="field" style={{ flex: 1, marginBottom: 0 }}><span>{t('set_cycle_label')}</span><input type="number" name="cycleLength" defaultValue={settings.cycleLength} required /></label>
+                  <label className="field" style={{ flex: 1, marginBottom: 0 }}><span>{t('set_period_label')}</span><input type="number" name="periodLength" defaultValue={settings.periodLength} required /></label>
+                </div>
+                <button type="submit" className="btn-primary" style={{ padding: "12px", fontSize: "15px" }}>{t('settings_submit')}</button>
+              </form>
 
-      </main>
+              <h3 style={{ fontSize: "18px", marginBottom: "16px", paddingTop: "24px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>Historie krvácení</h3>
+              <form onSubmit={handleAddPeriod} style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+                <input type="date" value={newPeriodDate} onChange={e => setNewPeriodDate(e.target.value)} required style={{ flex: 1 }} />
+                <button type="submit" className="btn-primary" style={{ width: "auto", padding: "0 24px" }}>{t('history_add_btn')}</button>
+              </form>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {ascPeriods.reverse().map(p => (
+                  <li key={p} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                    <span>{formatDate(new Date(p))}</span>
+                    <button type="button" onClick={() => syncData({ ...settings, periods: settings.periods.filter(x => x !== p) }, journal)} style={{ background: "none", border: "none", color: "var(--autumn)", fontSize: "16px", cursor: "pointer" }}>Smazat</button>
+                  </li>
+                ))}
+              </ul>
+
+              {/* BEZPEČNÉ ODHLÁŠENÍ S PAMĚTÍ */}
+              <div style={{ marginTop: "40px", paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.1)", textAlign: "center" }}>
+                <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)", marginBottom: "16px" }}>Přihlášen jako: {session.user.email}</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <button onClick={() => signOut()} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", padding: "14px", borderRadius: "16px", fontSize: "15px", fontWeight: 600, cursor: "pointer", transition: "background 0.2s" }}>
+                    Odhlásit (Nechat e-mail v paměti)
+                  </button>
+                  <button onClick={() => { localStorage.removeItem("lastUserEmail"); signOut(); }} style={{ background: "rgba(226,146,156,0.15)", border: "1px solid rgba(226,146,156,0.3)", color: "var(--winter)", padding: "14px", borderRadius: "16px", fontSize: "15px", fontWeight: 600, cursor: "pointer" }}>
+                    Odhlásit a zapomenout účet
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </details>
+        </section>
+
+      </div>
     </div>
   );
 }
