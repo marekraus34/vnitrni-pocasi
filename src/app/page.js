@@ -43,6 +43,37 @@ const I18N = {
       trend_stress: 'Data naznačují, že v cyklech s vyšším stresem dochází k jejich prodlužování.',
       trend_ok: 'Cyklus vypadá stabilně.'
     }
+  },
+  en: {
+    eyebrow: 'Four Seasons', title: 'Inner Weather', subtitle: 'A quick look at her phase and how you can help.',
+    loading: 'Loading...', today_btn: 'Today', wheel_day_label: 'Cycle day', energy_label: 'Energy',
+    dos_heading: 'What to do', avoid_label: 'Avoid:', forecast_heading: 'Next 10 days',
+    insights_summary: 'Insights & Analysis', ins_trend_title: 'Cycle Length Trend',
+    profile_summary: 'Profile & Lifestyle', prof_age: 'Age', prof_activity: 'Activity Level',
+    act_sedentary: 'Sedentary', act_light: 'Lightly active', act_active: 'Active (training, sports)', act_athlete: 'Athlete / High load',
+    prof_pill: 'Uses hormonal contraception', journal_summary: 'Journal', j_date_label: 'Date',
+    j_rating_legend: 'Mood (1-5)', j_sleep_legend: 'Sleep (1-5)', j_stress_legend: 'Stress (1-5)',
+    j_symptoms_legend: 'Symptoms', j_note_label: 'Note', journal_submit: 'Save entry',
+    history_summary: 'Cycle History', history_add_btn: 'Add', settings_summary: 'System & Account',
+    set_cycle_label: 'Cycle length', set_period_label: 'Period length', settings_submit: 'Save',
+    pill_warning: 'Hormonal contraception suppresses natural fluctuations. Treat phases as a rough guide.',
+    dow_short: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    symptoms: { cramps: 'Cramps', headache: 'Headache', bloating: 'Bloating', fatigue: 'Fatigue', irritability: 'Irritability', anxiety: 'Anxiety', sugar_cravings: 'Sugar cravings' },
+    ob_h2: 'Before we start', ob_start_label: 'First day of last period', ob_cycle_label: 'Cycle length (days)', ob_period_label: 'Period length', ob_submit: 'Save and view',
+    phases: {
+      menstrual: { season: 'Winter', emoji: '❄️', name: 'Menstrual Phase', energy_label: 'Low', mood: 'Body slows down. Cramps and fatigue are common.', dos: ['Quiet evening at home.', 'Warm bath or hot water bottle.', 'Give her space.'], avoid: 'Demanding events.' },
+      follicular: { season: 'Spring', emoji: '🌱', name: 'Follicular Phase', energy_label: 'Rising', mood: 'Energy and mood are lifting.', dos: ['Suggest something new.', 'Plan holidays or projects.', 'Support her ideas.'], avoid: 'Nothing in particular.' },
+      ovulatory: { season: 'Summer', emoji: '☀️', name: 'Ovulatory Phase', energy_label: 'Peak', mood: 'Peak energy, confidence, and desire for closeness.', dos: ['Plan a date.', 'Good time for big talks.', 'Be spontaneous.'], avoid: 'Routine.' },
+      luteal: { season: 'Autumn', emoji: '🍂', name: 'Luteal Phase', energy_label: 'Declining', mood: 'Energy fades. Late luteal (PMS) often brings irritability.', dos: ['Be patient.', 'Keep it low-stress.', 'Ask what she needs.'], avoid: 'Arguments over small things.' }
+    },
+    ctx: {
+      high_stress: 'High stress recorded recently. Lower expectations today and give her absolute peace.',
+      bad_sleep: 'Poor sleep recently. Offer to take over some of her chores today.',
+      active_luteal: 'Physical strength naturally drops in this phase. Support her recovery.',
+      active_follicular: 'Physical strength and training tolerance are peaking. Great time for a workout together.',
+      trend_stress: 'Data suggests cycles with higher stress tend to be longer/irregular.',
+      trend_ok: 'Cycle length appears stable.'
+    }
   }
 };
 
@@ -175,7 +206,7 @@ export default function Home() {
     return (
       <div className="app-wrapper">
         <style dangerouslySetInnerHTML={{ __html: `
-          .app-wrapper { min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; color: #fff; }
+          .app-wrapper { background: #09070b; min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; color: #fff; }
           .ios-glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(255, 255, 255, 0.25); border-left: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2); border-radius: 32px; padding: 40px; width: 100%; max-width: 500px; }
           .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
           .field span { font-size: 13px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; }
@@ -269,12 +300,10 @@ export default function Home() {
           --surface-2: rgba(255,255,255,0.05);
           --ink: #ffffff;
           --ink-dim: rgba(255,255,255,0.6);
-          --card-pad: 32px; /* Dynamický padding pro počítač */
+          --card-pad: 32px;
         }
 
-        /* OPRAVA POZADÍ: Odstraněna černá barva z wrapperu, aby bylo vidět mesh pozadí */
         .app-wrapper { position: relative; min-height: 100vh; color: #fff; overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; }
-        
         h1, h2, h3, p, span, li, legend { color: inherit; }
 
         .mesh-background { position: fixed; inset: 0; z-index: -3; background: #09070b; overflow: hidden; }
@@ -310,6 +339,9 @@ export default function Home() {
           position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 600px;
           height: 64px; border-radius: 99px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 24px; z-index: 100;
         }
+        
+        .nav-brand-icon { display: none; } /* Ikonka je na počítači schovaná */
+
         .nav-badge { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 99px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
         .nav-dot { width: 8px; height: 8px; border-radius: 50%; }
         .glass-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(10px); }
@@ -342,6 +374,14 @@ export default function Home() {
         .btn-primary { background: #fff; color: #000; padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
         .btn-primary:hover { transform: scale(1.02); }
 
+        /* OPRAVA OŘEZÁVÁNÍ EMOJIS */
+        .emoji-icon {
+          font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+          line-height: normal;
+          display: inline-block;
+          padding-bottom: 4px;
+        }
+
         details { transition: all 0.3s ease; }
         summary { cursor: pointer; font-family: var(--font-display); font-size: 22px; color: #fff; display: flex; align-items: center; justify-content: space-between; list-style: none; padding: var(--card-pad); margin: calc(var(--card-pad) * -1); }
         summary::-webkit-details-marker { display: none; }
@@ -354,17 +394,25 @@ export default function Home() {
         .forecast-chip.active { background: var(--accent); color: #000; border: none; font-weight: 600; }
         .forecast-chip:hover:not(.active) { background: rgba(255,255,255,0.1); }
 
-        /* MOBILNÍ OPTIMALIZACE */
+        /* MOBILNÍ OPTIMALIZACE A ZMENŠENÍ */
         @media (max-width: 600px) {
-          :root { --card-pad: 20px; } /* Zmenšení okrajů vnitřku karet na mobilu */
-          .nav-brand { display: none !important; } /* Uvolnění místa pro tlačítka */
+          :root { --card-pad: 20px; }
           .glass-nav { padding: 0 12px; }
           .glass-date-pill { padding: 10px 12px; font-size: 14px; }
           h2 { font-size: 26px !important; }
+          
+          /* Navigace: Schováme text, ukážeme ikonku */
+          .nav-brand-text { display: none !important; }
+          .nav-brand-icon { display: block !important; }
+          
+          /* Zmenšení 10denní předpovědi na mobilu */
+          .forecast-chip { min-width: 52px; padding: 10px 6px; border-radius: 14px; }
+          .forecast-chip > span:nth-child(1) { font-size: 10px !important; }
+          .forecast-chip > span:nth-child(2) { font-size: 15px !important; margin: 2px 0 !important; }
+          .forecast-chip > span:nth-child(3) { width: 4px !important; height: 4px !important; }
         }
       `}} />
 
-      {/* DYNAMICKÉ POZADÍ (Reaguje na fázi cyklu, nyní naplno viditelné) */}
       <div className="mesh-background">
         <div className="mesh-orb orb-1" style={{ background: colors.c1, opacity: colors.op }}></div>
         <div className="mesh-orb orb-2" style={{ background: colors.c2, opacity: colors.op }}></div>
@@ -372,16 +420,22 @@ export default function Home() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* CHYTRÁ HORNÍ LIŠTA */}
+      {/* CHYTRÁ HORNÍ LIŠTA S IKONKOU */}
       <nav className="glass-nav ios-glass">
-        <span className="nav-brand" style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px" }}>Vnitřní počasí</span>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <span className="nav-brand-text" style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px" }}>Vnitřní počasí</span>
+          {/* Minimalistická ikonka aplikace, která se zobrazí pouze na mobilu */}
+          <svg className="nav-brand-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M4.93 4.93l1.41 1.41"></path><path d="M17.66 17.66l1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="M4.93 19.07l1.41-1.41"></path><path d="M17.66 6.34l1.41-1.41"></path>
+          </svg>
+        </div>
         
         <div style={{ display: "flex", gap: "12px", alignItems: "center", marginLeft: "auto" }}>
-          {/* Dynamický štítek */}
           <div className="nav-badge" onClick={() => document.getElementById('top-radar').scrollIntoView({behavior: 'smooth'})} style={{cursor: 'pointer'}}>
             <span className="nav-dot" style={{ background: `var(${PHASE_ACCENTS[phaseKey]})`, boxShadow: `0 0 10px var(${PHASE_ACCENTS[phaseKey]})` }}></span>
             <span style={{ fontSize: "12.5px", fontFamily: "var(--font-mono)", letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
-              <span style={{ fontFamily: 'system-ui, sans-serif' }}>{phaseData.emoji}</span> {currentDay}. den
+              <span className="emoji-icon">{phaseData.emoji}</span> {currentDay}. den
             </span>
           </div>
 
@@ -392,7 +446,6 @@ export default function Home() {
 
       <div className="main-container">
 
-        {/* 1. RADAR */}
         <section id="top-radar" className="ios-glass" style={{ textAlign: "center", padding: "40px 20px" }}>
           <div className="liquid-glow" style={{ width: "250px", height: "250px", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: `var(${PHASE_ACCENTS[phaseKey]})` }}></div>
           <div style={{ position: "relative", zIndex: 2 }}>
@@ -427,7 +480,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 2. DNEŠNÍ PŘEDPOVĚĎ A TIPY */}
         <section className="ios-glass">
           <div className="glass-content">
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", marginBottom: "8px" }}>{phaseData.name}</h2>
@@ -458,7 +510,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 3. VÝHLED (FORECAST) */}
         <section className="ios-glass">
           <div className="glass-content">
             <h3 style={{ fontSize: "18px", marginBottom: "20px" }}>{t('forecast_heading')}</h3>
@@ -479,12 +530,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 4. DENÍK */}
         <section className="ios-glass">
           <details id="journal-details">
             <summary>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'system-ui, sans-serif', marginRight: '14px', fontSize: '24px', lineHeight: 1 }}>📝</span>
+                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}>📝</span>
                 {t('journal_summary')}
               </div>
             </summary>
@@ -544,12 +594,11 @@ export default function Home() {
           </details>
         </section>
 
-        {/* 5. NASTAVENÍ A ÚČET */}
         <section className="ios-glass">
           <details id="settings-details">
             <summary>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'system-ui, sans-serif', marginRight: '14px', fontSize: '24px', lineHeight: 1 }}>⚙️</span>
+                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}>⚙️</span>
                 {t('settings_summary')}
               </div>
             </summary>
