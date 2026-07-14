@@ -106,13 +106,7 @@ export default function LandingPage() {
           width: 8px; height: 8px; border-radius: 50%; background: var(--spring); box-shadow: 0 0 8px var(--spring);
         }
 
-        .mesh-background { position: fixed; inset: 0; z-index: -3; background:
-          radial-gradient(circle at 20% 25%, ${colors.c1} 0%, transparent 18%),
-          radial-gradient(circle at 80% 15%, ${colors.c2} 0%, transparent 16%),
-          radial-gradient(circle at 50% 80%, ${colors.c3} 0%, transparent 22%),
-          var(--bg);
-          overflow: hidden; transition: background 1.5s ease;
-        }
+        .mesh-background { position: fixed; inset: 0; z-index: -3; background: var(--bg); overflow: hidden; }
 
         .mesh-orb {
           position: absolute; border-radius: 50%; filter: blur(100px);
