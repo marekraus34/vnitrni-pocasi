@@ -323,8 +323,8 @@ export default function LandingPage() {
           <style dangerouslySetInnerHTML={{ __html: `
             .bento-grid {
               display: grid;
-              grid-template-columns: repeat(4, 1fr);
-              grid-auto-rows: 240px;
+              grid-template-columns: repeat(3, 1fr); /* Tady je hlavní změna: 3 sloupce vytvoří dokonalý obdélník */
+              grid-auto-rows: 260px; /* Zvýšeno na 260px, aby se text a štítky vešly */
               gap: 20px;
             }
             .bento-card {
@@ -384,7 +384,7 @@ export default function LandingPage() {
               display: flex;
               flex-wrap: wrap;
               gap: 8px;
-              margin-top: 24px;
+              margin-top: auto; /* Tohle zajistí, že se štítky přilepí dolů a nebudou přes text */
             }
             .mini-tag {
               background: var(--surface-2);
@@ -397,15 +397,16 @@ export default function LandingPage() {
             }
             .mini-tag.highlight { background: var(--winter); color: var(--bg); border-color: var(--winter); }
 
-            @media (max-width: 800px) {
-              .bento-grid { grid-template-columns: 1fr; grid-auto-rows: auto; min-height: 240px; }
+            @media (max-width: 900px) {
+              .bento-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
+              .bento-card { min-height: 240px; }
               .wide, .tall { grid-column: span 1; grid-row: span 1; }
             }
           `}} />
 
           <div className="bento-grid">
             
-            {/* Karta 1: Radar */}
+            {/* Karta 1: Radar (Široká - zabere 2 sloupce nahoře vlevo) */}
             <div className="bento-card wide" style={{ background: "linear-gradient(145deg, rgba(240,187,108,0.1), rgba(30,25,34,0.8))" }}>
               <div className="bento-visual" style={{ top: "-20px", right: "-20px" }}>
                 <div className="mini-radar"></div>
@@ -415,19 +416,8 @@ export default function LandingPage() {
                 <p>Žádné zmatky. Okamžitě vidíte, v jakém ročním období se nachází, a kolik jí zbývá energie na vaše společné plány.</p>
               </div>
             </div>
-            
-            {/* Karta 2: Deník a příznaky */}
-            <div className="bento-card">
-              <h3>Deník nálad</h3>
-              <p>Zaznamenejte si, co zrovna prožívá.</p>
-              <div className="mini-tags">
-                <div className="mini-tag highlight">Křeče</div>
-                <div className="mini-tag">Únava</div>
-                <div className="mini-tag">Podrážděnost</div>
-              </div>
-            </div>
 
-            {/* Karta 3: Analýza (Vysoká) */}
+            {/* Karta 2: Analýza (Vysoká - zabere pravý sloupec a protáhne se dolů) */}
             <div className="bento-card tall" style={{ background: "linear-gradient(180deg, rgba(226,146,156,0.1), rgba(30,25,34,0.8))" }}>
               <div className="bento-visual" style={{ top: "40px", left: "32px", right: "32px" }}>
                 <div className="mini-graph">
@@ -441,8 +431,19 @@ export default function LandingPage() {
               <h3>Trendová analýza</h3>
               <p>Aplikace se učí z vašich záznamů. Zjistěte, jak moc stres ovlivňuje délku jejího cyklu, a předvídejte krize dřív, než nastanou.</p>
             </div>
+            
+            {/* Karta 3: Deník a příznaky (Spadne do spodního řádku doleva) */}
+            <div className="bento-card">
+              <h3>Deník nálad</h3>
+              <p>Zaznamenejte si, co zrovna prožívá.</p>
+              <div className="mini-tags">
+                <div className="mini-tag highlight">Křeče</div>
+                <div className="mini-tag">Únava</div>
+                <div className="mini-tag">Podrážděnost</div>
+              </div>
+            </div>
 
-            {/* Karta 4: Tipy a kontext */}
+            {/* Karta 4: Tipy a kontext (Spadne do spodního řádku doprostřed) */}
             <div className="bento-card">
               <h3 style={{ color: "var(--spring)" }}>Konkrétní tipy</h3>
               <p>Ke každému dni dostanete seznam "Co dělat" a "Čemu se vyhnout". Třeba kdy ji vzít na rande a kdy koupit čokoládu.</p>
