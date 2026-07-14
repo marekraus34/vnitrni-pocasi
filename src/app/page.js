@@ -139,7 +139,8 @@ export default function Home() {
   // Načtení dat z MongoDB po přihlášení
   useEffect(() => {
     if (status === "authenticated") {
-      fetch("/api/user")
+      localStorage.setItem("lastUserEmail", session.user.email);
+       fetch("/api/user")
         .then(res => res.json())
         .then(data => {
           if (data.settings) setSettings(data.settings);
@@ -534,9 +535,17 @@ export default function Home() {
           </div>
         </details>
 
-        <div style={{ marginTop: "28px", textAlign: "center" }}>
-          <p style={{ fontSize: "13px", color: "var(--ink-dim)", marginBottom: "12px" }}>Přihlášen jako: {session.user.email}</p>
-          <button onClick={() => signOut()} style={{ background: "none", border: "1px solid var(--border)", color: "var(--ink)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", cursor: "pointer" }}>Odhlásit se</button>
+{/* PŮVODNÍ OBYČEJNÉ ODHLÁŠENÍ SMAŽ A VLOŽ TOTO: */}
+        <div style={{ marginTop: "28px", textAlign: "center", display: "flex", flexDirection: "column", gap: "12px", alignItems: "center" }}>
+          <p style={{ fontSize: "13px", color: "var(--ink-dim)", marginBottom: "4px" }}>Přihlášen jako: {session.user.email}</p>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
+            <button onClick={() => signOut()} style={{ background: "none", border: "1px solid var(--border)", color: "var(--ink)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", cursor: "pointer" }}>
+              Odhlásit se
+            </button>
+            <button onClick={() => { localStorage.removeItem("lastUserEmail"); signOut(); }} style={{ background: "none", border: "1px solid var(--border)", color: "var(--autumn)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", cursor: "pointer" }}>
+              Přihlásit se pod jiným účtem
+            </button>
+          </div>
         </div>
 
       </main>
