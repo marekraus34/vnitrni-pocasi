@@ -137,18 +137,16 @@ export default function Home() {
 
   const t = (key) => I18N[lang][key];
 
-  // OPRAVA: Dynamické propisování tématu do HTML a iOS Status Baru
+  // OPRAVA: Přebarvení systémové lišty telefonu pomocí meta tagu a propis themes do HTML
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     
-    // Nalezení nebo vytvoření meta tagu pro barvu Safari hlavičky
     let metaThemeColor = document.querySelector("meta[name=theme-color]");
     if (!metaThemeColor) {
       metaThemeColor = document.createElement("meta");
       metaThemeColor.name = "theme-color";
       document.head.appendChild(metaThemeColor);
     }
-    // Barva odpovídá pozadí aplikace (černá pro dark, světlá pro light)
     metaThemeColor.setAttribute("content", theme === 'light' ? '#f2f2f7' : '#09070b');
   }, [theme]);
 
@@ -361,7 +359,7 @@ export default function Home() {
           --mesh-op: 0.4;
         }
 
-        /* OPRAVA ČERNÉHO OBDÉLNÍKU NA IOS (Tělo webu si musí vzít barvu pozadí aplikace) */
+        /* Zabrání černé liště - barva body se teď chytře řídí motivem */
         body {
           background-color: var(--bg) !important;
           color: var(--ink) !important;
@@ -373,17 +371,17 @@ export default function Home() {
         .app-wrapper { position: relative; min-height: 100vh; overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; }
         h1, h2, h3, p, span, li, legend { color: inherit; }
 
-        /* OPRAVA POZADÍ (Roztaženo mimo viditelné okraje, aby se neschovalo při iOS "rubber banding") */
-        .mesh-background { position: fixed; top: -50vh; left: -50vw; right: -50vw; bottom: -50vh; z-index: -3; background: var(--bg); transition: background 0.5s ease; }
-        .mesh-orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: var(--mesh-op); transition: background 2s ease, opacity 0.5s ease; pointer-events: none; }
+        /* OPRAVA POZADÍ: Roztaženo hluboko mimo obrazovku a orbs využívají procenta. Dýchání je teď naprosto všude. */
+        .mesh-background { position: fixed; inset: -20%; z-index: -3; background: var(--bg); transition: background 0.5s ease; }
+        .mesh-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: var(--mesh-op); transition: background 2s ease, opacity 0.5s ease; pointer-events: none; }
         
-        .orb-1 { width: 80vw; height: 80vw; top: 10vh; left: 10vw; animation: float1 14s infinite alternate ease-in-out; }
-        .orb-2 { width: 90vw; height: 90vw; top: 50vh; right: 10vw; animation: float2 18s infinite alternate-reverse ease-in-out; }
-        .orb-3 { width: 100vw; height: 100vw; bottom: 10vh; left: 10vw; animation: float3 22s infinite alternate ease-in-out; }
+        .orb-1 { width: 70%; height: 60%; top: 0; left: 0; animation: float1 14s infinite alternate ease-in-out; }
+        .orb-2 { width: 60%; height: 70%; top: 20%; right: 0; animation: float2 18s infinite alternate-reverse ease-in-out; }
+        .orb-3 { width: 80%; height: 60%; bottom: 0; left: 10%; animation: float3 22s infinite alternate ease-in-out; }
 
-        @keyframes float1 { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(5vh) scale(1.1); } }
-        @keyframes float2 { 0% { transform: translateX(0) scale(1); } 100% { transform: translateX(-5vw) scale(1.15); } }
-        @keyframes float3 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(5vw, -5vh) scale(1.2); } }
+        @keyframes float1 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(5%, 5%) scale(1.1); } }
+        @keyframes float2 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-5%, 5%) scale(1.15); } }
+        @keyframes float3 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(5%, -5%) scale(1.2); } }
 
         .noise-overlay {
           position: fixed; inset: 0; z-index: -2;
@@ -422,7 +420,6 @@ export default function Home() {
 
         .glass-content { position: relative; z-index: 2; padding: var(--card-pad); }
 
-        /* OPRAVA OŘEZANÉ DATUMOVKY (line-height: normal brání Safari oříznout spodek textu) */
         input[type="date"] { -webkit-appearance: none; appearance: none; min-height: 52px; line-height: normal; text-align: center; color: var(--ink); }
         .glass-date-pill { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--ink); padding: 10px 20px; border-radius: 99px; font-family: inherit; font-size: 15px; font-weight: 500; outline: none; cursor: pointer; transition: border 0.3s; }
         .glass-date-pill:focus { border-color: var(--ink-dim); }
@@ -436,8 +433,7 @@ export default function Home() {
         .btn-primary { background: var(--btn-bg); color: var(--btn-text); padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
         .btn-primary:hover { transform: scale(1.02); }
 
-        /* OPRAVA EMOJI (font-family resetuje ořezávání u Apple fontu) */
-        .emoji-icon { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; line-height: normal; display: inline-block; vertical-align: middle; }
+        .emoji-icon { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; line-height: normal; display: inline-flex; align-items: center; justify-content: center; padding-bottom: 2px; }
 
         section.accordion-wrapper { scroll-margin-top: 100px; }
         .accordion-header {
@@ -473,7 +469,7 @@ export default function Home() {
         }
       `}} />
 
-      {/* DYNAMICKÉ POZADÍ */}
+      {/* DYNAMICKÉ POZADÍ (Nyní zabírá úplně vše) */}
       <div className="mesh-background">
         <div className="mesh-orb orb-1" style={{ background: colors.c1 }}></div>
         <div className="mesh-orb orb-2" style={{ background: colors.c2 }}></div>
