@@ -544,7 +544,7 @@ export default function Home() {
           <details id="journal-details">
             <summary>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}>📝</span>
+                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}></span>
                 {t('journal_summary')}
               </div>
             </summary>
@@ -608,7 +608,7 @@ export default function Home() {
           <details id="settings-details">
             <summary>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}>⚙️</span>
+                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}></span>
                 {t('settings_summary')}
               </div>
             </summary>
