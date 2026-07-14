@@ -43,37 +43,6 @@ const I18N = {
       trend_stress: 'Data naznačují, že v cyklech s vyšším stresem dochází k jejich prodlužování.',
       trend_ok: 'Cyklus vypadá stabilně.'
     }
-  },
-  en: {
-    eyebrow: 'Four Seasons', title: 'Inner Weather', subtitle: 'A quick look at her phase and how you can help.',
-    loading: 'Loading...', today_btn: 'Today', wheel_day_label: 'Cycle day', energy_label: 'Energy',
-    dos_heading: 'What to do', avoid_label: 'Avoid:', forecast_heading: 'Next 10 days',
-    insights_summary: 'Insights & Analysis', ins_trend_title: 'Cycle Length Trend',
-    profile_summary: 'Profile & Lifestyle', prof_age: 'Age', prof_activity: 'Activity Level',
-    act_sedentary: 'Sedentary', act_light: 'Lightly active', act_active: 'Active (training, sports)', act_athlete: 'Athlete / High load',
-    prof_pill: 'Uses hormonal contraception', journal_summary: 'Journal', j_date_label: 'Date',
-    j_rating_legend: 'Mood (1-5)', j_sleep_legend: 'Sleep (1-5)', j_stress_legend: 'Stress (1-5)',
-    j_symptoms_legend: 'Symptoms', j_note_label: 'Note', journal_submit: 'Save entry',
-    history_summary: 'Cycle History', history_add_btn: 'Add', settings_summary: 'System & Account',
-    set_cycle_label: 'Cycle length', set_period_label: 'Period length', settings_submit: 'Save',
-    pill_warning: 'Hormonal contraception suppresses natural fluctuations. Treat phases as a rough guide.',
-    dow_short: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-    symptoms: { cramps: 'Cramps', headache: 'Headache', bloating: 'Bloating', fatigue: 'Fatigue', irritability: 'Irritability', anxiety: 'Anxiety', sugar_cravings: 'Sugar cravings' },
-    ob_h2: 'Before we start', ob_start_label: 'First day of last period', ob_cycle_label: 'Cycle length (days)', ob_period_label: 'Period length', ob_submit: 'Save and view',
-    phases: {
-      menstrual: { season: 'Winter', emoji: '❄️', name: 'Menstrual Phase', energy_label: 'Low', mood: 'Body slows down. Cramps and fatigue are common.', dos: ['Quiet evening at home.', 'Warm bath or hot water bottle.', 'Give her space.'], avoid: 'Demanding events.' },
-      follicular: { season: 'Spring', emoji: '🌱', name: 'Follicular Phase', energy_label: 'Rising', mood: 'Energy and mood are lifting.', dos: ['Suggest something new.', 'Plan holidays or projects.', 'Support her ideas.'], avoid: 'Nothing in particular.' },
-      ovulatory: { season: 'Summer', emoji: '☀️', name: 'Ovulatory Phase', energy_label: 'Peak', mood: 'Peak energy, confidence, and desire for closeness.', dos: ['Plan a date.', 'Good time for big talks.', 'Be spontaneous.'], avoid: 'Routine.' },
-      luteal: { season: 'Autumn', emoji: '🍂', name: 'Luteal Phase', energy_label: 'Declining', mood: 'Energy fades. Late luteal (PMS) often brings irritability.', dos: ['Be patient.', 'Keep it low-stress.', 'Ask what she needs.'], avoid: 'Arguments over small things.' }
-    },
-    ctx: {
-      high_stress: 'High stress recorded recently. Lower expectations today and give her absolute peace.',
-      bad_sleep: 'Poor sleep recently. Offer to take over some of her chores today.',
-      active_luteal: 'Physical strength naturally drops in this phase. Support her recovery.',
-      active_follicular: 'Physical strength and training tolerance are peaking. Great time for a workout together.',
-      trend_stress: 'Data suggests cycles with higher stress tend to be longer/irregular.',
-      trend_ok: 'Cycle length appears stable.'
-    }
   }
 };
 
@@ -206,7 +175,7 @@ export default function Home() {
     return (
       <div className="app-wrapper">
         <style dangerouslySetInnerHTML={{ __html: `
-          .app-wrapper { background: #09070b; min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; color: #fff; }
+          .app-wrapper { min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; color: #fff; }
           .ios-glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(255, 255, 255, 0.25); border-left: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2); border-radius: 32px; padding: 40px; width: 100%; max-width: 500px; }
           .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
           .field span { font-size: 13px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; }
@@ -220,9 +189,9 @@ export default function Home() {
           <p style={{ color: "rgba(255,255,255,0.7)", marginBottom: "32px", fontSize: "15px" }}>Vyplňte základní údaje pro kalibraci radaru.</p>
           <form onSubmit={handleOnboarding}>
             <label className="field"><span>{t('ob_start_label')}</span><input type="date" name="start" required /></label>
-            <div style={{ display: "flex", gap: "16px" }}>
-              <label className="field" style={{ flex: 1 }}><span>{t('ob_cycle_label')}</span><input type="number" name="cycle" defaultValue="28" required /></label>
-              <label className="field" style={{ flex: 1 }}><span>{t('ob_period_label')}</span><input type="number" name="period" defaultValue="5" required /></label>
+            <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+              <label className="field" style={{ flex: "1 1 120px" }}><span>{t('ob_cycle_label')}</span><input type="number" name="cycle" defaultValue="28" required /></label>
+              <label className="field" style={{ flex: "1 1 120px" }}><span>{t('ob_period_label')}</span><input type="number" name="period" defaultValue="5" required /></label>
             </div>
             <button type="submit" className="btn-primary" style={{ marginTop: "16px" }}>{t('ob_submit')}</button>
           </form>
@@ -300,8 +269,10 @@ export default function Home() {
           --surface-2: rgba(255,255,255,0.05);
           --ink: #ffffff;
           --ink-dim: rgba(255,255,255,0.6);
+          --card-pad: 32px; /* Dynamický padding pro počítač */
         }
 
+        /* OPRAVA POZADÍ: Odstraněna černá barva z wrapperu, aby bylo vidět mesh pozadí */
         .app-wrapper { position: relative; min-height: 100vh; color: #fff; overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; }
         
         h1, h2, h3, p, span, li, legend { color: inherit; }
@@ -347,7 +318,7 @@ export default function Home() {
         .main-container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; padding: 0 16px; position: relative; z-index: 1; }
         
         .liquid-glow { position: absolute; border-radius: 50%; filter: blur(60px); z-index: 0; opacity: 0.3; pointer-events: none; }
-        .glass-content { position: relative; z-index: 2; padding: 32px; }
+        .glass-content { position: relative; z-index: 2; padding: var(--card-pad); }
 
         .glass-date-pill {
           background: rgba(255,255,255,0.08);
@@ -363,7 +334,6 @@ export default function Home() {
           transition: border 0.3s;
         }
         .glass-date-pill:focus { border-color: rgba(255,255,255,0.4); }
-        
         ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
         input:not(.glass-date-pill), select, textarea { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 14px; border-radius: 16px; color: #fff; font-size: 16px; outline: none; width: 100%; transition: border 0.3s; box-sizing: border-box; }
@@ -373,19 +343,28 @@ export default function Home() {
         .btn-primary:hover { transform: scale(1.02); }
 
         details { transition: all 0.3s ease; }
-        
-        summary { cursor: pointer; font-family: var(--font-display); font-size: 22px; color: #fff; display: flex; align-items: center; justify-content: space-between; list-style: none; padding: 28px 32px; margin: -32px; }
+        summary { cursor: pointer; font-family: var(--font-display); font-size: 22px; color: #fff; display: flex; align-items: center; justify-content: space-between; list-style: none; padding: var(--card-pad); margin: calc(var(--card-pad) * -1); }
         summary::-webkit-details-marker { display: none; }
         summary::after { content: '+'; font-size: 28px; font-weight: 300; transition: transform 0.3s; }
         details[open] summary::after { transform: rotate(45deg); }
-        details[open] summary { border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px; padding-bottom: 24px; }
+        details[open] summary { border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: var(--card-pad); padding-bottom: var(--card-pad); }
         
         .forecast-strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
         .forecast-chip { min-width: 70px; display: flex; flex-direction: column; align-items: center; padding: 16px 12px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.2s; }
         .forecast-chip.active { background: var(--accent); color: #000; border: none; font-weight: 600; }
         .forecast-chip:hover:not(.active) { background: rgba(255,255,255,0.1); }
+
+        /* MOBILNÍ OPTIMALIZACE */
+        @media (max-width: 600px) {
+          :root { --card-pad: 20px; } /* Zmenšení okrajů vnitřku karet na mobilu */
+          .nav-brand { display: none !important; } /* Uvolnění místa pro tlačítka */
+          .glass-nav { padding: 0 12px; }
+          .glass-date-pill { padding: 10px 12px; font-size: 14px; }
+          h2 { font-size: 26px !important; }
+        }
       `}} />
 
+      {/* DYNAMICKÉ POZADÍ (Reaguje na fázi cyklu, nyní naplno viditelné) */}
       <div className="mesh-background">
         <div className="mesh-orb orb-1" style={{ background: colors.c1, opacity: colors.op }}></div>
         <div className="mesh-orb orb-2" style={{ background: colors.c2, opacity: colors.op }}></div>
@@ -393,12 +372,15 @@ export default function Home() {
       </div>
       <div className="noise-overlay"></div>
 
+      {/* CHYTRÁ HORNÍ LIŠTA */}
       <nav className="glass-nav ios-glass">
-        <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px" }}>Vnitřní počasí</span>
-        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        <span className="nav-brand" style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px" }}>Vnitřní počasí</span>
+        
+        <div style={{ display: "flex", gap: "12px", alignItems: "center", marginLeft: "auto" }}>
+          {/* Dynamický štítek */}
           <div className="nav-badge" onClick={() => document.getElementById('top-radar').scrollIntoView({behavior: 'smooth'})} style={{cursor: 'pointer'}}>
             <span className="nav-dot" style={{ background: `var(${PHASE_ACCENTS[phaseKey]})`, boxShadow: `0 0 10px var(${PHASE_ACCENTS[phaseKey]})` }}></span>
-            <span style={{ fontSize: "12.5px", fontFamily: "var(--font-mono)", letterSpacing: "0.02em" }}>
+            <span style={{ fontSize: "12.5px", fontFamily: "var(--font-mono)", letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
               <span style={{ fontFamily: 'system-ui, sans-serif' }}>{phaseData.emoji}</span> {currentDay}. den
             </span>
           </div>
@@ -410,11 +392,12 @@ export default function Home() {
 
       <div className="main-container">
 
+        {/* 1. RADAR */}
         <section id="top-radar" className="ios-glass" style={{ textAlign: "center", padding: "40px 20px" }}>
           <div className="liquid-glow" style={{ width: "250px", height: "250px", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: `var(${PHASE_ACCENTS[phaseKey]})` }}></div>
           <div style={{ position: "relative", zIndex: 2 }}>
             
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", marginBottom: "32px" }}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
               <button className="glass-btn" onClick={() => setSelectedDate(new Date(selectedDate.getTime() - 86400000))}>‹</button>
               
               <input 
@@ -444,6 +427,7 @@ export default function Home() {
           </div>
         </section>
 
+        {/* 2. DNEŠNÍ PŘEDPOVĚĎ A TIPY */}
         <section className="ios-glass">
           <div className="glass-content">
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", marginBottom: "8px" }}>{phaseData.name}</h2>
@@ -474,6 +458,7 @@ export default function Home() {
           </div>
         </section>
 
+        {/* 3. VÝHLED (FORECAST) */}
         <section className="ios-glass">
           <div className="glass-content">
             <h3 style={{ fontSize: "18px", marginBottom: "20px" }}>{t('forecast_heading')}</h3>
@@ -494,6 +479,7 @@ export default function Home() {
           </div>
         </section>
 
+        {/* 4. DENÍK */}
         <section className="ios-glass">
           <details id="journal-details">
             <summary>
@@ -558,6 +544,7 @@ export default function Home() {
           </details>
         </section>
 
+        {/* 5. NASTAVENÍ A ÚČET */}
         <section className="ios-glass">
           <details id="settings-details">
             <summary>
@@ -571,17 +558,17 @@ export default function Home() {
               
               <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>Parametry cyklu</h3>
               <form onSubmit={handleSystemSave} style={{ marginBottom: "32px" }}>
-                <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
-                  <label className="field" style={{ flex: 1, marginBottom: 0 }}><span>{t('set_cycle_label')}</span><input type="number" name="cycleLength" defaultValue={settings.cycleLength} required /></label>
-                  <label className="field" style={{ flex: 1, marginBottom: 0 }}><span>{t('set_period_label')}</span><input type="number" name="periodLength" defaultValue={settings.periodLength} required /></label>
+                <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+                  <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('set_cycle_label')}</span><input type="number" name="cycleLength" defaultValue={settings.cycleLength} required /></label>
+                  <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('set_period_label')}</span><input type="number" name="periodLength" defaultValue={settings.periodLength} required /></label>
                 </div>
                 <button type="submit" className="btn-primary" style={{ padding: "12px", fontSize: "15px" }}>{t('settings_submit')}</button>
               </form>
 
               <h3 style={{ fontSize: "18px", marginBottom: "16px", paddingTop: "24px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>{t('history_summary')}</h3>
-              <form onSubmit={handleAddPeriod} style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
-                <input type="date" value={newPeriodDate} onChange={e => setNewPeriodDate(e.target.value)} required style={{ flex: 1 }} />
-                <button type="submit" className="btn-primary" style={{ width: "auto", padding: "0 24px" }}>{t('history_add_btn')}</button>
+              <form onSubmit={handleAddPeriod} style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
+                <input type="date" value={newPeriodDate} onChange={e => setNewPeriodDate(e.target.value)} required style={{ flex: "1 1 200px" }} />
+                <button type="submit" className="btn-primary" style={{ flex: "0 0 auto", width: "auto", padding: "0 24px" }}>{t('history_add_btn')}</button>
               </form>
               
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
