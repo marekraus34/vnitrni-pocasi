@@ -280,15 +280,14 @@ export default function Home() {
     </fieldset>
   );
 
-  // OPRAVA SCROLLOVÁNÍ: Manuální výpočet offsetu, aby se karta neschovala pod skleněnou lištu
   const openAndScroll = (id) => {
     const element = document.getElementById(id);
     if (element) {
       element.open = true;
       setTimeout(() => {
-        const y = element.getBoundingClientRect().top + window.scrollY - 90; // 90px offset pro horní lištu
+        const y = element.getBoundingClientRect().top + window.scrollY - 90;
         window.scrollTo({ top: y, behavior: 'smooth' });
-      }, 50); // Mírné zpoždění, aby se element stihl rozevřít
+      }, 50);
     }
   };
 
@@ -347,6 +346,9 @@ export default function Home() {
           overflow: hidden;
         }
 
+        section { scroll-margin-top: 100px; }
+        details { transition: all 0.3s ease; scroll-margin-top: 100px; }
+
         .glass-nav {
           position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 600px;
           height: 64px; border-radius: 99px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 24px; z-index: 100;
@@ -364,12 +366,11 @@ export default function Home() {
         .liquid-glow { position: absolute; border-radius: 50%; filter: blur(60px); z-index: 0; opacity: 0.3; pointer-events: none; }
         .glass-content { position: relative; z-index: 2; padding: var(--card-pad); }
 
-        /* OPRAVA OŘEZÁVÁNÍ DATUMOVKY PRO iOS SAFARI */
         input[type="date"] {
           -webkit-appearance: none;
           appearance: none;
           min-height: 52px;
-          line-height: normal; /* Důležité: zabrání oříznutí textu */
+          line-height: normal;
           text-align: center;
         }
 
@@ -386,19 +387,18 @@ export default function Home() {
         .btn-primary { background: #fff; color: #000; padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
         .btn-primary:hover { transform: scale(1.02); }
 
-        /* OPRAVA OŘEZÁVÁNÍ EMOJI PRO iOS SAFARI */
         .emoji-icon {
           font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-          line-height: normal; /* Nejdůležitější pravidlo pro iOS emoji */
-          padding: 4px 0; /* Bezpečná zóna proti oříznutí */
+          line-height: normal;
+          padding: 4px 0;
           display: inline-block;
           vertical-align: middle;
         }
 
-        details { transition: all 0.3s ease; }
+        /* OPRAVA POZICE PLUSKA (margin-right) */
         summary { cursor: pointer; font-family: var(--font-display); font-size: 22px; color: #fff; display: flex; align-items: center; justify-content: space-between; list-style: none; padding: var(--card-pad); margin: calc(var(--card-pad) * -1); }
         summary::-webkit-details-marker { display: none; }
-        summary::after { content: '+'; font-size: 28px; font-weight: 300; transition: transform 0.3s; }
+        summary::after { content: '+'; font-size: 28px; font-weight: 300; transition: transform 0.3s; margin-right: 16px; } 
         details[open] summary::after { transform: rotate(45deg); }
         details[open] summary { border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: var(--card-pad); padding-bottom: var(--card-pad); }
         
@@ -445,7 +445,7 @@ export default function Home() {
             <span className="nav-dot" style={{ background: `var(${PHASE_ACCENTS[phaseKey]})`, boxShadow: `0 0 10px var(${PHASE_ACCENTS[phaseKey]})` }}></span>
             <span style={{ fontSize: "13px", fontFamily: "var(--font-mono)", letterSpacing: "0.02em", display: "flex", alignItems: "center", gap: "6px" }}>
               <span className="emoji-icon" style={{ fontSize: "15px" }}>{phaseData.emoji}</span> 
-              <span>{currentDay}. den</span>
+              <span style={{ paddingTop: "1px" }}>{currentDay}. den</span>
             </span>
           </div>
 
@@ -543,8 +543,9 @@ export default function Home() {
         <section className="ios-glass">
           <details id="journal-details">
             <summary>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}></span>
+              {/* OPRAVA POZICE TEXTU (paddingLeft) */}
+              <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '12px' }}>
+                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}>📝</span>
                 {t('journal_summary')}
               </div>
             </summary>
@@ -607,8 +608,9 @@ export default function Home() {
         <section className="ios-glass">
           <details id="settings-details">
             <summary>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}></span>
+              {/* OPRAVA POZICE TEXTU (paddingLeft) */}
+              <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '12px' }}>
+                <span className="emoji-icon" style={{ marginRight: '14px', fontSize: '24px' }}>⚙️</span>
                 {t('settings_summary')}
               </div>
             </summary>
