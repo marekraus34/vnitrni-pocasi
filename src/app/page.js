@@ -125,9 +125,8 @@ export default function Home() {
   const [journal, setJournal] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   
-  // Přidán stav pro Plynulé Akordeony a Dark/Light Mode
   const [openSection, setOpenSection] = useState(null);
-  const [theme, setTheme] = useState("dark"); // Výchozí je Dark
+  const [theme, setTheme] = useState("dark"); // Výchozí Dark mód
 
   const [jMood, setJMood] = useState(null);
   const [jSleep, setJSleep] = useState(null);
@@ -137,6 +136,21 @@ export default function Home() {
   const [newPeriodDate, setNewPeriodDate] = useState("");
 
   const t = (key) => I18N[lang][key];
+
+  // OPRAVA: Dynamické propisování tématu do HTML a iOS Status Baru
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    
+    // Nalezení nebo vytvoření meta tagu pro barvu Safari hlavičky
+    let metaThemeColor = document.querySelector("meta[name=theme-color]");
+    if (!metaThemeColor) {
+      metaThemeColor = document.createElement("meta");
+      metaThemeColor.name = "theme-color";
+      document.head.appendChild(metaThemeColor);
+    }
+    // Barva odpovídá pozadí aplikace (černá pro dark, světlá pro light)
+    metaThemeColor.setAttribute("content", theme === 'light' ? '#f2f2f7' : '#09070b');
+  }, [theme]);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -201,40 +215,40 @@ export default function Home() {
     setJMood(null); setJSleep(null); setJStress(null); setJSymptoms([]); setJNote("");
   };
 
-  // PLYNULÉ OTEVÍRÁNÍ: Funkce, která sekci otevře a měkce na ni sroluje
   const toggleSection = (sectionId) => {
     if (openSection === sectionId) {
-      setOpenSection(null); // Zavřít
+      setOpenSection(null);
     } else {
-      setOpenSection(sectionId); // Otevřít
+      setOpenSection(sectionId);
       setTimeout(() => {
         const el = document.getElementById(sectionId);
         if (el) {
           const y = el.getBoundingClientRect().top + window.scrollY - 90;
           window.scrollTo({ top: y, behavior: 'smooth' });
         }
-      }, 300); // Počká na CSS animaci rozevření (300ms) a pak plynule sroluje
+      }, 300);
     }
   };
 
-  if (status === "loading") return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "var(--bg)" }}>Načítám...</div>;
+  if (status === "loading") return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)", background: "var(--bg)" }}>Načítám...</div>;
   if (status === "unauthenticated") return <LandingPage />;
-  if (loading) return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "var(--bg)" }}>Načítám data...</div>;
+  if (loading) return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)", background: "var(--bg)" }}>Načítám data...</div>;
   if (!session) return null;
 
   if (!settings || !settings.periods || settings.periods.length === 0) {
     return (
-      <div className="app-wrapper" data-theme={theme}>
+      <div className="app-wrapper">
         <style dangerouslySetInnerHTML={{ __html: `
-          :root { --bg: #09070b; }
-          .app-wrapper { background: var(--bg); min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; color: var(--ink, #fff); }
-          .ios-glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(255, 255, 255, 0.25); border-left: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2); border-radius: 32px; padding: 40px; width: 100%; max-width: 500px; }
+          :root { --bg: #09070b; --ink: #ffffff; --ink-dim: rgba(255,255,255,0.7); }
+          html[data-theme="light"] { --bg: #f2f2f7; --ink: #111111; --ink-dim: rgba(0,0,0,0.6); }
+          body { background-color: var(--bg) !important; color: var(--ink) !important; margin: 0; padding: 0; transition: background-color 0.5s ease; }
+          .app-wrapper { min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; }
+          .ios-glass { background: rgba(15, 15, 15, 0.45); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); border: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.25); border-radius: 32px; padding: 40px; width: 100%; max-width: 500px; }
+          html[data-theme="light"] .ios-glass { background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(0,0,0,0.05); }
           .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-          .field span { font-size: 13px; color: var(--ink-dim, rgba(255,255,255,0.7)); text-transform: uppercase; letter-spacing: 1px; }
-          input, select { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 14px; border-radius: 16px; color: inherit; font-size: 16px; outline: none; transition: border 0.3s; }
-          input:focus, select:focus { border-color: rgba(255,255,255,0.4); }
-          .btn-primary { background: #fff; color: #000; padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
-          .btn-primary:hover { transform: scale(1.02); }
+          .field span { font-size: 13px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 1px; }
+          input, select { background: rgba(120,120,120,0.1); border: 1px solid rgba(120,120,120,0.2); padding: 14px; border-radius: 16px; color: inherit; font-size: 16px; outline: none; transition: border 0.3s; }
+          .btn-primary { background: var(--ink); color: var(--bg); padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
         `}} />
         <div className="ios-glass">
           <h2 style={{ fontSize: "28px", marginBottom: "8px", fontFamily: "var(--font-display)" }}>{t('ob_h2')}</h2>
@@ -302,16 +316,16 @@ export default function Home() {
   );
 
   return (
-    <div className="app-wrapper" data-theme={theme}>
+    <div className="app-wrapper">
       <style dangerouslySetInnerHTML={{ __html: `
-        /* DYNAMICKÉ CSS PROMĚNNÉ PRO DARK & LIGHT MODE */
+        /* GLOBÁLNÍ CSS: Tyto proměnné ovládají barvy celého systému */
         :root {
           --winter: #E2929C;
           --spring: #9FCBA4;
           --summer: #F0BB6C;
           --autumn: #E0875B;
           
-          /* Dark Mode Výchozí */
+          /* Dark Mode (Výchozí) */
           --bg: #09070b;
           --ink: #ffffff;
           --ink-dim: rgba(255,255,255,0.6);
@@ -329,7 +343,8 @@ export default function Home() {
           --card-pad: 32px;
         }
 
-        [data-theme="light"] {
+        /* Light Mode (Aktivuje se přes html atribut) */
+        html[data-theme="light"] {
           --bg: #f2f2f7;
           --ink: #111111;
           --ink-dim: rgba(0,0,0,0.5);
@@ -343,21 +358,28 @@ export default function Home() {
           --input-border: rgba(0,0,0,0.1);
           --btn-bg: #111;
           --btn-text: #fff;
-          --mesh-op: 0.4; /* Orbs jsou slabší, aby text zůstal čitelný na bílé */
+          --mesh-op: 0.4;
         }
 
-        .app-wrapper { position: relative; min-height: 100vh; color: var(--ink); background: var(--bg); overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; transition: background 0.5s ease; }
+        /* OPRAVA ČERNÉHO OBDÉLNÍKU NA IOS (Tělo webu si musí vzít barvu pozadí aplikace) */
+        body {
+          background-color: var(--bg) !important;
+          color: var(--ink) !important;
+          margin: 0;
+          padding: 0;
+          transition: background-color 0.5s ease;
+        }
+
+        .app-wrapper { position: relative; min-height: 100vh; overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; }
         h1, h2, h3, p, span, li, legend { color: inherit; }
 
-        /* OPRAVA POZADÍ (Nyní dýchá a zabírá celý displej) */
-        .mesh-background { position: fixed; inset: 0; z-index: -3; background: var(--bg); transition: background 0.5s ease; }
+        /* OPRAVA POZADÍ (Roztaženo mimo viditelné okraje, aby se neschovalo při iOS "rubber banding") */
+        .mesh-background { position: fixed; top: -50vh; left: -50vw; right: -50vw; bottom: -50vh; z-index: -3; background: var(--bg); transition: background 0.5s ease; }
         .mesh-orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: var(--mesh-op); transition: background 2s ease, opacity 0.5s ease; pointer-events: none; }
-        /* Orb 1: Vlevo Nahoře */
-        .orb-1 { width: 80vw; height: 80vw; top: -20vh; left: -20vw; animation: float1 14s infinite alternate ease-in-out; }
-        /* Orb 2: Vpravo Uprostřed */
-        .orb-2 { width: 90vw; height: 90vw; top: 30vh; right: -30vw; animation: float2 18s infinite alternate-reverse ease-in-out; }
-        /* Orb 3: Vlevo Dole */
-        .orb-3 { width: 100vw; height: 100vw; bottom: -30vh; left: -10vw; animation: float3 22s infinite alternate ease-in-out; }
+        
+        .orb-1 { width: 80vw; height: 80vw; top: 10vh; left: 10vw; animation: float1 14s infinite alternate ease-in-out; }
+        .orb-2 { width: 90vw; height: 90vw; top: 50vh; right: 10vw; animation: float2 18s infinite alternate-reverse ease-in-out; }
+        .orb-3 { width: 100vw; height: 100vw; bottom: 10vh; left: 10vw; animation: float3 22s infinite alternate ease-in-out; }
 
         @keyframes float1 { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(5vh) scale(1.1); } }
         @keyframes float2 { 0% { transform: translateX(0) scale(1); } 100% { transform: translateX(-5vw) scale(1.15); } }
@@ -396,17 +418,17 @@ export default function Home() {
         .main-container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; padding: 0 16px; position: relative; z-index: 1; }
         
         .liquid-glow { position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; opacity: 0.3; pointer-events: none; }
-        [data-theme="light"] .liquid-glow { opacity: 0.6; filter: blur(60px); }
+        html[data-theme="light"] .liquid-glow { opacity: 0.6; filter: blur(60px); }
 
         .glass-content { position: relative; z-index: 2; padding: var(--card-pad); }
 
+        /* OPRAVA OŘEZANÉ DATUMOVKY (line-height: normal brání Safari oříznout spodek textu) */
         input[type="date"] { -webkit-appearance: none; appearance: none; min-height: 52px; line-height: normal; text-align: center; color: var(--ink); }
         .glass-date-pill { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--ink); padding: 10px 20px; border-radius: 99px; font-family: inherit; font-size: 15px; font-weight: 500; outline: none; cursor: pointer; transition: border 0.3s; }
         .glass-date-pill:focus { border-color: var(--ink-dim); }
         
-        /* Ikonka kalendáře musí zčernat v light mode */
         ::-webkit-calendar-picker-indicator { cursor: pointer; filter: invert(1); }
-        [data-theme="light"] ::-webkit-calendar-picker-indicator { filter: invert(0); }
+        html[data-theme="light"] ::-webkit-calendar-picker-indicator { filter: invert(0); }
 
         input:not(.glass-date-pill), select, textarea { background: var(--input-bg); border: 1px solid var(--input-border); padding: 14px; border-radius: 16px; color: var(--ink); font-size: 16px; outline: none; width: 100%; transition: border 0.3s; box-sizing: border-box; }
         input:focus:not(.glass-date-pill), select:focus, textarea:focus { border-color: var(--ink-dim); }
@@ -414,9 +436,9 @@ export default function Home() {
         .btn-primary { background: var(--btn-bg); color: var(--btn-text); padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
         .btn-primary:hover { transform: scale(1.02); }
 
-        .emoji-icon { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; line-height: normal; padding: 4px 0; display: inline-flex; align-items: center; justify-content: center; }
+        /* OPRAVA EMOJI (font-family resetuje ořezávání u Apple fontu) */
+        .emoji-icon { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; line-height: normal; display: inline-block; vertical-align: middle; }
 
-        /* PLYNULÝ AKORDEON (CSS Grid) */
         section.accordion-wrapper { scroll-margin-top: 100px; }
         .accordion-header {
           padding: var(--card-pad); cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; position: relative; z-index: 3;
@@ -464,13 +486,13 @@ export default function Home() {
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <button 
             onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')} 
-            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px', marginRight: '8px', outline: 'none' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px', outline: 'none' }}
           >
             <span className="emoji-icon" style={{ fontSize: "22px" }}>
               {theme === 'dark' ? '☀️' : '🌙'}
             </span>
           </button>
-          <span className="nav-brand-text" style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px" }}>Vnitřní počasí</span>
+          <span className="nav-brand-text" style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px", marginLeft: "8px" }}>Vnitřní počasí</span>
         </div>
         
         <div style={{ display: "flex", gap: "12px", alignItems: "center", marginLeft: "auto" }}>
