@@ -335,16 +335,20 @@ export default function Home() {
           overflow: hidden;
         }
 
+        /* OPRAVA SCROLLOVÁNÍ (Aby karty nezajížděly pod lištu) */
+        section { scroll-margin-top: 100px; }
+        details { transition: all 0.3s ease; scroll-margin-top: 100px; }
+
         .glass-nav {
           position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 600px;
           height: 64px; border-radius: 99px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 24px; z-index: 100;
         }
         
-        .nav-brand-icon { display: none; } /* Ikonka je na počítači schovaná */
+        .nav-brand-icon { display: none; }
 
         .nav-badge { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 99px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
-        .nav-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .glass-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(10px); }
+        .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .glass-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(10px); flex-shrink: 0; }
         .glass-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
 
         .main-container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; padding: 0 16px; position: relative; z-index: 1; }
@@ -353,17 +357,8 @@ export default function Home() {
         .glass-content { position: relative; z-index: 2; padding: var(--card-pad); }
 
         .glass-date-pill {
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.15);
-          color: #fff;
-          padding: 10px 20px;
-          border-radius: 99px;
-          font-family: inherit;
-          font-size: 15px;
-          font-weight: 500;
-          outline: none;
-          cursor: pointer;
-          transition: border 0.3s;
+          background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 10px 20px;
+          border-radius: 99px; font-family: inherit; font-size: 15px; font-weight: 500; outline: none; cursor: pointer; transition: border 0.3s;
         }
         .glass-date-pill:focus { border-color: rgba(255,255,255,0.4); }
         ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
@@ -374,15 +369,15 @@ export default function Home() {
         .btn-primary { background: #fff; color: #000; padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
         .btn-primary:hover { transform: scale(1.02); }
 
-        /* OPRAVA OŘEZÁVÁNÍ EMOJIS */
+        /* OPRAVA OŘEZÁVÁNÍ EMOJIS (Zrušen padding, přidán Flexbox a line-height) */
         .emoji-icon {
           font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-          line-height: normal;
-          display: inline-block;
-          padding-bottom: 4px;
+          line-height: 1;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        details { transition: all 0.3s ease; }
         summary { cursor: pointer; font-family: var(--font-display); font-size: 22px; color: #fff; display: flex; align-items: center; justify-content: space-between; list-style: none; padding: var(--card-pad); margin: calc(var(--card-pad) * -1); }
         summary::-webkit-details-marker { display: none; }
         summary::after { content: '+'; font-size: 28px; font-weight: 300; transition: transform 0.3s; }
@@ -394,18 +389,15 @@ export default function Home() {
         .forecast-chip.active { background: var(--accent); color: #000; border: none; font-weight: 600; }
         .forecast-chip:hover:not(.active) { background: rgba(255,255,255,0.1); }
 
-        /* MOBILNÍ OPTIMALIZACE A ZMENŠENÍ */
         @media (max-width: 600px) {
-          :root { --card-pad: 20px; }
+          :root { --card-pad: 24px; } /* Zvětšeno pro mobil, aby se X nelepilo úplně na hranu */
           .glass-nav { padding: 0 12px; }
           .glass-date-pill { padding: 10px 12px; font-size: 14px; }
           h2 { font-size: 26px !important; }
           
-          /* Navigace: Schováme text, ukážeme ikonku */
           .nav-brand-text { display: none !important; }
           .nav-brand-icon { display: block !important; }
           
-          /* Zmenšení 10denní předpovědi na mobilu */
           .forecast-chip { min-width: 52px; padding: 10px 6px; border-radius: 14px; }
           .forecast-chip > span:nth-child(1) { font-size: 10px !important; }
           .forecast-chip > span:nth-child(2) { font-size: 15px !important; margin: 2px 0 !important; }
@@ -420,11 +412,10 @@ export default function Home() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* CHYTRÁ HORNÍ LIŠTA S IKONKOU */}
+      {/* CHYTRÁ HORNÍ LIŠTA S OPRAVENOU BUBILNOU */}
       <nav className="glass-nav ios-glass">
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <span className="nav-brand-text" style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px" }}>Vnitřní počasí</span>
-          {/* Minimalistická ikonka aplikace, která se zobrazí pouze na mobilu */}
           <svg className="nav-brand-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="4"></circle>
             <path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M4.93 4.93l1.41 1.41"></path><path d="M17.66 17.66l1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="M4.93 19.07l1.41-1.41"></path><path d="M17.66 6.34l1.41-1.41"></path>
@@ -432,10 +423,13 @@ export default function Home() {
         </div>
         
         <div style={{ display: "flex", gap: "12px", alignItems: "center", marginLeft: "auto" }}>
+          
           <div className="nav-badge" onClick={() => document.getElementById('top-radar').scrollIntoView({behavior: 'smooth'})} style={{cursor: 'pointer'}}>
             <span className="nav-dot" style={{ background: `var(${PHASE_ACCENTS[phaseKey]})`, boxShadow: `0 0 10px var(${PHASE_ACCENTS[phaseKey]})` }}></span>
-            <span style={{ fontSize: "12.5px", fontFamily: "var(--font-mono)", letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
-              <span className="emoji-icon">{phaseData.emoji}</span> {currentDay}. den
+            {/* Opravené centrování vnitřku badge pomocí flexboxu */}
+            <span style={{ fontSize: "13px", fontFamily: "var(--font-mono)", letterSpacing: "0.02em", display: "flex", alignItems: "center", gap: "6px" }}>
+              <span className="emoji-icon" style={{ fontSize: "15px" }}>{phaseData.emoji}</span> 
+              <span style={{ paddingTop: "1px" }}>{currentDay}. den</span>
             </span>
           </div>
 
