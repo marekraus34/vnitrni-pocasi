@@ -8,7 +8,6 @@ export default function LandingPage() {
   const [savedEmail, setSavedEmail] = useState(null);
 
   useEffect(() => {
-    // 1. Přečte e-mail z paměti, pokud tam nějaký je uložený
     const storedEmail = localStorage.getItem("lastUserEmail");
     if (storedEmail) setSavedEmail(storedEmail);
 
@@ -36,7 +35,6 @@ export default function LandingPage() {
     };
   }, []);
 
-  // Funkce, která smaže paměť (když chce uživatel jiný účet)
   const handleClearUser = () => {
     localStorage.removeItem("lastUserEmail");
     setSavedEmail(null);
@@ -90,6 +88,24 @@ export default function LandingPage() {
           z-index: 100;
         }
         
+        /* NOVÉ TŘÍDY PRO TLAČÍTKA A ŠTÍTKY V NAVIGACI */
+        .glass-btn {
+          transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .glass-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 2px 2px rgba(255,255,255,0.4);
+          background: rgba(255,255,255,0.1);
+          border-color: rgba(255,255,255,0.4) !important;
+        }
+        .user-badge {
+          display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 99px;
+          background: rgba(255,255,255,0.05);
+        }
+        .status-dot {
+          width: 8px; height: 8px; border-radius: 50%; background: var(--spring); box-shadow: 0 0 8px var(--spring);
+        }
+
         .mesh-background { position: fixed; inset: 0; z-index: -3; background: var(--bg); overflow: hidden; }
 
         .mesh-orb {
@@ -178,7 +194,7 @@ export default function LandingPage() {
         .text-content { max-width: 60%; }
 
         @media (max-width: 900px) {
-          .nav-email { display: none; } /* Na mobilu e-mail schováme, aby byla lišta čistá */
+          .nav-email { display: none; }
           .season-grid { grid-template-columns: 1fr; }
           .bento-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
           .wide, .tall { grid-column: span 1; grid-row: span 1; }
@@ -199,18 +215,26 @@ export default function LandingPage() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* CHYTRÁ NAVIGACE */}
+      {/* VYLEPŠENÁ CHYTRÁ NAVIGACE S PRÉMIOVÝMI TLAČÍTKY A ŠTÍTKEM */}
       <nav className="glass-nav ios-glass">
         <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px", color: "var(--ink)" }}>Vnitřní počasí</span>
-        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          
+          {/* E-mail Badge s tekutým sklem a svítící tečkou */}
           {savedEmail && (
-            <span className="nav-email" style={{ fontSize: "13px", color: "var(--ink-dim)", fontFamily: "var(--font-mono)" }}>
-              Účet: {savedEmail}
-            </span>
+            <div className="nav-email user-badge ios-glass" style={{ border: "1px solid rgba(255,255,255,0.15)" }}>
+              <span className="status-dot"></span>
+              <span style={{ fontSize: "12.5px", color: "rgba(255,255,255,0.9)", fontFamily: "var(--font-mono)", letterSpacing: "0.02em" }}>
+                {savedEmail}
+              </span>
+            </div>
           )}
-          <Link href="/login" style={{ color: "var(--ink)", textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>
+
+          {/* Přihlašovací tlačítko ve tvaru skleněné pilulky s hover efektem */}
+          <Link href="/login" className="glass-btn ios-glass" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", borderRadius: "99px", textDecoration: "none", color: "var(--ink)", fontSize: "13px", fontWeight: 600, border: "1px solid rgba(255,255,255,0.25)" }}>
             {savedEmail ? "Znovu přihlásit" : "Přihlásit"}
           </Link>
+          
         </div>
       </nav>
 
@@ -223,14 +247,13 @@ export default function LandingPage() {
             Změny nálad nejsou náhodné. Jsou to roční období uvnitř jejího těla. Zjistěte včas, co se děje, a buďte o krok napřed.
           </p>
           
-          {/* CHYTRÁ TLAČÍTKA PODLE TOHO, JESTLI SI APLIKACE PAMATUJE UŽIVATELE */}
           <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
             {savedEmail ? (
               <>
                 <Link href="/login" className="ios-glass" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none", padding: "16px 36px", fontSize: "16px", color: "var(--bg)", background: "var(--ink)", fontWeight: 600, borderRadius: "99px" }}>
                   Pokračovat do aplikace
                 </Link>
-                <button onClick={handleClearUser} className="ios-glass" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer", background: "transparent", padding: "16px 36px", fontSize: "14px", color: "var(--ink)", fontWeight: 500, borderRadius: "99px" }}>
+                <button onClick={handleClearUser} className="glass-btn ios-glass" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.25)", cursor: "pointer", background: "transparent", padding: "16px 36px", fontSize: "14px", color: "var(--ink)", fontWeight: 500, borderRadius: "99px" }}>
                   Přihlásit se pod jiným účtem
                 </button>
               </>
