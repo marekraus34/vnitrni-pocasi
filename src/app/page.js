@@ -29,52 +29,6 @@ const I18N = {
     dow_short: ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'],
     symptoms: { cramps: 'Křeče', headache: 'Bolest hlavy', bloating: 'Nadýmání', fatigue: 'Únava', irritability: 'Podrážděnost', anxiety: 'Úzkost', sugar_cravings: 'Chuť na sladké' },
     ob_h2: 'Než začneme', ob_start_label: 'Začátek poslední menstruace', ob_cycle_label: 'Délka cyklu (dny)', ob_period_label: 'Délka menstruace', ob_submit: 'Uložit a začít',
-    phasesBarvy jsou v designu absolutní základ – tvoří 80 % toho, jak se uživatel v aplikaci cítí. Dosud jsme tam měli jen základní hex kódy, ale teď to posuneme na úroveň "Color Psychology", kterou používají designéři v Cupertinu (Apple).
-
-Uděláme ty barvy tak, aby **fyzicky odpovídaly tomu, jak se žena v dané fázi cítí**, a aby se na pozadí pod tím sklem překrásně míchaly.
-
-Tady je barevná paleta, kterou jsem pro tebe namíchal:
-*   ❄️ **Zima (Menstruace):** Jemná pudrová růžová + Hluboká ametystová + Půlnoční modř. (Evokuje klid, útlum, noc a bezpečí).
-*   🌱 **Jaro (Folikulární):** Mátově zelená + Mechová + Hluboká oceánská modrozelená. (Evokuje svěžest, probouzející se les, ranní rosu a čistou mysl).
-*   ☀️ **Léto (Ovulace):** Zlatavá žlutá + Korálově červená + Fuchsiová. (Evokuje zapadající slunce, obrovské teplo, vášeň a vrcholnou energii).
-*   🍂 **Podzim (Luteální):** Terakotová oranžová + Rezavá červená + Švestkově vínová. (Evokuje spadané listí, teplo domova, ale zároveň mírnou náladovost a potřebu se zachumlat).
-
-Navíc jsem jim všem nastavil ideální průhlednost (`op: 0.65`), aby ty barvy jemně "dýchaly" a nikdy nepřebily ten bílý text na kartách.
-
-Zkopíruj si tento finální a naprosto dokonalý kód pro **`src/app/page.js`**:
-
-```javascript
-"use client";
-
-import LandingPage from "@/components/LandingPage";
-import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-
-/* ================================================================
-   1. SLOVNÍK A KONSTANTY
-   ================================================================ */
-const SYMPTOM_KEYS = ['cramps', 'headache', 'bloating', 'fatigue', 'irritability', 'anxiety', 'sugar_cravings'];
-const PHASE_ACCENTS = { menstrual: '--winter', follicular: '--spring', ovulatory: '--summer', luteal: '--autumn' };
-const PHASE_ENERGY_PCT = { menstrual: 18, follicular: 60, ovulatory: 95, luteal: 38 };
-
-const I18N = {
-  cs: {
-    eyebrow: 'Čtyři roční období', title: 'Vnitřní počasí', subtitle: 'Pohled na to, v jaké je fázi – a jak jí dnes můžeš usnadnit den.',
-    loading: 'Načítám data...', today_btn: 'Dnes', wheel_day_label: 'Den cyklu', energy_label: 'Energie',
-    dos_heading: 'Co dělat', avoid_label: 'Vyvaruj se:', forecast_heading: 'Dalších 10 dní',
-    insights_summary: 'Přehledy a analýza', ins_trend_title: 'Trend délky cyklu',
-    profile_summary: 'Profil a životní styl', prof_age: 'Věk', prof_activity: 'Úroveň fyzické aktivity',
-    act_sedentary: 'Sedavý', act_light: 'Mírně aktivní', act_active: 'Aktivní (trénink, sport)', act_athlete: 'Sportovec / Vysoká zátěž',
-    prof_pill: 'Užívá hormonální antikoncepci', journal_summary: 'Deník nálad', j_date_label: 'Datum',
-    j_rating_legend: 'Nálada (1-5)', j_sleep_legend: 'Spánek (1=špatný, 5=skvělý)', j_stress_legend: 'Stres (1=klid, 5=max)',
-    j_symptoms_legend: 'Příznaky', j_note_label: 'Poznámka', journal_submit: 'Uložit zápis',
-    history_summary: 'Historie cyklu', history_add_btn: 'Přidat', settings_summary: 'Systém & Účet',
-    set_cycle_label: 'Délka cyklu (dny)', set_period_label: 'Menstruace (dny)', settings_submit: 'Uložit změny',
-    pill_warning: 'Při hormonální antikoncepci jsou přirozené hormonální výkyvy potlačeny. Fáze berte spíše jako orientační.',
-    dow_short: ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'],
-    symptoms: { cramps: 'Křeče', headache: 'Bolest hlavy', bloating: 'Nadýmání', fatigue: 'Únava', irritability: 'Podrážděnost', anxiety: 'Úzkost', sugar_cravings: 'Chuť na sladké' },
-    ob_h2: 'Než začneme', ob_start_label: 'Začátek poslední menstruace', ob_cycle_label: 'Délka cyklu (dny)', ob_period_label: 'Délka menstruace', ob_submit: 'Uložit a začít',
     phases: {
       menstrual: { season: 'Zima', emoji: '❄️', name: 'Menstruační fáze', energy_label: 'Nízká', mood: 'Tělo zpomaluje a bere si zpátečku. Časté jsou křeče, únava a chuť stáhnout se do klidu.', dos: ['Navrhni klidný večer doma – deka, čaj, film.', 'Termofor nebo teplá koupel.', 'Dej jí prostor, pokud ho chce.'], avoid: 'Náročné výlety a bagatelizování bolesti.' },
       follicular: { season: 'Jaro', emoji: '🌱', name: 'Folikulární fáze', energy_label: 'Stoupající', mood: 'Hormony se probouzí. Nálada se zlepšuje a roste chuť do nových věcí.', dos: ['Navrhni něco nového – výlet, kurz.', 'Plánujte společné věci a dovolenou.', 'Podpoř její nápady.'], avoid: 'Nic zvláštního.' },
@@ -89,6 +43,37 @@ const I18N = {
       trend_stress: 'Data naznačují, že v cyklech s vyšším stresem dochází k jejich prodlužování.',
       trend_ok: 'Cyklus vypadá stabilně.'
     }
+  },
+  en: {
+    eyebrow: 'Four Seasons', title: 'Inner Weather', subtitle: 'A quick look at her phase and how you can help.',
+    loading: 'Loading...', today_btn: 'Today', wheel_day_label: 'Cycle day', energy_label: 'Energy',
+    dos_heading: 'What to do', avoid_label: 'Avoid:', forecast_heading: 'Next 10 days',
+    insights_summary: 'Insights & Analysis', ins_trend_title: 'Cycle Length Trend',
+    profile_summary: 'Profile & Lifestyle', prof_age: 'Age', prof_activity: 'Activity Level',
+    act_sedentary: 'Sedentary', act_light: 'Lightly active', act_active: 'Active (training, sports)', act_athlete: 'Athlete / High load',
+    prof_pill: 'Uses hormonal contraception', journal_summary: 'Journal', j_date_label: 'Date',
+    j_rating_legend: 'Mood (1-5)', j_sleep_legend: 'Sleep (1-5)', j_stress_legend: 'Stress (1-5)',
+    j_symptoms_legend: 'Symptoms', j_note_label: 'Note', journal_submit: 'Save entry',
+    history_summary: 'Cycle History', history_add_btn: 'Add', settings_summary: 'System & Account',
+    set_cycle_label: 'Cycle length', set_period_label: 'Period length', settings_submit: 'Save',
+    pill_warning: 'Hormonal contraception suppresses natural fluctuations. Treat phases as a rough guide.',
+    dow_short: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    symptoms: { cramps: 'Cramps', headache: 'Headache', bloating: 'Bloating', fatigue: 'Fatigue', irritability: 'Irritability', anxiety: 'Anxiety', sugar_cravings: 'Sugar cravings' },
+    ob_h2: 'Before we start', ob_start_label: 'First day of last period', ob_cycle_label: 'Cycle length (days)', ob_period_label: 'Period length', ob_submit: 'Save and view',
+    phases: {
+      menstrual: { season: 'Winter', emoji: '❄️', name: 'Menstrual Phase', energy_label: 'Low', mood: 'Body slows down. Cramps and fatigue are common.', dos: ['Quiet evening at home.', 'Warm bath or hot water bottle.', 'Give her space.'], avoid: 'Demanding events.' },
+      follicular: { season: 'Spring', emoji: '🌱', name: 'Follicular Phase', energy_label: 'Rising', mood: 'Energy and mood are lifting.', dos: ['Suggest something new.', 'Plan holidays or projects.', 'Support her ideas.'], avoid: 'Nothing in particular.' },
+      ovulatory: { season: 'Summer', emoji: '☀️', name: 'Ovulatory Phase', energy_label: 'Peak', mood: 'Peak energy, confidence, and desire for closeness.', dos: ['Plan a date.', 'Good time for big talks.', 'Be spontaneous.'], avoid: 'Routine.' },
+      luteal: { season: 'Autumn', emoji: '🍂', name: 'Luteal Phase', energy_label: 'Declining', mood: 'Energy fades. Late luteal (PMS) often brings irritability.', dos: ['Be patient.', 'Keep it low-stress.', 'Ask what she needs.'], avoid: 'Arguments over small things.' }
+    },
+    ctx: {
+      high_stress: 'High stress recorded recently. Lower expectations today and give her absolute peace.',
+      bad_sleep: 'Poor sleep recently. Offer to take over some of her chores today.',
+      active_luteal: 'Physical strength naturally drops in this phase. Support her recovery.',
+      active_follicular: 'Physical strength and training tolerance are peaking. Great time for a workout together.',
+      trend_stress: 'Data suggests cycles with higher stress tend to be longer/irregular.',
+      trend_ok: 'Cycle length appears stable.'
+    }
   }
 };
 
@@ -96,6 +81,7 @@ const I18N = {
    2. POMOCNÉ FUNKCE
    ================================================================ */
 const toIso = (d) => d.toISOString().split('T')[0];
+const formatDate = (d) => `${d.getDate()}. ${d.getMonth() + 1}. ${d.getFullYear()}`;
 
 function getPhaseDayRanges(cycleLength, periodLength) {
   const pl = Math.min(periodLength, cycleLength - 3);
@@ -211,16 +197,16 @@ export default function Home() {
     setJMood(null); setJSleep(null); setJStress(null); setJSymptoms([]); setJNote("");
   };
 
-  if (status === "loading") return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "#1a161e" }}>Načítám...</div>;
-  if (status === "unauthenticated") return <LandingPage/>;
-  if (loading) return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "#1a161e" }}>Načítám data...</div>;
+  if (status === "loading") return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "#09070b" }}>Načítám...</div>;
+  if (status === "unauthenticated") return <LandingPage />;
+  if (loading) return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "#09070b" }}>Načítám data...</div>;
   if (!session) return null;
 
   if (!settings || !settings.periods || settings.periods.length === 0) {
     return (
       <div className="app-wrapper">
         <style dangerouslySetInnerHTML={{ __html: `
-          .app-wrapper { background: #1a161e; min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; color: #fff; }
+          .app-wrapper { background: #09070b; min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; color: #fff; }
           .ios-glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(255, 255, 255, 0.25); border-left: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2); border-radius: 32px; padding: 40px; width: 100%; max-width: 500px; }
           .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
           .field span { font-size: 13px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; }
@@ -250,19 +236,13 @@ export default function Home() {
   const phaseKey = getPhaseKey(currentDay, ranges);
   const phaseData = I18N[lang].phases[phaseKey];
 
-  // DOKONALÁ BAREVNÁ PALETA (Color Psychology)
   const getGradientColors = (phase) => {
     switch (phase) {
-      case 'winter': // Zima: Klid, útlum, noc.
-        return { c1: '#E2929C', c2: '#6B4C9A', c3: '#2B3A67', op: 0.65 };
-      case 'spring': // Jaro: Probuzení, svěžest, les.
-        return { c1: '#9FCBA4', c2: '#5C8A69', c3: '#185A63', op: 0.65 };
-      case 'summer': // Léto: Vrcholná energie, teplo, západ slunce.
-        return { c1: '#F0BB6C', c2: '#E25B5B', c3: '#8E1E4F', op: 0.65 };
-      case 'autumn': // Podzim: Útulnost, tlumenost, spadané listí.
-        return { c1: '#E0875B', c2: '#A64B2A', c3: '#5C2A3A', op: 0.65 };
-      default: 
-        return { c1: '#E2929C', c2: '#F0BB6C', c3: '#5C8A69', op: 0.3 };
+      case 'winter': return { c1: '#E2929C', c2: '#6B4C9A', c3: '#2B3A67', op: 0.65 };
+      case 'spring': return { c1: '#9FCBA4', c2: '#5C8A69', c3: '#185A63', op: 0.65 };
+      case 'summer': return { c1: '#F0BB6C', c2: '#E25B5B', c3: '#8E1E4F', op: 0.65 };
+      case 'autumn': return { c1: '#E0875B', c2: '#A64B2A', c3: '#5C2A3A', op: 0.65 };
+      default: return { c1: '#E2929C', c2: '#F0BB6C', c3: '#5C8A69', op: 0.3 };
     }
   };
   const colors = getGradientColors(phaseKey);
@@ -316,7 +296,7 @@ export default function Home() {
           --spring: #9FCBA4;
           --summer: #F0BB6C;
           --autumn: #E0875B;
-          --bg: #1a161e;
+          --bg: #09070b;
           --surface-2: rgba(255,255,255,0.05);
           --ink: #ffffff;
           --ink-dim: rgba(255,255,255,0.6);
@@ -326,7 +306,7 @@ export default function Home() {
         
         h1, h2, h3, p, span, li, legend { color: inherit; }
 
-        .mesh-background { position: fixed; inset: 0; z-index: -3; background: #1a161e; overflow: hidden; }
+        .mesh-background { position: fixed; inset: 0; z-index: -3; background: #09070b; overflow: hidden; }
         .mesh-orb { position: absolute; border-radius: 50%; filter: blur(100px); transition: background 2s ease, opacity 2s ease; }
         .orb-1 { width: 120vw; height: 60vh; bottom: -30vh; left: -10vw; animation: float1 14s infinite alternate ease-in-out; }
         .orb-2 { width: 80vw; height: 80vh; bottom: -40vh; right: -20vw; animation: float2 18s infinite alternate-reverse ease-in-out; }
@@ -338,7 +318,7 @@ export default function Home() {
 
         .noise-overlay {
           position: fixed; inset: 0; z-index: -2;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='[http://www.w3.org/2000/svg'%3E%3Cfilter](http://www.w3.org/2000/svg'%3E%3Cfilter) id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
           opacity: 0.05; pointer-events: none;
         }
 
@@ -536,9 +516,9 @@ export default function Home() {
                   />
                 </label>
 
-                <RatingRow label="{t('j_rating_legend')}" setter="{setJMood}" val="{jMood}"/>
-                <RatingRow label="{t('j_sleep_legend')}" setter="{setJSleep}" val="{jSleep}"/>
-                <RatingRow label="{t('j_stress_legend')}" setter="{setJStress}" val="{jStress}"/>
+                <RatingRow label={t('j_rating_legend')} val={jMood} setter={setJMood} />
+                <RatingRow label={t('j_sleep_legend')} val={jSleep} setter={setJSleep} />
+                <RatingRow label={t('j_stress_legend')} val={jStress} setter={setJStress} />
                 
                 <div style={{ marginBottom: "24px" }}>
                   <span style={{ display: "block", fontSize: "13px", color: "rgba(255,255,255,0.7)", textTransform: "uppercase", marginBottom: "12px" }}>{t('j_symptoms_legend')}</span>
