@@ -108,7 +108,9 @@ export default function LandingPage() {
 
         .section-title { font-family: var(--font-display); font-size: clamp(32px, 6vw, 48px); font-weight: 500; margin-bottom: 16px; color: var(--ink); }
 
-        .season-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 40px; }
+        /* OPRAVA: Mřížka natvrdo do čtverce (2 sloupce) */
+        .season-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 40px; }
+        
         .season-card { padding: 32px 24px; transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); cursor: pointer; position: relative; overflow: hidden; }
         .season-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--card-accent); opacity: 0; transition: opacity 0.5s; }
         .season-card:hover, .season-card.active { transform: translateY(-8px) scale(1.02); box-shadow: 0 40px 80px rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,0.3); }
@@ -121,11 +123,11 @@ export default function LandingPage() {
         }
         .real-mockup img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; border-radius: 48px;}
 
-        /* BENTO GRID (Jak to funguje) - Oprava dynamické výšky a zarovnání */
+        /* BENTO GRID */
         .bento-grid { 
           display: grid; 
           grid-template-columns: repeat(3, 1fr); 
-          grid-auto-rows: minmax(280px, auto); /* OPRAVA: Zabraňuje ořezání textu dole */
+          grid-auto-rows: minmax(280px, auto); 
           gap: 24px; 
           margin-top: 40px;
         }
@@ -161,12 +163,7 @@ export default function LandingPage() {
         .bar { width: 32px; background: rgba(255,255,255,0.08); border-radius: 8px 8px 0 0; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); border-bottom: none; }
         .bar.active { background: linear-gradient(180deg, var(--autumn) 0%, rgba(224,135,91,0.1) 100%); border-color: var(--autumn); box-shadow: 0 0 20px rgba(224,135,91,0.4); }
 
-        /* OPRAVA DENÍKU NÁLAD (Vycentrování textu a štítků) */
-        .card-journal {
-          align-items: center; 
-          text-align: center; 
-          justify-content: center;
-        }
+        .card-journal { align-items: center; text-align: center; justify-content: center; }
         .card-journal .text-content { max-width: 100%; }
         
         .mini-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 24px; }
@@ -176,6 +173,8 @@ export default function LandingPage() {
         .text-content { max-width: 60%; }
 
         @media (max-width: 900px) {
+          /* Na mobilu chceme všechno do 1 sloupce (pod sebe) */
+          .season-grid { grid-template-columns: 1fr; }
           .bento-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
           .wide, .tall { grid-column: span 1; grid-row: span 1; }
           .bento-card { min-height: 320px; padding: 32px 24px; }
@@ -232,26 +231,35 @@ export default function LandingPage() {
           <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px" }}>Posouvejte stránkou a vnímejte změny.</p>
           
           <div className="season-grid" onMouseLeave={() => setActiveSeason(null)}>
-            <div className={`season-card ios-glass ${activeSeason === 'winter' ? 'active' : ''}`} data-season="winter" style={{ '--card-accent': 'var(--winter)' }} onMouseEnter={() => setActiveSeason('winter')}>
-              <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>❄️</span>
-              <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--winter)", marginBottom: "8px" }}>Zima (Menstruace)</h3>
-              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie je na minimu. Tělo potřebuje klid. Skvělý čas na termofor a film.</p>
-            </div>
+            
+            {/* 1. JARO */}
             <div className={`season-card ios-glass ${activeSeason === 'spring' ? 'active' : ''}`} data-season="spring" style={{ '--card-accent': 'var(--spring)' }} onMouseEnter={() => setActiveSeason('spring')}>
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>🌱</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--spring)", marginBottom: "8px" }}>Jaro (Folikulární)</h3>
               <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Hormony se probouzí. Ideální čas navrhnout nový sport nebo naplánovat výlet.</p>
             </div>
+
+            {/* 2. LÉTO */}
             <div className={`season-card ios-glass ${activeSeason === 'summer' ? 'active' : ''}`} data-season="summer" style={{ '--card-accent': 'var(--summer)' }} onMouseEnter={() => setActiveSeason('summer')}>
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>☀️</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--summer)", marginBottom: "8px" }}>Léto (Ovulace)</h3>
               <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Vrchol měsíce. Energie a sebevědomí jsou na maximu. Čas na společenské akce.</p>
             </div>
+
+            {/* 3. PODZIM */}
             <div className={`season-card ios-glass ${activeSeason === 'autumn' ? 'active' : ''}`} data-season="autumn" style={{ '--card-accent': 'var(--autumn)' }} onMouseEnter={() => setActiveSeason('autumn')}>
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>🍂</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--autumn)", marginBottom: "8px" }}>Podzim (Luteální)</h3>
               <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie klesá, přichází PMS. Může být podrážděná. Buďte trpěliví a uberte na nárocích.</p>
             </div>
+
+            {/* 4. ZIMA */}
+            <div className={`season-card ios-glass ${activeSeason === 'winter' ? 'active' : ''}`} data-season="winter" style={{ '--card-accent': 'var(--winter)' }} onMouseEnter={() => setActiveSeason('winter')}>
+              <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>❄️</span>
+              <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--winter)", marginBottom: "8px" }}>Zima (Menstruace)</h3>
+              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie je na minimu. Tělo potřebuje klid. Skvělý čas na termofor a film.</p>
+            </div>
+
           </div>
         </section>
 
@@ -289,9 +297,7 @@ export default function LandingPage() {
               </div>
             </div>
             
-            {/* OPRAVENÁ KARTA: Deník nálad - Vše vycentrované + všechny štítky */}
             <div className="bento-card ios-glass card-journal">
-              {/* Koule je přesně uprostřed karty pro vyvážený glow efekt */}
               <div className="liquid-glow" style={{ width: "180px", height: "180px", top: "50%", left: "50%", marginTop: "-90px", marginLeft: "-90px", background: "rgba(159,203,164,0.3)" }}></div>
               <div className="text-content">
                 <h3>Deník nálad</h3>
