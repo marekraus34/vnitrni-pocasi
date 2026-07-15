@@ -137,7 +137,6 @@ export default function Home() {
 
   const t = (key) => I18N[lang][key];
 
-  // OPRAVA: Přebarvení systémové lišty telefonu pomocí meta tagu a propis themes do HTML
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     
@@ -241,7 +240,12 @@ export default function Home() {
           html[data-theme="light"] { --bg: #f2f2f7; --ink: #111111; --ink-dim: rgba(0,0,0,0.6); }
           body { background-color: var(--bg) !important; color: var(--ink) !important; margin: 0; padding: 0; transition: background-color 0.5s ease; }
           .app-wrapper { min-height: 100vh; padding: 40px 18px; display: flex; align-items: center; justify-content: center; }
-          .ios-glass { background: rgba(15, 15, 15, 0.45); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); border: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.25); border-radius: 32px; padding: 40px; width: 100%; max-width: 500px; }
+          .ios-glass { 
+            background: rgba(15, 15, 15, 0.45); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); 
+            border: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.25); border-radius: 32px; padding: 40px; width: 100%; max-width: 500px; 
+            /* Ant-glitch fix pro Onboarding */
+            -webkit-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0); -webkit-backface-visibility: hidden; backface-visibility: hidden;
+          }
           html[data-theme="light"] .ios-glass { background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(0,0,0,0.05); }
           .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
           .field span { font-size: 13px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 1px; }
@@ -316,7 +320,6 @@ export default function Home() {
   return (
     <div className="app-wrapper">
       <style dangerouslySetInnerHTML={{ __html: `
-        /* GLOBÁLNÍ CSS: Tyto proměnné ovládají barvy celého systému */
         :root {
           --winter: #E2929C;
           --spring: #9FCBA4;
@@ -341,7 +344,6 @@ export default function Home() {
           --card-pad: 32px;
         }
 
-        /* Light Mode (Aktivuje se přes html atribut) */
         html[data-theme="light"] {
           --bg: #f2f2f7;
           --ink: #111111;
@@ -359,7 +361,6 @@ export default function Home() {
           --mesh-op: 0.4;
         }
 
-        /* Zabrání černé liště - barva body se teď chytře řídí motivem */
         body {
           background-color: var(--bg) !important;
           color: var(--ink) !important;
@@ -371,8 +372,8 @@ export default function Home() {
         .app-wrapper { position: relative; min-height: 100vh; overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; }
         h1, h2, h3, p, span, li, legend { color: inherit; }
 
-        /* OPRAVA POZADÍ: Roztaženo hluboko mimo obrazovku a orbs využívají procenta. Dýchání je teď naprosto všude. */
-        .mesh-background { position: fixed; inset: -20%; z-index: -3; background: var(--bg); transition: background 0.5s ease; }
+        /* OPRAVA ČERNÝCH OBDÉLNÍKŮ V POZADÍ (Hardwarová akcelerace přes translate3d) */
+        .mesh-background { position: fixed; inset: -20%; z-index: -3; background: var(--bg); transition: background 0.5s ease; -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); }
         .mesh-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: var(--mesh-op); transition: background 2s ease, opacity 0.5s ease; pointer-events: none; }
         
         .orb-1 { width: 70%; height: 60%; top: 0; left: 0; animation: float1 14s infinite alternate ease-in-out; }
@@ -387,6 +388,7 @@ export default function Home() {
           position: fixed; inset: 0; z-index: -2;
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
           opacity: 0.05; pointer-events: none;
+          -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0);
         }
 
         .ios-glass {
@@ -401,11 +403,20 @@ export default function Home() {
           position: relative;
           overflow: hidden;
           transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
+
+          /* OPRAVA ČERNÝCH OBDÉLNÍKŮ PRO SKLENĚNÉ PRVKY (Vynucení grafického čipu) */
+          -webkit-transform: translate3d(0, 0, 0);
+          transform: translate3d(0, 0, 0);
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
         }
 
         .glass-nav {
-          position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 600px;
+          position: fixed; top: 16px; left: 50%; width: calc(100% - 32px); max-width: 600px;
           height: 64px; border-radius: 99px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 16px; z-index: 100;
+          /* Pro navigaci použijeme obyčejný transform (aby se zachoval position: fixed vůči obrazovce) */
+          transform: translateX(-50%) translateZ(0); 
+          -webkit-transform: translateX(-50%) translateZ(0);
         }
 
         .nav-badge { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--input-border); }
@@ -469,7 +480,7 @@ export default function Home() {
         }
       `}} />
 
-      {/* DYNAMICKÉ POZADÍ (Nyní zabírá úplně vše) */}
+      {/* DYNAMICKÉ POZADÍ */}
       <div className="mesh-background">
         <div className="mesh-orb orb-1" style={{ background: colors.c1 }}></div>
         <div className="mesh-orb orb-2" style={{ background: colors.c2 }}></div>
@@ -477,7 +488,7 @@ export default function Home() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* CHYTRÁ HORNÍ LIŠTA S DARK MODE PŘEPÍNAČEM */}
+      {/* CHYTRÁ HORNÍ LIŠTA */}
       <nav className="glass-nav ios-glass">
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <button 
@@ -594,7 +605,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* PLYNULÝ AKORDEON: DENÍK */}
         <section id="journal" className="ios-glass accordion-wrapper">
           <div className="accordion-header" onClick={() => toggleSection('journal')}>
             <div className="accordion-title">
@@ -655,7 +665,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* PLYNULÝ AKORDEON: NASTAVENÍ */}
         <section id="settings" className="ios-glass accordion-wrapper">
           <div className="accordion-header" onClick={() => toggleSection('settings')}>
             <div className="accordion-title">
