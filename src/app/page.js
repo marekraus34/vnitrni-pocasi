@@ -390,7 +390,7 @@ export default function Home() {
         applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
       });
 
-      const res = await fetch("/api/push", {
+      const res = await fetch("/api/user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subscription)
