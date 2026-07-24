@@ -14,9 +14,7 @@ if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   );
 }
 
-// =========================================================================
-// PŘIDÁNO: POST metoda pro uložení push odběru z telefonu
-// =========================================================================
+// POST metoda pro uložení push odběru z telefonu
 export async function POST(req) {
   try {
     const session = await getServerSession(authOptions);
@@ -76,7 +74,7 @@ export async function GET(req) {
   }
 }
 
-// Metoda pro ULOŽENÍ dat a ODESLÁNÍ NOTIFIKACE PARTNEROROVI
+// Metoda pro ULOŽENÍ dat a ODESLÁNÍ NOTIFIKACE
 export async function PUT(req) {
   try {
     const session = await getServerSession(authOptions);
@@ -161,39 +159,45 @@ export async function PUT(req) {
       await User.findOneAndUpdate({ email: session.user.email }, { $set: updateDoc });
 
       // =========================================================================
-      // CHYTRÁ NOTIFIKACE PRO PARTNERA PŘI ZÁPISU DO DENÍKU
+      // NOTIFIKACE PŘI ZÁPISU DO DENÍKU
       // =========================================================================
-      if (data.journal && currentUser.settings.pairedWith) {
-        const partnerUser = await User.findOne({ email: currentUser.settings.pairedWith });
-        
-        // Zkontrolujeme, jestli má partner aktivní push notifikace a je v roli muže/partnera
-        if (partnerUser && partnerUser.settings?.pushSubscription && partnerUser.settings?.role === 'partner') {
+      if (data.journal) {
+        let recipientUser = null;
+
+        // Pokud má propojeného partnera, pošle notifikaci partnerovi
+        if (currentUser.settings.pairedWith) {
+          recipientUser = await User.findOne({ email: currentUser.settings.pairedWith });
+        } else {
+          // Pokud testuje sám bez partnera, pošle zkušební notifikaci sám sobě
+          recipientUser = currentUser;
+        }
+
+        if (recipientUser && recipientUser.settings?.pushSubscription) {
           const latestEntry = data.journal[data.journal.length - 1];
-          
-          let tipText = "Zapsala si nové poznámky do deníku. Podívej se do aplikace ❤️";
-          
+          let tipText = "Nové poznámky v deníku byly uloženy ❤️";
+
           if (latestEntry) {
             if (latestEntry.stress >= 4) {
-              tipText = "⚠️ Dnes hlásí vyšší stres. Dopřej jí klid, teplý čaj a pomoz s domácností.";
+              tipText = "⚠️ Zaznamenán vyšší stres. Dopřej tělu klid a oddych.";
             } else if (latestEntry.mood && latestEntry.mood <= 2) {
-              tipText = "🌧️ Nemá úplně skvělý den. Buď k ní trpělivý a nabídni objetí.";
+              tipText = "🌧️ Dnešek je náročnější. Zkus zpomalit a odpočinout si.";
             } else if (latestEntry.mood === 5) {
-              tipText = "☀️ Má skvělou náladu! Ideální příležitost naplánovat něco hezkého.";
+              tipText = "☀️ Skvělá nálada! Využij dnešek na plno.";
             } else if (latestEntry.symptoms && latestEntry.symptoms.length > 0) {
-              tipText = `💊 Zaznamenala příznaky (${latestEntry.symptoms.join(', ')}). Připrav jí termofor.`;
+              tipText = `💊 Boli zaznamenané příznaky (${latestEntry.symptoms.join(', ')}).`;
             }
           }
 
           try {
             await webpush.sendNotification(
-              partnerUser.settings.pushSubscription,
+              recipientUser.settings.pushSubscription,
               JSON.stringify({
                 title: "Vnitřní počasí 🌤️",
                 body: tipText
               })
             );
           } catch (pushErr) {
-            console.error("Chyba při odesílání push notifikace partnerovi:", pushErr);
+            console.error("Chyba při odesílání push notifikace:", pushErr);
           }
         }
       }
