@@ -4,18 +4,20 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   
-  // Zde se ukládají uživatelova nastavení
   settings: {
-    role: { type: String, default: 'female' }, // PŘIDÁNO: Záznam o roli (female/partner)
+    role: { type: String, default: 'female' },
     cycleLength: { type: Number, default: 28 },
     periodLength: { type: Number, default: 5 },
     age: { type: String, default: '' },
     activity: { type: String, default: 'light' },
     contraception: { type: Boolean, default: false },
-    periods: [{ type: String }] // Pole datumů
+    periods: [{ type: String }],
+    
+    // NOVÉ: Políčka pro párování účtů
+    syncCode: { type: String }, // 6místný unikátní kód pro ženy
+    pairedWith: { type: String, default: null } // E-mail propojeného partnera
   },
   
-  // Kompletní deník
   journal: [{
     date: { type: String },
     mood: { type: Number },
