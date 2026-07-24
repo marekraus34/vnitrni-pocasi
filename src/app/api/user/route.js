@@ -159,45 +159,37 @@ export async function PUT(req) {
       await User.findOneAndUpdate({ email: session.user.email }, { $set: updateDoc });
 
       // =========================================================================
-      // NOTIFIKACE PŘI ZÁPISU DO DENÍKU
+      // CHYTRÁ NOTIFIKACE PRO MUŽE (Když žena ukládá deník)
       // =========================================================================
-      if (data.journal) {
-        let recipientUser = null;
-
-        // Pokud má propojeného partnera, pošle notifikaci partnerovi
-        if (currentUser.settings.pairedWith) {
-          recipientUser = await User.findOne({ email: currentUser.settings.pairedWith });
-        } else {
-          // Pokud testuje sám bez partnera, pošle zkušební notifikaci sám sobě
-          recipientUser = currentUser;
-        }
-
-        if (recipientUser && recipientUser.settings?.pushSubscription) {
+      if (data.journal && currentUser.settings.role === 'female' && currentUser.settings.pairedWith) {
+        const partnerUser = await User.findOne({ email: currentUser.settings.pairedWith });
+        
+        if (partnerUser && partnerUser.settings?.pushSubscription && partnerUser.settings?.role === 'partner') {
           const latestEntry = data.journal[data.journal.length - 1];
-          let tipText = "Nové poznámky v deníku byly uloženy ❤️";
+          let tipText = "Zapsala si nové poznámky do deníku. Mrkni do aplikace ❤️";
 
           if (latestEntry) {
             if (latestEntry.stress >= 4) {
-              tipText = "⚠️ Zaznamenán vyšší stres. Dopřej tělu klid a oddych.";
+              tipText = "⚠️ Dnes má vysoký stres. Dopřej jí klid, nenaléhej a třeba jí uvař čaj nebo pomoz s úklidem.";
             } else if (latestEntry.mood && latestEntry.mood <= 2) {
-              tipText = "🌧️ Dnešek je náročnější. Zkus zpomalit a odpočinout si.";
+              tipText = "🌧️ Dnes se necítí úplně nejlíp. Zkus k ní být trpělivý a zeptej se, jestli nepotřebuje obejmout.";
             } else if (latestEntry.mood === 5) {
-              tipText = "☀️ Skvělá nálada! Využij dnešek na plno.";
+              tipText = "☀️ Dnes má skvělou náladu! Vezmi ji někam ven nebo naplánuj něco spontánního.";
             } else if (latestEntry.symptoms && latestEntry.symptoms.length > 0) {
-              tipText = `💊 Boli zaznamenané příznaky (${latestEntry.symptoms.join(', ')}).`;
+              tipText = `💊 Fyzicky jí není nejlépe. Zkus jí nabídnout termofor, masáž nebo jí ulevit od povinností.`;
             }
           }
 
           try {
             await webpush.sendNotification(
-              recipientUser.settings.pushSubscription,
+              partnerUser.settings.pushSubscription,
               JSON.stringify({
                 title: "Vnitřní počasí 🌤️",
                 body: tipText
               })
             );
           } catch (pushErr) {
-            console.error("Chyba při odesílání push notifikace:", pushErr);
+            console.error("Chyba při odesílání push notifikace partnerovi:", pushErr);
           }
         }
       }
