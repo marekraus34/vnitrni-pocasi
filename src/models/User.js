@@ -13,9 +13,12 @@ const UserSchema = new mongoose.Schema({
     contraception: { type: Boolean, default: false },
     periods: [{ type: String }],
     
-    // NOVÉ: Políčka pro párování účtů
-    syncCode: { type: String }, // 6místný unikátní kód pro ženy
-    pairedWith: { type: String, default: null } // E-mail propojeného partnera
+    // Políčka pro párování účtů
+    syncCode: { type: String }, 
+    pairedWith: { type: String, default: null },
+    
+    // PŘIDÁNO: Uložení odběru pro push notifikace
+    pushSubscription: { type: Object, default: null }
   },
   
   journal: [{
