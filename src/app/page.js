@@ -4,6 +4,8 @@ import LandingPage from "@/components/LandingPage";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+// PŘIDÁNO: Import naší nové čtečky QR kódů
+import { Scanner } from '@yudiel/react-qr-scanner';
 
 /* ================================================================
    1. SLOVNÍK A KONSTANTY
@@ -178,9 +180,9 @@ export default function Home() {
   const [pairCodeInput, setPairCodeInput] = useState("");
   const [pairError, setPairError] = useState("");
   const [showQRModal, setShowQRModal] = useState(false);
-
-  // Pro zachycení aktuální URL adresy pro generování chytrého QR kódu
-  const [appUrl, setAppUrl] = useState("");
+  
+  // PŘIDÁNO: Nový stav pro zobrazení in-app čtečky kamery
+  const [showCameraScanner, setShowCameraScanner] = useState(false);
 
   const [jMood, setJMood] = useState(null);
   const [jSleep, setJSleep] = useState(null);
@@ -190,32 +192,6 @@ export default function Home() {
   const [newPeriodDate, setNewPeriodDate] = useState("");
 
   const t = (key) => I18N[lang][key];
-
-  // OPRAVA: Odchycení Magic Linku z URL adresy (pokud na ni uživatel přijde z foťáku)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setAppUrl(window.location.origin);
-      
-      const params = new URLSearchParams(window.location.search);
-      const codeFromUrl = params.get('pair');
-      if (codeFromUrl) {
-        setPairCodeInput(codeFromUrl.toUpperCase());
-        setOpenSection('settings'); // Rozbalí nastavení
-        
-        // Smažeme parametr z URL, aby tam nezůstal viset
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
-        // Přejedeme s obrazovkou dolů k nastavení
-        setTimeout(() => {
-          const el = document.getElementById('settings');
-          if (el) {
-            const y = el.getBoundingClientRect().top + window.scrollY - 90;
-            window.scrollTo({ top: y, behavior: 'smooth' });
-          }
-        }, 500);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -228,6 +204,7 @@ export default function Home() {
     metaThemeColor.setAttribute("content", theme === 'light' ? '#f2f2f7' : '#09070b');
   }, [theme]);
 
+  // Zajištění aktualizací dat v pozadí
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
       localStorage.setItem("lastUserEmail", session.user.email);
@@ -334,9 +311,26 @@ export default function Home() {
     }
   };
 
+  // PŘIDÁNO: Zpracování přečteného kódu ze zabudovaného in-app skeneru
+  const handleScanCode = (result) => {
+    if (result && result.length > 0) {
+      const scannedText = result[0].rawValue;
+      if (scannedText) {
+        // Kontrola, jestli omylem nenaskenovali starý QR kód s URL odkazem
+        const match = scannedText.match(/pair=([A-Z0-9]{6})/i);
+        if (match) {
+          setPairCodeInput(match[1].toUpperCase());
+        } else {
+          // Normální rychlý QR kód obsahující jen 6 písmen
+          setPairCodeInput(scannedText.toUpperCase().slice(0, 6)); 
+        }
+        setShowCameraScanner(false); // Zavřít kameru
+      }
+    }
+  };
+
   const handleUnpairAccount = async () => {
     if (!window.confirm("Opravdu chcete zrušit propojení vašich radarů? Oba účty budou navzájem odpojeny.")) return;
-    
     try {
       const res = await fetch("/api/user", {
         method: "PUT",
@@ -517,9 +511,6 @@ export default function Home() {
     </fieldset>
   );
 
-  // Vytvoření speciálního URL odkazu pro QR kód (Magic Link)
-  const magicLink = `${appUrl}?pair=${settings?.syncCode || ''}`;
-
   return (
     <div className="app-wrapper">
       <style dangerouslySetInnerHTML={{ __html: `
@@ -639,25 +630,45 @@ export default function Home() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* MODÁLNÍ OKNO PRO QR KÓD (S odkazem - Magic Link) */}
+      {/* MODÁLNÍ OKNO PRO ZOBRAZENÍ QR KÓDU */}
       {showQRModal && (
         <div 
-          style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }} 
+          style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }} 
           onClick={() => setShowQRModal(false)}
         >
           <div className="ios-glass" style={{ padding: "40px 24px", textAlign: "center", width: "100%", maxWidth: "340px", background: "rgba(30,30,30,0.8)" }} onClick={e => e.stopPropagation()}>
             <h3 style={{ marginBottom: "8px", fontFamily: "var(--font-display)", fontSize: "24px", color: "#fff" }}>Naskenuj mě</h3>
-            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginBottom: "24px" }}>Ať si partner/ka zapne foťák.</p>
+            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginBottom: "24px" }}>Z druhé aplikace otevřete čtečku.</p>
             
             <div style={{ background: "#fff", padding: "16px", borderRadius: "24px", display: "inline-block", marginBottom: "24px", boxShadow: "0 20px 40px rgba(0,0,0,0.5)" }}>
-              {/* Zde jsme URL encode vložili přímo náš generovaný Magic Link */}
-              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(magicLink)}&margin=0`} alt="QR kód" style={{ display: "block", borderRadius: "8px" }} />
+              {/* Oproti dřívějšku tady vkládáme čistě jen heslo, aby byl kód co nejlépe a nejrychleji čitelný pro vestavěný skener */}
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${settings.syncCode}&margin=0`} alt="QR kód" style={{ display: "block", borderRadius: "8px" }} />
             </div>
             
             <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.5)", marginBottom: "24px" }}>Nebo zadejte kód:<br/><strong style={{ color: "#fff", letterSpacing: "2px" }}>{settings.syncCode}</strong></p>
             
             <button className="btn-primary" onClick={() => setShowQRModal(false)} style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}>Zavřít</button>
           </div>
+        </div>
+      )}
+
+      {/* PŘIDÁNO: MODÁLNÍ OKNO PRO ČTENÍ QR KÓDŮ (KAMERA) */}
+      {showCameraScanner && (
+        <div 
+          style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.9)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px" }} 
+        >
+          <h3 style={{ color: "#fff", marginBottom: "24px", fontFamily: "var(--font-display)", fontSize: "24px" }}>Namiřte na partnerův kód</h3>
+          <div style={{ width: "100%", maxWidth: "340px", borderRadius: "32px", overflow: "hidden", border: "2px solid var(--spring)", boxShadow: "0 20px 40px rgba(0,0,0,0.5)", background: "#000" }}>
+            {/* Zde se vykreslí naše nová in-app kamera */}
+            <Scanner 
+              onScan={handleScanCode}
+              components={{ audio: false, zoom: false, finder: true }}
+              styles={{ video: { objectFit: 'cover' } }}
+            />
+          </div>
+          <button className="btn-primary" onClick={() => setShowCameraScanner(false)} style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", width: "auto", padding: "12px 32px", marginTop: "40px" }}>
+            Zrušit a zadat ručně
+          </button>
         </div>
       )}
 
@@ -851,19 +862,33 @@ export default function Home() {
               ) : (
                 <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--input-border)", marginBottom: "32px" }}>
                   
-                  {/* ZADÁNÍ KÓDU */}
+                  {/* ZADÁNÍ KÓDU NEBO SKENOVÁNÍ V JEDNOM ŘÁDKU */}
                   <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px", lineHeight: 1.5 }}>
-                    Zadejte 6místný kód z druhé aplikace pro okamžité propojení.
+                    Zadejte 6místný kód z druhé aplikace nebo ho rovnou naskenujte kamerou.
                   </p>
-                  <input 
-                    type="text" 
-                    value={pairCodeInput} 
-                    onChange={e => setPairCodeInput(e.target.value.toUpperCase())}
-                    maxLength={6}
-                    placeholder="X Y Z 1 2 3"
-                    className="pin-input"
-                    style={{ background: "var(--bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "16px", width: "100%", marginBottom: "16px", color: "var(--ink)" }}
-                  />
+                  
+                  <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+                    <input 
+                      type="text" 
+                      value={pairCodeInput} 
+                      onChange={e => setPairCodeInput(e.target.value.toUpperCase())}
+                      maxLength={6}
+                      placeholder="KÓD"
+                      className="pin-input"
+                      style={{ background: "var(--bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "16px", flex: 1, margin: 0, color: "var(--ink)" }}
+                    />
+                    
+                    {/* PŘIDÁNO: TLAČÍTKO PRO OTEVŘENÍ IN-APP KAMERY */}
+                    <button 
+                      type="button" 
+                      onClick={() => setShowCameraScanner(true)} 
+                      className="glass-btn" 
+                      style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "0 20px", color: "var(--ink)", width: "auto", height: "auto" }}
+                    >
+                      <span style={{ fontSize: "24px" }}>📷</span>
+                    </button>
+                  </div>
+
                   <button type="button" onClick={handlePairAccount} disabled={pairCodeInput.length < 6} className="btn-primary" style={{ background: "var(--summer)", color: "#000", marginBottom: "16px" }}>
                     Propojit účty
                   </button>
@@ -873,7 +898,6 @@ export default function Home() {
                     — nebo —
                   </div>
 
-                  {/* ZOBRAZENÍ KÓDU / QR */}
                   {settings.syncCode ? (
                     <>
                       <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px" }}>Ukažte svůj kód pro naskenování:</p>
@@ -881,7 +905,7 @@ export default function Home() {
                         {settings.syncCode}
                       </div>
                       <button type="button" onClick={() => setShowQRModal(true)} className="glass-btn" style={{ width: "auto", padding: "0 24px", borderRadius: "99px", margin: "0 auto" }}>
-                        <span style={{ fontSize: "15px", marginRight: "8px" }}>📷</span> Ukázat QR kód
+                        <span style={{ fontSize: "15px", marginRight: "8px" }}>📱</span> Ukázat QR kód
                       </button>
                     </>
                   ) : (
