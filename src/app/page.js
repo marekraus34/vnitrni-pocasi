@@ -43,37 +43,6 @@ const I18N = {
       trend_stress: 'Data naznačují, že v cyklech s vyšším stresem dochází k jejich prodlužování.',
       trend_ok: 'Cyklus vypadá stabilně.'
     }
-  },
-  en: {
-    eyebrow: 'Four Seasons', title: 'Inner Weather', subtitle: 'A quick look at her phase and how you can help.',
-    loading: 'Loading...', today_btn: 'Today', wheel_day_label: 'Cycle day', energy_label: 'Energy',
-    dos_heading: 'What to do', avoid_label: 'Avoid:', forecast_heading: 'Next 10 days',
-    insights_summary: 'Insights & Analysis', ins_trend_title: 'Cycle Length Trend',
-    profile_summary: 'Profile & Lifestyle', prof_age: 'Age', prof_activity: 'Activity Level',
-    act_sedentary: 'Sedentary', act_light: 'Lightly active', act_active: 'Active (training, sports)', act_athlete: 'Athlete / High load',
-    prof_pill: 'Uses hormonal contraception', journal_summary: 'Journal', j_date_label: 'Date',
-    j_rating_legend: 'Mood (1-5)', j_sleep_legend: 'Sleep (1-5)', j_stress_legend: 'Stress (1-5)',
-    j_symptoms_legend: 'Symptoms', j_note_label: 'Note', journal_submit: 'Save entry',
-    history_summary: 'Cycle History', history_add_btn: 'Add', settings_summary: 'System & Account',
-    set_cycle_label: 'Cycle length', set_period_label: 'Period length', settings_submit: 'Save',
-    pill_warning: 'Hormonal contraception suppresses natural fluctuations. Treat phases as a rough guide.',
-    dow_short: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-    symptoms: { cramps: 'Cramps', headache: 'Headache', bloating: 'Bloating', fatigue: 'Fatigue', irritability: 'Irritability', anxiety: 'Anxiety', sugar_cravings: 'Sugar cravings' },
-    ob_h2: 'Before we start', ob_start_label: 'First day of last period', ob_cycle_label: 'Cycle length (days)', ob_period_label: 'Period length', ob_submit: 'Save and view',
-    phases: {
-      menstrual: { season: 'Winter', emoji: '❄️', name: 'Menstrual Phase', energy_label: 'Low', mood: 'Body slows down. Cramps and fatigue are common.', dos: ['Quiet evening at home.', 'Warm bath or hot water bottle.', 'Give her space.'], avoid: 'Demanding events.' },
-      follicular: { season: 'Spring', emoji: '🌱', name: 'Follicular Phase', energy_label: 'Rising', mood: 'Energy and mood are lifting.', dos: ['Suggest something new.', 'Plan holidays or projects.', 'Support her ideas.'], avoid: 'Nothing in particular.' },
-      ovulatory: { season: 'Summer', emoji: '☀️', name: 'Ovulatory Phase', energy_label: 'Peak', mood: 'Peak energy, confidence, and desire for closeness.', dos: ['Plan a date.', 'Good time for big talks.', 'Be spontaneous.'], avoid: 'Routine.' },
-      luteal: { season: 'Autumn', emoji: '🍂', name: 'Luteal Phase', energy_label: 'Declining', mood: 'Energy fades. Late luteal (PMS) often brings irritability.', dos: ['Be patient.', 'Keep it low-stress.', 'Ask what she needs.'], avoid: 'Arguments over small things.' }
-    },
-    ctx: {
-      high_stress: 'High stress recorded recently. Lower expectations today and give her absolute peace.',
-      bad_sleep: 'Poor sleep recently. Offer to take over some of her chores today.',
-      active_luteal: 'Physical strength naturally drops in this phase. Support her recovery.',
-      active_follicular: 'Physical strength and training tolerance are peaking. Great time for a workout together.',
-      trend_stress: 'Data suggests cycles with higher stress tend to be longer/irregular.',
-      trend_ok: 'Cycle length appears stable.'
-    }
   }
 };
 
@@ -126,7 +95,10 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   
   const [openSection, setOpenSection] = useState(null);
-  const [theme, setTheme] = useState("dark"); // Výchozí Dark mód
+  const [theme, setTheme] = useState("dark"); 
+
+  // PŘIDÁNO: Nový stav pro dvoufázový Onboarding
+  const [onboardingRole, setOnboardingRole] = useState(null); // 'female' nebo 'partner'
 
   const [jMood, setJMood] = useState(null);
   const [jSleep, setJSleep] = useState(null);
@@ -175,11 +147,12 @@ export default function Home() {
     e.preventDefault();
     const fd = new FormData(e.target);
     const newSettings = {
+      role: onboardingRole, // PŘIDÁNO: Uložení vybrané role (female / partner)
       periods: [fd.get('start')],
       cycleLength: parseInt(fd.get('cycle')),
       periodLength: parseInt(fd.get('period')),
-      age: fd.get('age'),
-      activity: fd.get('activity'),
+      age: fd.get('age') || null,
+      activity: fd.get('activity') || 'light',
       contraception: fd.get('pill') === 'on'
     };
     syncData(newSettings, journal);
@@ -231,6 +204,9 @@ export default function Home() {
   if (loading) return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)", background: "var(--bg)" }}>Načítám data...</div>;
   if (!session) return null;
 
+  // =========================================================================
+  // OPRAVA: PŘEPRACOVANÝ DVOJFÁZOVÝ ONBOARDING
+  // =========================================================================
   if (!settings || !settings.periods || settings.periods.length === 0) {
     return (
       <div className="app-wrapper">
@@ -249,22 +225,85 @@ export default function Home() {
           .field span { font-size: 13px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 1px; }
           input, select { background: rgba(120,120,120,0.1); border: 1px solid rgba(120,120,120,0.2); padding: 14px; border-radius: 16px; color: inherit; font-size: 16px; outline: none; transition: border 0.3s; }
           .btn-primary { background: var(--ink); color: var(--bg); padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
+          
+          /* Styly pro nové výběrové karty rolí */
+          .role-card {
+            background: rgba(120,120,120,0.1);
+            border: 1px solid rgba(120,120,120,0.2);
+            border-radius: 24px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            margin-bottom: 16px;
+          }
+          .role-card:hover { transform: scale(1.02); background: rgba(120,120,120,0.15); border-color: rgba(255,255,255,0.4); }
+          .role-icon { font-size: 40px; line-height: 1; }
+          .role-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; }
+          .role-desc { font-size: 14px; color: var(--ink-dim); line-height: 1.4; }
+          
+          /* Tlačítko zpět pro formulář */
+          .btn-back { background: none; border: none; color: var(--ink-dim); font-size: 14px; padding: 0; cursor: pointer; text-decoration: underline; margin-bottom: 24px; display: inline-block; }
         `}} />
+
         <div className="ios-glass">
-          <h2 style={{ fontSize: "28px", marginBottom: "8px", fontFamily: "var(--font-display)" }}>{t('ob_h2')}</h2>
-          <p style={{ color: "var(--ink-dim)", marginBottom: "32px", fontSize: "15px" }}>Vyplňte základní údaje pro kalibraci radaru.</p>
-          <form onSubmit={handleOnboarding}>
-            <label className="field"><span>{t('ob_start_label')}</span><input type="date" name="start" required /></label>
-            <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-              <label className="field" style={{ flex: "1 1 120px" }}><span>{t('ob_cycle_label')}</span><input type="number" name="cycle" defaultValue="28" required /></label>
-              <label className="field" style={{ flex: "1 1 120px" }}><span>{t('ob_period_label')}</span><input type="number" name="period" defaultValue="5" required /></label>
-            </div>
-            <button type="submit" className="btn-primary" style={{ marginTop: "16px" }}>{t('ob_submit')}</button>
-          </form>
+          {!onboardingRole ? (
+            // KROK 1: VÝBĚR ROLE
+            <>
+              <h2 style={{ fontSize: "28px", marginBottom: "8px", fontFamily: "var(--font-display)" }}>Vítej uvnitř</h2>
+              <p style={{ color: "var(--ink-dim)", marginBottom: "32px", fontSize: "15px", lineHeight: 1.5 }}>
+                Aby se ti aplikace dokonale přizpůsobila, řekni nám, jak ji chceš používat.
+              </p>
+
+              <div className="role-card" onClick={() => setOnboardingRole('female')}>
+                <div className="role-icon">👩‍🦰</div>
+                <div className="role-title">Pro mě</div>
+                <div className="role-desc">Chci sledovat svůj vlastní cyklus, zapisovat si příznaky a lépe rozumět svému tělu.</div>
+              </div>
+
+              <div className="role-card" onClick={() => setOnboardingRole('partner')}>
+                <div className="role-icon">👨‍🦱</div>
+                <div className="role-title">Pro partnera</div>
+                <div className="role-desc">Chci sledovat cyklus své partnerky a vědět, jak jí daný den můžu nejlépe podpořit.</div>
+              </div>
+            </>
+          ) : (
+            // KROK 2: KALIBRAČNÍ FORMULÁŘ
+            <>
+              <button className="btn-back" onClick={() => setOnboardingRole(null)}>‹ Zpět na výběr</button>
+              
+              <h2 style={{ fontSize: "28px", marginBottom: "8px", fontFamily: "var(--font-display)" }}>
+                {onboardingRole === 'female' ? "Tvé údaje" : "Údaje partnerky"}
+              </h2>
+              <p style={{ color: "var(--ink-dim)", marginBottom: "32px", fontSize: "15px" }}>
+                {onboardingRole === 'female' 
+                  ? "Vyplň základní parametry pro kalibraci tvého osobního radaru." 
+                  : "Vyplň její základní parametry, aby ti radar mohl radit správně."}
+              </p>
+              
+              <form onSubmit={handleOnboarding}>
+                <label className="field">
+                  <span>{onboardingRole === 'female' ? "Začátek tvé poslední menstruace" : "Začátek její poslední menstruace"}</span>
+                  <input type="date" name="start" required />
+                </label>
+                <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+                  <label className="field" style={{ flex: "1 1 120px" }}><span>{t('ob_cycle_label')}</span><input type="number" name="cycle" defaultValue="28" required /></label>
+                  <label className="field" style={{ flex: "1 1 120px" }}><span>{t('ob_period_label')}</span><input type="number" name="period" defaultValue="5" required /></label>
+                </div>
+                <button type="submit" className="btn-primary" style={{ marginTop: "16px" }}>Vstoupit do aplikace</button>
+              </form>
+            </>
+          )}
         </div>
       </div>
     );
   }
+
+  // =========================================================================
+  // HLAVNÍ APLIKACE ZŮSTÁVÁ ZATÍM NEZMĚNĚNA
+  // =========================================================================
 
   const ranges = getPhaseDayRanges(settings.cycleLength, settings.periodLength);
   const currentDay = getCycleDay(selectedDate, settings.periods, settings.cycleLength);
@@ -318,7 +357,6 @@ export default function Home() {
   return (
     <div className="app-wrapper">
       <style dangerouslySetInnerHTML={{ __html: `
-        /* GLOBÁLNÍ CSS: Tyto proměnné ovládají barvy celého systému */
         :root {
           --winter: #E2929C;
           --spring: #9FCBA4;
@@ -364,13 +402,11 @@ export default function Home() {
         .app-wrapper { position: relative; min-height: 100vh; overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; }
         h1, h2, h3, p, span, li, legend { color: inherit; }
 
-        /* OPRAVA VÝKONU (CPU > GPU) A BLIKAJÍCÍCH ČTVERCŮ */
         .mesh-background { 
           position: fixed; inset: -20%; z-index: -3; background: var(--bg); transition: background 0.5s ease; 
           -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); 
         }
         
-        /* Zmenšeno rozmazání ze 120px na 80px -> obrovská úleva pro procesor, HW akcelerace přes will-change */
         .mesh-orb { 
           position: absolute; border-radius: 50%; filter: blur(80px); opacity: var(--mesh-op); 
           transition: background 2s ease, opacity 0.5s ease; pointer-events: none; 
@@ -404,18 +440,15 @@ export default function Home() {
           position: relative;
           overflow: hidden;
           transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
-
-          /* Vynucení vrstvy pro grafický čip = konec problikávání skla */
-          -webkit-transform: translate3d(0, 0, 0);
-          transform: translate3d(0, 0, 0);
-          -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
+          -webkit-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0);
+          -webkit-backface-visibility: hidden; backface-visibility: hidden;
         }
 
         .glass-nav {
           position: fixed; top: 16px; left: 50%; width: calc(100% - 32px); max-width: 600px;
           height: 64px; border-radius: 99px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 16px; z-index: 100;
-          -webkit-transform: translate3d(-50%, 0, 0); transform: translate3d(-50%, 0, 0);
+          transform: translateX(-50%) translateZ(0); 
+          -webkit-transform: translateX(-50%) translateZ(0);
         }
 
         .nav-badge { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--input-border); }
@@ -477,7 +510,6 @@ export default function Home() {
         }
       `}} />
 
-      {/* DYNAMICKÉ POZADÍ (Nyní na CPU ušetří 40% a nebliká) */}
       <div className="mesh-background">
         <div className="mesh-orb orb-1" style={{ background: colors.c1 }}></div>
         <div className="mesh-orb orb-2" style={{ background: colors.c2 }}></div>
@@ -485,7 +517,6 @@ export default function Home() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* CHYTRÁ HORNÍ LIŠTA S DARK MODE PŘEPÍNAČEM */}
       <nav className="glass-nav ios-glass">
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <button 
