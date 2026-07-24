@@ -4,7 +4,6 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
 
-// Metoda pro NAČTENÍ dat (když se stránka poprvé načte)
 export async function GET(req) {
   try {
     const session = await getServerSession(authOptions);
@@ -22,7 +21,6 @@ export async function GET(req) {
   }
 }
 
-// Metoda pro ULOŽENÍ dat (když uživatel přidá zápis nebo změní nastavení)
 export async function PUT(req) {
   try {
     const session = await getServerSession(authOptions);
@@ -31,6 +29,39 @@ export async function PUT(req) {
     const data = await req.json();
     await connectToDatabase();
 
+    // 1. SCÉNÁŘ: Vygenerování unikátního kódu kýmkoliv
+    if (data.action === 'generate_code') {
+      const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const updatedUser = await User.findOneAndUpdate(
+        { email: session.user.email },
+        { $set: { "settings.syncCode": newCode } },
+        { new: true }
+      );
+      return NextResponse.json({ settings: updatedUser.settings, journal: updatedUser.journal }, { status: 200 });
+    }
+
+    // 2. SCÉNÁŘ: Uživatel zadal kód pro OBOUSMĚRNÉ PROPOJENÍ
+    if (data.action === 'pair') {
+      const targetUser = await User.findOne({ "settings.syncCode": data.code });
+      if (!targetUser) {
+        return NextResponse.json({ message: "Tento kód neexistuje nebo vypršel." }, { status: 400 });
+      }
+
+      // Propojíme oba účty navzájem
+      await User.findOneAndUpdate(
+        { email: session.user.email }, 
+        { $set: { "settings.pairedWith": targetUser.email } }
+      );
+      await User.findOneAndUpdate(
+        { email: targetUser.email }, 
+        { $set: { "settings.pairedWith": session.user.email } }
+      );
+
+      const updatedUser = await User.findOne({ email: session.user.email });
+      return NextResponse.json({ settings: updatedUser.settings, journal: updatedUser.journal }, { status: 200 });
+    }
+
+    // 3. SCÉNÁŘ: Běžné uložení (Deník nebo změna parametrů)
     const updateDoc = {};
     if (data.settings) updateDoc.settings = data.settings;
     if (data.journal) updateDoc.journal = data.journal;
