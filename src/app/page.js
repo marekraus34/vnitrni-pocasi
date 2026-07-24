@@ -201,7 +201,6 @@ export default function Home() {
     metaThemeColor.setAttribute("content", theme === 'light' ? '#f2f2f7' : '#09070b');
   }, [theme]);
 
-  // Silent polling & Focus Revalidation
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
       localStorage.setItem("lastUserEmail", session.user.email);
@@ -354,7 +353,6 @@ export default function Home() {
     setJMood(null); setJSleep(null); setJStress(null); setJSymptoms([]); setJNote("");
   };
 
-  // Push Notifications Setup
   const urlBase64ToUint8Array = (base64String) => {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
@@ -537,7 +535,7 @@ export default function Home() {
   const colors = getGradientColors(phaseKey);
 
   const circ = 2 * Math.PI * 88;
-  const wheelSegments = [['menstrual', ranges.menstrual], ['follicular', ranges.follicular], ['ovulatory', ranges.ovulatory], ['luteal', ranges.luteal']].map(p => {
+  const wheelSegments = [['menstrual', ranges.menstrual], ['follicular', ranges.follicular], ['ovulatory', ranges.ovulatory], ['luteal', ranges.luteal]].map(p => {
     const len = (p[1].end - p[1].start + 1) / settings.cycleLength;
     const dashBefore = ((p[1].start - 1) / settings.cycleLength) * circ;
     const dashLen = len * circ;
