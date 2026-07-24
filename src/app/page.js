@@ -4,7 +4,6 @@ import LandingPage from "@/components/LandingPage";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-// PŘIDÁNO: Import naší nové čtečky QR kódů
 import { Scanner } from '@yudiel/react-qr-scanner';
 
 /* ================================================================
@@ -180,8 +179,6 @@ export default function Home() {
   const [pairCodeInput, setPairCodeInput] = useState("");
   const [pairError, setPairError] = useState("");
   const [showQRModal, setShowQRModal] = useState(false);
-  
-  // PŘIDÁNO: Nový stav pro zobrazení in-app čtečky kamery
   const [showCameraScanner, setShowCameraScanner] = useState(false);
 
   const [jMood, setJMood] = useState(null);
@@ -204,7 +201,6 @@ export default function Home() {
     metaThemeColor.setAttribute("content", theme === 'light' ? '#f2f2f7' : '#09070b');
   }, [theme]);
 
-  // Zajištění aktualizací dat v pozadí
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
       localStorage.setItem("lastUserEmail", session.user.email);
@@ -311,20 +307,17 @@ export default function Home() {
     }
   };
 
-  // PŘIDÁNO: Zpracování přečteného kódu ze zabudovaného in-app skeneru
   const handleScanCode = (result) => {
     if (result && result.length > 0) {
       const scannedText = result[0].rawValue;
       if (scannedText) {
-        // Kontrola, jestli omylem nenaskenovali starý QR kód s URL odkazem
         const match = scannedText.match(/pair=([A-Z0-9]{6})/i);
         if (match) {
           setPairCodeInput(match[1].toUpperCase());
         } else {
-          // Normální rychlý QR kód obsahující jen 6 písmen
           setPairCodeInput(scannedText.toUpperCase().slice(0, 6)); 
         }
-        setShowCameraScanner(false); // Zavřít kameru
+        setShowCameraScanner(false);
       }
     }
   };
@@ -467,18 +460,28 @@ export default function Home() {
   const roleCtxTips = I18N[lang].ctx[currentRole];
 
   const getGradientColors = (phase) => {
-    switch (phase) {
-      case 'winter': return { c1: '#E2929C', c2: '#6B4C9A', c3: '#2B3A67' };
-      case 'spring': return { c1: '#9FCBA4', c2: '#5C8A69', c3: '#185A63' };
-      case 'summer': return { c1: '#F0BB6C', c2: '#E25B5B', c3: '#8E1E4F' };
-      case 'autumn': return { c1: '#E0875B', c2: '#A64B2A', c3: '#5C2A3A' };
-      default: return { c1: '#E2929C', c2: '#F0BB6C', c3: '#5C8A69' };
+    if (currentRole === 'partner') {
+      switch (phase) {
+        case 'winter': return { c1: '#5895E5', c2: '#3B82F6', c3: '#1E3A8A' };
+        case 'spring': return { c1: '#4FD1C5', c2: '#0D9488', c3: '#115E59' };
+        case 'summer': return { c1: '#9F7AEA', c2: '#7C3AED', c3: '#4C1D95' };
+        case 'autumn': return { c1: '#ED8936', c2: '#C05621', c3: '#7B341E' };
+        default: return { c1: '#5895E5', c2: '#9F7AEA', c3: '#4FD1C5' };
+      }
+    } else {
+      switch (phase) {
+        case 'winter': return { c1: '#E2929C', c2: '#6B4C9A', c3: '#2B3A67' };
+        case 'spring': return { c1: '#9FCBA4', c2: '#5C8A69', c3: '#185A63' };
+        case 'summer': return { c1: '#F0BB6C', c2: '#E25B5B', c3: '#8E1E4F' };
+        case 'autumn': return { c1: '#E0875B', c2: '#A64B2A', c3: '#5C2A3A' };
+        default: return { c1: '#E2929C', c2: '#F0BB6C', c3: '#5C8A69' };
+      }
     }
   };
   const colors = getGradientColors(phaseKey);
 
   const circ = 2 * Math.PI * 88;
-  const wheelSegments = [['menstrual', ranges.menstrual], ['follicular', ranges.follicular], ['ovulatory', ranges.ovulatory], ['luteal', ranges.luteal]].map(p => {
+  const wheelSegments = [['menstrual', ranges.menstrual], ['follicular', ranges.follicular], ['ovulatory', ranges.ovulatory], ['luteal', ranges.luteal']].map(p => {
     const len = (p[1].end - p[1].start + 1) / settings.cycleLength;
     const dashBefore = ((p[1].start - 1) / settings.cycleLength) * circ;
     const dashLen = len * circ;
@@ -512,7 +515,7 @@ export default function Home() {
   );
 
   return (
-    <div className="app-wrapper">
+    <div className="app-wrapper" data-role={currentRole}>
       <style dangerouslySetInnerHTML={{ __html: `
         :root {
           --winter: #E2929C; --spring: #9FCBA4; --summer: #F0BB6C; --autumn: #E0875B;
@@ -520,6 +523,14 @@ export default function Home() {
           --glass-bg: rgba(30, 25, 34, 0.45); --glass-border: rgba(255, 255, 255, 0.08); --glass-border-top: rgba(255, 255, 255, 0.25); --glass-border-left: rgba(255, 255, 255, 0.15);
           --glass-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
           --input-bg: rgba(255,255,255,0.08); --input-border: rgba(255,255,255,0.15); --btn-bg: #fff; --btn-text: #000; --mesh-op: 0.65; --card-pad: 32px;
+        }
+
+        /* MUŽ / PARTNER PALETA (Ocelově modrá, tyrkysová, indigo, bronz) */
+        .app-wrapper[data-role="partner"] {
+          --winter: #5895E5;
+          --spring: #4FD1C5;
+          --summer: #9F7AEA;
+          --autumn: #ED8936;
         }
 
         html[data-theme="light"] {
@@ -583,7 +594,6 @@ export default function Home() {
         input:not(.glass-date-pill), select, textarea { background: var(--input-bg); border: 1px solid var(--input-border); padding: 14px; border-radius: 16px; color: var(--ink); font-size: 16px; outline: none; width: 100%; transition: border 0.3s; box-sizing: border-box; }
         input:focus:not(.glass-date-pill), select:focus, textarea:focus { border-color: var(--ink-dim); }
         
-        /* PIN INPUT STYL PRO PÁROVÁNÍ */
         .pin-input { font-family: var(--font-mono); font-size: 28px !important; letter-spacing: 0.3em; text-align: center; font-weight: bold; text-transform: uppercase; }
         .pin-input::placeholder { font-weight: normal; letter-spacing: 0.1em; opacity: 0.4; }
 
@@ -630,7 +640,6 @@ export default function Home() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* MODÁLNÍ OKNO PRO ZOBRAZENÍ QR KÓDU */}
       {showQRModal && (
         <div 
           style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }} 
@@ -641,7 +650,6 @@ export default function Home() {
             <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginBottom: "24px" }}>Z druhé aplikace otevřete čtečku.</p>
             
             <div style={{ background: "#fff", padding: "16px", borderRadius: "24px", display: "inline-block", marginBottom: "24px", boxShadow: "0 20px 40px rgba(0,0,0,0.5)" }}>
-              {/* Oproti dřívějšku tady vkládáme čistě jen heslo, aby byl kód co nejlépe a nejrychleji čitelný pro vestavěný skener */}
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${settings.syncCode}&margin=0`} alt="QR kód" style={{ display: "block", borderRadius: "8px" }} />
             </div>
             
@@ -652,14 +660,12 @@ export default function Home() {
         </div>
       )}
 
-      {/* PŘIDÁNO: MODÁLNÍ OKNO PRO ČTENÍ QR KÓDŮ (KAMERA) */}
       {showCameraScanner && (
         <div 
           style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.9)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px" }} 
         >
           <h3 style={{ color: "#fff", marginBottom: "24px", fontFamily: "var(--font-display)", fontSize: "24px" }}>Namiřte na partnerův kód</h3>
           <div style={{ width: "100%", maxWidth: "340px", borderRadius: "32px", overflow: "hidden", border: "2px solid var(--spring)", boxShadow: "0 20px 40px rgba(0,0,0,0.5)", background: "#000" }}>
-            {/* Zde se vykreslí naše nová in-app kamera */}
             <Scanner 
               onScan={handleScanCode}
               components={{ audio: false, zoom: false, finder: true }}
@@ -862,7 +868,6 @@ export default function Home() {
               ) : (
                 <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--input-border)", marginBottom: "32px" }}>
                   
-                  {/* ZADÁNÍ KÓDU NEBO SKENOVÁNÍ V JEDNOM ŘÁDKU */}
                   <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px", lineHeight: 1.5 }}>
                     Zadejte 6místný kód z druhé aplikace nebo ho rovnou naskenujte kamerou.
                   </p>
@@ -878,7 +883,6 @@ export default function Home() {
                       style={{ background: "var(--bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "16px", flex: 1, margin: 0, color: "var(--ink)" }}
                     />
                     
-                    {/* PŘIDÁNO: TLAČÍTKO PRO OTEVŘENÍ IN-APP KAMERY */}
                     <button 
                       type="button" 
                       onClick={() => setShowCameraScanner(true)} 
