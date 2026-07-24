@@ -127,8 +127,8 @@ export default function LandingPage() {
         }
 
         .hero-title {
-          font-family: var(--font-display); font-size: clamp(42px, 10vw, 76px); font-weight: 500;
-          line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 24px; color: var(--ink);
+          font-family: var(--font-display); font-size: clamp(40px, 9vw, 70px); font-weight: 500;
+          line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 24px; color: var(--ink);
           text-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
@@ -238,9 +238,9 @@ export default function LandingPage() {
         
         <header id="landing-header" style={{ textAlign: "center", paddingTop: "140px", paddingBottom: "40px" }}>
           <p className="eyebrow" style={{ color: "var(--ink-dim)", marginBottom: "20px" }}>Pro ženu i pro partnera</p>
-          <h1 className="hero-title">Předpověz náladu.<br />Mějte ve vztahu jasno.</h1>
+          <h1 className="hero-title">Žijte v souladu s cyklem.<br />Porozumění, které sbližuje.</h1>
           <p className="subtitle" style={{ maxWidth: "56ch", fontSize: "18px", margin: "0 auto 40px", color: "var(--ink-dim)", lineHeight: 1.6 }}>
-            Aplikace přizpůsobená na míru. Sleduj svůj vlastní cyklus jako žena, nebo se živě propojte a získej jako partner empatické tipy pro každý den.
+            Aplikace přizpůsobená na míru. Sledujte vlastní rytmus, nebo propojte své účty a získejte empatickou podporu a přehled pro každý den.
           </p>
           
           <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
@@ -297,8 +297,8 @@ export default function LandingPage() {
         </section>
 
         <section style={{ marginTop: "160px", position: "relative", zIndex: 10 }}>
-          <h2 className="section-title" style={{ textAlign: "center", marginBottom: "16px" }}>Navrženo pro partnery</h2>
-          <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px", fontSize: "16px" }}>Všechno, co potřebujete pro hlubší vzájemné porozumění.</p>
+          <h2 className="section-title" style={{ textAlign: "center", marginBottom: "16px" }}>Navrženo pro vzájemnou harmonii</h2>
+          <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px", fontSize: "16px" }}>Všechno, co potřebujete pro hlubší porozumění a klid ve vztahu.</p>
           
           <div className="bento-grid">
             <div className="bento-card ios-glass wide card-radar">
@@ -350,7 +350,7 @@ export default function LandingPage() {
               <div className="liquid-glow" style={{ width: "150px", height: "150px", bottom: "-20px", right: "-20px", background: "rgba(224,135,91,0.35)" }}></div>
               <div className="text-content">
                 <h3 style={{ color: "var(--spring)", textShadow: "none" }}>Režimy pro oba</h3>
-                <p>Žena vidí doporučení pro sebe-péči. Partner vidí tipy, jak jí daný den nejlépe ulehčit život.</p>
+                <p>Žena vidí doporučení pro sebe-péči. Partner vidí empatii a tipy, jak jí daný den nejlépe ulehčit život.</p>
               </div>
             </div>
           </div>
