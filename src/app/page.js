@@ -481,7 +481,7 @@ export default function Home() {
   const colors = getGradientColors(phaseKey);
 
   const circ = 2 * Math.PI * 88;
-  const wheelSegments = [['menstrual', ranges.menstrual], ['follicular', ranges.follicular], ['ovulatory', ranges.ovulatory], ['luteal', ranges.luteal']].map(p => {
+  const wheelSegments = [['menstrual', ranges.menstrual], ['follicular', ranges.follicular], ['ovulatory', ranges.ovulatory], ['luteal', ranges.luteal]].map(p => {
     const len = (p[1].end - p[1].start + 1) / settings.cycleLength;
     const dashBefore = ((p[1].start - 1) / settings.cycleLength) * circ;
     const dashLen = len * circ;
@@ -525,7 +525,6 @@ export default function Home() {
           --input-bg: rgba(255,255,255,0.08); --input-border: rgba(255,255,255,0.15); --btn-bg: #fff; --btn-text: #000; --mesh-op: 0.65; --card-pad: 32px;
         }
 
-        /* MUŽ / PARTNER PALETA (Ocelově modrá, tyrkysová, indigo, bronz) */
         .app-wrapper[data-role="partner"] {
           --winter: #5895E5;
           --spring: #4FD1C5;
