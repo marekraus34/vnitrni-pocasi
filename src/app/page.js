@@ -281,6 +281,25 @@ export default function Home() {
     }
   };
 
+  // PŘIDÁNO: Odpojení účtů
+  const handleUnpairAccount = async () => {
+    if (!window.confirm("Opravdu chcete zrušit propojení vašich radarů? Oba účty budou navzájem odpojeny.")) return;
+    
+    try {
+      const res = await fetch("/api/user", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: 'unpair' })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSettings(data.settings);
+      }
+    } catch (err) {
+      console.error("Chyba při odpojování:", err);
+    }
+  };
+
   const handleAddPeriod = (e) => {
     e.preventDefault();
     if (!newPeriodDate || settings.periods.includes(newPeriodDate)) return;
@@ -567,7 +586,7 @@ export default function Home() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* MODÁLNÍ OKNO PRO QR KÓD (Dostupné pro oba) */}
+      {/* MODÁLNÍ OKNO PRO QR KÓD */}
       {showQRModal && (
         <div 
           style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }} 
@@ -575,7 +594,7 @@ export default function Home() {
         >
           <div className="ios-glass" style={{ padding: "40px 24px", textAlign: "center", width: "100%", maxWidth: "340px", background: "rgba(30,30,30,0.8)" }} onClick={e => e.stopPropagation()}>
             <h3 style={{ marginBottom: "8px", fontFamily: "var(--font-display)", fontSize: "24px", color: "#fff" }}>Naskenuj mě</h3>
-            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginBottom: "24px" }}>Ať si partner/ka zapne foťák.</p>
+            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginBottom: "24px" }}>Ať si tvá drahá polovička zapne foťák.</p>
             
             <div style={{ background: "#fff", padding: "16px", borderRadius: "24px", display: "inline-block", marginBottom: "24px", boxShadow: "0 20px 40px rgba(0,0,0,0.5)" }}>
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${settings.syncCode}&margin=0`} alt="QR kód" style={{ display: "block", borderRadius: "8px" }} />
@@ -767,19 +786,23 @@ export default function Home() {
               <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>Propojení radarů</h3>
               
               {settings.pairedWith ? (
-                // 1. Zobrazení po úspěšném propojení
+                // Zobrazení po úspěšném propojení s možností ODPOJENÍ
                 <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--spring)", marginBottom: "32px" }}>
                   <span className="emoji-icon" style={{ fontSize: "32px", marginBottom: "12px" }}>❤️</span>
                   <h4 style={{ margin: "0 0 8px 0", color: "var(--spring)", fontSize: "18px" }}>Úspěšně propojeno</h4>
-                  <p style={{ fontSize: "14px", color: "var(--ink-dim)", margin: 0 }}>Váš radar sdílí data s: <strong>{settings.pairedWith}</strong></p>
+                  <p style={{ fontSize: "14px", color: "var(--ink-dim)", margin: "0 0 20px 0" }}>Váš radar sdílí data s:<br/><strong style={{color: "var(--ink)"}}>{settings.pairedWith}</strong></p>
+                  
+                  <button type="button" onClick={handleUnpairAccount} style={{ background: "transparent", border: "1px solid var(--winter)", color: "var(--winter)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", transition: "all 0.2s" }}>
+                    Zrušit propojení
+                  </button>
                 </div>
               ) : (
-                // 2. Otevřená možnost propojení pro každého
+                // Otevřená možnost propojení pro každého (Zadání kódu i Ukázání kódu)
                 <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--input-border)", marginBottom: "32px" }}>
                   
-                  {/* Horní polovina: ZADÁNÍ KÓDU */}
+                  {/* ZADÁNÍ KÓDU */}
                   <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px", lineHeight: 1.5 }}>
-                    Zadej 6místný kód z druhé aplikace pro okamžité propojení.
+                    Zadejte 6místný kód z druhé aplikace pro okamžité propojení.
                   </p>
                   <input 
                     type="text" 
@@ -795,15 +818,14 @@ export default function Home() {
                   </button>
                   {pairError && <p style={{ color: "var(--winter)", fontSize: "13px", marginTop: "-4px", marginBottom: "16px", fontWeight: "bold" }}>{pairError}</p>}
 
-                  {/* Elegantní oddělovač */}
                   <div style={{ margin: "24px 0", color: "var(--ink-dim)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "2px" }}>
                     — nebo —
                   </div>
 
-                  {/* Spodní polovina: ZOBRAZENÍ VLASTNÍHO KÓDU */}
+                  {/* ZOBRAZENÍ KÓDU / QR */}
                   {settings.syncCode ? (
                     <>
-                      <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px" }}>Ukaž partnerovi svůj kód pro naskenování:</p>
+                      <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px" }}>Ukažte svůj kód pro naskenování:</p>
                       <div style={{ fontSize: "32px", fontFamily: "var(--font-mono)", letterSpacing: "0.2em", fontWeight: "bold", background: "var(--bg)", padding: "16px", borderRadius: "16px", marginBottom: "16px", color: "var(--spring)" }}>
                         {settings.syncCode}
                       </div>
