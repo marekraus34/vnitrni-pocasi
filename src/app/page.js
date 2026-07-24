@@ -190,6 +190,15 @@ export default function Home() {
 
   const t = (key) => I18N[lang][key];
 
+  // Registrace Service Workeru pro PWA a push notifikace
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker zaregistrován:', reg.scope))
+        .catch(err => console.error('Chyba SW:', err));
+    }
+  }, []);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     let metaThemeColor = document.querySelector("meta[name=theme-color]");
@@ -535,7 +544,7 @@ export default function Home() {
   const colors = getGradientColors(phaseKey);
 
   const circ = 2 * Math.PI * 88;
-  const wheelSegments = [['menstrual', ranges.menstrual], ['follicular', ranges.follicular], ['ovulatory', ranges.ovulatory], ['luteal', ranges.luteal]].map(p => {
+  const wheelSegments = [['menstrual', ranges.menstrual], ['follicular', ranges.follicular], ['ovulatory', ranges.ovulatory], ['luteal', ranges.luteal']].map(p => {
     const len = (p[1].end - p[1].start + 1) / settings.cycleLength;
     const dashBefore = ((p[1].start - 1) / settings.cycleLength) * circ;
     const dashLen = len * circ;
