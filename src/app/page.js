@@ -199,18 +199,56 @@ export default function Home() {
     metaThemeColor.setAttribute("content", theme === 'light' ? '#f2f2f7' : '#09070b');
   }, [theme]);
 
+  // =======================================================================================
+  // OPRAVA: SILENT POLLING A FOCUS REVALIDATION (Neviditelná a stálá aktualizace dat)
+  // =======================================================================================
   useEffect(() => {
-    if (status === "authenticated") {
+    if (status === "authenticated" && session?.user?.email) {
       localStorage.setItem("lastUserEmail", session.user.email);
-       fetch("/api/user")
+      
+      // 1. První načtení (zde se ještě ukazuje loading screen)
+      fetch("/api/user")
         .then(res => res.json())
         .then(data => {
           if (data.settings) setSettings(data.settings);
           if (data.journal) setJournal(data.journal);
           setLoading(false);
         });
+
+      // 2. Funkce pro tichou aktualizaci bez blikání aplikace
+      const silentFetch = async () => {
+        try {
+          const res = await fetch("/api/user");
+          if (res.ok) {
+            const data = await res.json();
+            if (data.settings) setSettings(data.settings);
+            if (data.journal) setJournal(data.journal);
+          }
+        } catch (e) {
+          // Tiše ignorujeme případný výpadek sítě na telefonu
+        }
+      };
+
+      // 3. Spustí se automaticky každých 15 vteřin
+      const intervalId = setInterval(silentFetch, 15000);
+
+      // 4. Detekce probuzení telefonu / návratu do záložky prohlížeče
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          silentFetch();
+        }
+      };
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+
+      // Úklid po zavření stránky
+      return () => {
+        clearInterval(intervalId);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+      };
     }
-  }, [status, router]);
+  }, [status, session]);
+  // =======================================================================================
+
 
   const syncData = async (newSettings, newJournal) => {
     setSettings(newSettings);
@@ -281,7 +319,6 @@ export default function Home() {
     }
   };
 
-  // PŘIDÁNO: Odpojení účtů
   const handleUnpairAccount = async () => {
     if (!window.confirm("Opravdu chcete zrušit propojení vašich radarů? Oba účty budou navzájem odpojeny.")) return;
     
@@ -782,11 +819,9 @@ export default function Home() {
           <div className={`accordion-body ${openSection === 'settings' ? 'open' : ''}`}>
             <div className="accordion-content-inner glass-content" style={{ paddingTop: "24px" }}>
               
-              {/* === UNIVERZÁLNÍ SEKCE PRO PÁROVÁNÍ ÚČTŮ (PRO OBA) === */}
               <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>Propojení radarů</h3>
               
               {settings.pairedWith ? (
-                // Zobrazení po úspěšném propojení s možností ODPOJENÍ
                 <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--spring)", marginBottom: "32px" }}>
                   <span className="emoji-icon" style={{ fontSize: "32px", marginBottom: "12px" }}>❤️</span>
                   <h4 style={{ margin: "0 0 8px 0", color: "var(--spring)", fontSize: "18px" }}>Úspěšně propojeno</h4>
@@ -797,7 +832,6 @@ export default function Home() {
                   </button>
                 </div>
               ) : (
-                // Otevřená možnost propojení pro každého (Zadání kódu i Ukázání kódu)
                 <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--input-border)", marginBottom: "32px" }}>
                   
                   {/* ZADÁNÍ KÓDU */}
@@ -840,7 +874,6 @@ export default function Home() {
                   )}
                 </div>
               )}
-              {/* ======================================= */}
 
               <h3 style={{ fontSize: "18px", marginBottom: "16px", paddingTop: "16px", borderTop: "1px solid var(--input-border)" }}>Parametry cyklu</h3>
               <form onSubmit={handleSystemSave} style={{ marginBottom: "32px" }}>
