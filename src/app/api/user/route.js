@@ -14,6 +14,35 @@ if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   );
 }
 
+// =========================================================================
+// PŘIDÁNO: POST metoda pro uložení push odběru z telefonu
+// =========================================================================
+export async function POST(req) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ message: "Neautorizováno" }, { status: 401 });
+    }
+
+    const subscription = await req.json();
+    if (!subscription || !subscription.endpoint) {
+      return NextResponse.json({ message: "Neplatná data odběru" }, { status: 400 });
+    }
+
+    await connectToDatabase();
+
+    await User.findOneAndUpdate(
+      { email: session.user.email },
+      { $set: { "settings.pushSubscription": subscription } }
+    );
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error("Chyba při ukládání push subscription:", error);
+    return NextResponse.json({ message: "Chyba serveru: " + error.message }, { status: 500 });
+  }
+}
+
 // Metoda pro NAČTENÍ dat
 export async function GET(req) {
   try {
@@ -146,7 +175,7 @@ export async function PUT(req) {
           if (latestEntry) {
             if (latestEntry.stress >= 4) {
               tipText = "⚠️ Dnes hlásí vyšší stres. Dopřej jí klid, teplý čaj a pomoz s domácností.";
-            } else if (latestEntry.mood && latestEntry.mood <= 25) { // opraveno na 1-2
+            } else if (latestEntry.mood && latestEntry.mood <= 2) {
               tipText = "🌧️ Nemá úplně skvělý den. Buď k ní trpělivý a nabídni objetí.";
             } else if (latestEntry.mood === 5) {
               tipText = "☀️ Má skvělou náladu! Ideální příležitost naplánovat něco hezkého.";
