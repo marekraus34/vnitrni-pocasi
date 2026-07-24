@@ -179,6 +179,9 @@ export default function Home() {
   const [pairError, setPairError] = useState("");
   const [showQRModal, setShowQRModal] = useState(false);
 
+  // Pro zachycení aktuální URL adresy pro generování chytrého QR kódu
+  const [appUrl, setAppUrl] = useState("");
+
   const [jMood, setJMood] = useState(null);
   const [jSleep, setJSleep] = useState(null);
   const [jStress, setJStress] = useState(null);
@@ -187,6 +190,32 @@ export default function Home() {
   const [newPeriodDate, setNewPeriodDate] = useState("");
 
   const t = (key) => I18N[lang][key];
+
+  // OPRAVA: Odchycení Magic Linku z URL adresy (pokud na ni uživatel přijde z foťáku)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setAppUrl(window.location.origin);
+      
+      const params = new URLSearchParams(window.location.search);
+      const codeFromUrl = params.get('pair');
+      if (codeFromUrl) {
+        setPairCodeInput(codeFromUrl.toUpperCase());
+        setOpenSection('settings'); // Rozbalí nastavení
+        
+        // Smažeme parametr z URL, aby tam nezůstal viset
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Přejedeme s obrazovkou dolů k nastavení
+        setTimeout(() => {
+          const el = document.getElementById('settings');
+          if (el) {
+            const y = el.getBoundingClientRect().top + window.scrollY - 90;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          }
+        }, 500);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -199,14 +228,10 @@ export default function Home() {
     metaThemeColor.setAttribute("content", theme === 'light' ? '#f2f2f7' : '#09070b');
   }, [theme]);
 
-  // =======================================================================================
-  // OPRAVA: SILENT POLLING A FOCUS REVALIDATION (Neviditelná a stálá aktualizace dat)
-  // =======================================================================================
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
       localStorage.setItem("lastUserEmail", session.user.email);
       
-      // 1. První načtení (zde se ještě ukazuje loading screen)
       fetch("/api/user")
         .then(res => res.json())
         .then(data => {
@@ -215,7 +240,6 @@ export default function Home() {
           setLoading(false);
         });
 
-      // 2. Funkce pro tichou aktualizaci bez blikání aplikace
       const silentFetch = async () => {
         try {
           const res = await fetch("/api/user");
@@ -224,31 +248,22 @@ export default function Home() {
             if (data.settings) setSettings(data.settings);
             if (data.journal) setJournal(data.journal);
           }
-        } catch (e) {
-          // Tiše ignorujeme případný výpadek sítě na telefonu
-        }
+        } catch (e) {}
       };
 
-      // 3. Spustí se automaticky každých 15 vteřin
       const intervalId = setInterval(silentFetch, 15000);
 
-      // 4. Detekce probuzení telefonu / návratu do záložky prohlížeče
       const handleVisibilityChange = () => {
-        if (document.visibilityState === 'visible') {
-          silentFetch();
-        }
+        if (document.visibilityState === 'visible') silentFetch();
       };
       document.addEventListener("visibilitychange", handleVisibilityChange);
 
-      // Úklid po zavření stránky
       return () => {
         clearInterval(intervalId);
         document.removeEventListener("visibilitychange", handleVisibilityChange);
       };
     }
   }, [status, session]);
-  // =======================================================================================
-
 
   const syncData = async (newSettings, newJournal) => {
     setSettings(newSettings);
@@ -329,9 +344,7 @@ export default function Home() {
         body: JSON.stringify({ action: 'unpair' })
       });
       const data = await res.json();
-      if (res.ok) {
-        setSettings(data.settings);
-      }
+      if (res.ok) setSettings(data.settings);
     } catch (err) {
       console.error("Chyba při odpojování:", err);
     }
@@ -504,6 +517,9 @@ export default function Home() {
     </fieldset>
   );
 
+  // Vytvoření speciálního URL odkazu pro QR kód (Magic Link)
+  const magicLink = `${appUrl}?pair=${settings?.syncCode || ''}`;
+
   return (
     <div className="app-wrapper">
       <style dangerouslySetInnerHTML={{ __html: `
@@ -623,7 +639,7 @@ export default function Home() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* MODÁLNÍ OKNO PRO QR KÓD */}
+      {/* MODÁLNÍ OKNO PRO QR KÓD (S odkazem - Magic Link) */}
       {showQRModal && (
         <div 
           style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }} 
@@ -631,10 +647,11 @@ export default function Home() {
         >
           <div className="ios-glass" style={{ padding: "40px 24px", textAlign: "center", width: "100%", maxWidth: "340px", background: "rgba(30,30,30,0.8)" }} onClick={e => e.stopPropagation()}>
             <h3 style={{ marginBottom: "8px", fontFamily: "var(--font-display)", fontSize: "24px", color: "#fff" }}>Naskenuj mě</h3>
-            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginBottom: "24px" }}>Ať si tvá drahá polovička zapne foťák.</p>
+            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginBottom: "24px" }}>Ať si partner/ka zapne foťák.</p>
             
             <div style={{ background: "#fff", padding: "16px", borderRadius: "24px", display: "inline-block", marginBottom: "24px", boxShadow: "0 20px 40px rgba(0,0,0,0.5)" }}>
-              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${settings.syncCode}&margin=0`} alt="QR kód" style={{ display: "block", borderRadius: "8px" }} />
+              {/* Zde jsme URL encode vložili přímo náš generovaný Magic Link */}
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(magicLink)}&margin=0`} alt="QR kód" style={{ display: "block", borderRadius: "8px" }} />
             </div>
             
             <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.5)", marginBottom: "24px" }}>Nebo zadejte kód:<br/><strong style={{ color: "#fff", letterSpacing: "2px" }}>{settings.syncCode}</strong></p>
