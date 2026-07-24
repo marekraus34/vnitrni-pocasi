@@ -16,8 +16,6 @@ const I18N = {
   cs: {
     eyebrow: 'Čtyři roční období', 
     title: 'Vnitřní počasí', 
-    subtitle_female: 'Přehled o tvé aktuální fázi a tom, jak si dnes můžeš udělat hezčí den.',
-    subtitle_partner: 'Přehled o tom, v jaké je fázi – a jak jí dnes můžeš usnadnit den.',
     loading: 'Načítám data...', today_btn: 'Dnes', wheel_day_label: 'Den cyklu', energy_label: 'Energie',
     forecast_heading: 'Dalších 10 dní',
     insights_summary: 'Přehledy a analýza', ins_trend_title: 'Trend délky cyklu',
@@ -33,7 +31,6 @@ const I18N = {
     symptoms: { cramps: 'Křeče', headache: 'Bolest hlavy', bloating: 'Nadýmání', fatigue: 'Únava', irritability: 'Podrážděnost', anxiety: 'Úzkost', sugar_cravings: 'Chuť na sladké' },
     ob_h2: 'Než začneme', ob_start_label_female: 'Začátek tvé poslední menstruace', ob_start_label_partner: 'Začátek její poslední menstruace', ob_cycle_label: 'Délka cyklu (dny)', ob_period_label: 'Délka menstruace', ob_submit: 'Uložit a začít',
     
-    // DVOJITÝ MOZEK (Role-based data)
     phases: {
       menstrual: { 
         season: 'Zima', emoji: '❄️', name: 'Menstruační fáze', energy_label: 'Nízká', 
@@ -122,8 +119,7 @@ const I18N = {
         trend_ok: 'Její cyklus vypadá stabilně.'
       }
     }
-  },
-  en: {} // Anglickou část můžeš v budoucnu strukturovat stejně
+  }
 };
 
 /* ================================================================
@@ -177,7 +173,11 @@ export default function Home() {
   const [openSection, setOpenSection] = useState(null);
   const [theme, setTheme] = useState("dark"); 
 
-  const [onboardingRole, setOnboardingRole] = useState(null); // 'female' nebo 'partner'
+  const [onboardingRole, setOnboardingRole] = useState(null); 
+
+  const [pairCodeInput, setPairCodeInput] = useState("");
+  const [pairError, setPairError] = useState("");
+  const [showQRModal, setShowQRModal] = useState(false);
 
   const [jMood, setJMood] = useState(null);
   const [jSleep, setJSleep] = useState(null);
@@ -245,6 +245,40 @@ export default function Home() {
       cycleLength: parseInt(fd.get('cycleLength')),
       periodLength: parseInt(fd.get('periodLength'))
     }, journal);
+  };
+
+  const handleGenerateSyncCode = async () => {
+    try {
+      const res = await fetch("/api/user", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: 'generate_code' })
+      });
+      const data = await res.json();
+      if (res.ok) setSettings(data.settings);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handlePairAccount = async () => {
+    setPairError("");
+    try {
+      const res = await fetch("/api/user", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: 'pair', code: pairCodeInput })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSettings(data.settings);
+        setPairCodeInput("");
+      } else {
+        setPairError(data.message || "Neplatný kód.");
+      }
+    } catch (err) {
+      setPairError("Chyba připojení.");
+    }
   };
 
   const handleAddPeriod = (e) => {
@@ -315,13 +349,13 @@ export default function Home() {
             <>
               <h2 style={{ fontSize: "28px", marginBottom: "8px", fontFamily: "var(--font-display)" }}>Vítej uvnitř</h2>
               <p style={{ color: "var(--ink-dim)", marginBottom: "32px", fontSize: "15px", lineHeight: 1.5 }}>
-                Aby se ti aplikace dokonale přizpůsobila, řekni nám, jak ji chceš používat.
+                Aby se ti radar dokonale přizpůsobil, řekni nám, jak ho chceš používat.
               </p>
 
               <div className="role-card" onClick={() => setOnboardingRole('female')}>
                 <div className="role-icon">👩‍🦰</div>
                 <div className="role-title">Žena</div>
-                <div className="role-desc">Chci sledovat svůj vlastní cyklus, zapisovat si příznaky a lépe rozumět svému tělu.</div>
+                <div className="role-desc">Chci sledovat svůj vlastní cyklus, zapisovat si nálady a lépe rozumět svému tělu.</div>
               </div>
 
               <div className="role-card" onClick={() => setOnboardingRole('partner')}>
@@ -360,14 +394,11 @@ export default function Home() {
     );
   }
 
-  // Zjištění role pro dynamické generování textů (fallback na 'female' pro jistotu)
   const currentRole = settings.role || 'female';
-
   const ranges = getPhaseDayRanges(settings.cycleLength, settings.periodLength);
   const currentDay = getCycleDay(selectedDate, settings.periods, settings.cycleLength);
   const phaseKey = getPhaseKey(currentDay, ranges);
   
-  // Získání dat z I18N specificky pro danou roli (female / partner)
   const phaseGeneral = I18N[lang].phases[phaseKey];
   const roleSpecificData = phaseGeneral[currentRole]; 
   const roleCtxTips = I18N[lang].ctx[currentRole];
@@ -421,59 +452,26 @@ export default function Home() {
     <div className="app-wrapper">
       <style dangerouslySetInnerHTML={{ __html: `
         :root {
-          --winter: #E2929C;
-          --spring: #9FCBA4;
-          --summer: #F0BB6C;
-          --autumn: #E0875B;
-          --bg: #09070b;
-          --ink: #ffffff;
-          --ink-dim: rgba(255,255,255,0.6);
-          --surface-2: rgba(255,255,255,0.05);
-          --glass-bg: rgba(30, 25, 34, 0.45);
-          --glass-border: rgba(255, 255, 255, 0.08);
-          --glass-border-top: rgba(255, 255, 255, 0.25);
-          --glass-border-left: rgba(255, 255, 255, 0.15);
+          --winter: #E2929C; --spring: #9FCBA4; --summer: #F0BB6C; --autumn: #E0875B;
+          --bg: #09070b; --ink: #ffffff; --ink-dim: rgba(255,255,255,0.6); --surface-2: rgba(255,255,255,0.05);
+          --glass-bg: rgba(30, 25, 34, 0.45); --glass-border: rgba(255, 255, 255, 0.08); --glass-border-top: rgba(255, 255, 255, 0.25); --glass-border-left: rgba(255, 255, 255, 0.15);
           --glass-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2);
-          --input-bg: rgba(255,255,255,0.08);
-          --input-border: rgba(255,255,255,0.15);
-          --btn-bg: #fff;
-          --btn-text: #000;
-          --mesh-op: 0.65;
-          --card-pad: 32px;
+          --input-bg: rgba(255,255,255,0.08); --input-border: rgba(255,255,255,0.15); --btn-bg: #fff; --btn-text: #000; --mesh-op: 0.65; --card-pad: 32px;
         }
 
         html[data-theme="light"] {
-          --bg: #f2f2f7;
-          --ink: #111111;
-          --ink-dim: rgba(0,0,0,0.5);
-          --surface-2: rgba(0,0,0,0.05);
-          --glass-bg: rgba(255, 255, 255, 0.65);
-          --glass-border: rgba(0, 0, 0, 0.05);
-          --glass-border-top: rgba(255, 255, 255, 0.8);
-          --glass-border-left: rgba(255, 255, 255, 0.5);
+          --bg: #f2f2f7; --ink: #111111; --ink-dim: rgba(0,0,0,0.5); --surface-2: rgba(0,0,0,0.05);
+          --glass-bg: rgba(255, 255, 255, 0.65); --glass-border: rgba(0, 0, 0, 0.05); --glass-border-top: rgba(255, 255, 255, 0.8); --glass-border-left: rgba(255, 255, 255, 0.5);
           --glass-shadow: 0 20px 40px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,1);
-          --input-bg: rgba(0,0,0,0.04);
-          --input-border: rgba(0,0,0,0.1);
-          --btn-bg: #111;
-          --btn-text: #fff;
-          --mesh-op: 0.4;
+          --input-bg: rgba(0,0,0,0.04); --input-border: rgba(0,0,0,0.1); --btn-bg: #111; --btn-text: #fff; --mesh-op: 0.4;
         }
 
         body { background-color: var(--bg) !important; color: var(--ink) !important; margin: 0; padding: 0; transition: background-color 0.5s ease; }
         .app-wrapper { position: relative; min-height: 100vh; overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; }
         h1, h2, h3, p, span, li, legend { color: inherit; }
 
-        .mesh-background { 
-          position: fixed; inset: -20%; z-index: -3; background: var(--bg); transition: background 0.5s ease; 
-          -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); 
-        }
-        
-        .mesh-orb { 
-          position: absolute; border-radius: 50%; filter: blur(80px); opacity: var(--mesh-op); 
-          transition: background 2s ease, opacity 0.5s ease; pointer-events: none; 
-          will-change: transform;
-        }
-        
+        .mesh-background { position: fixed; inset: -20%; z-index: -3; background: var(--bg); transition: background 0.5s ease; -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); }
+        .mesh-orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: var(--mesh-op); transition: background 2s ease, opacity 0.5s ease; pointer-events: none; will-change: transform; }
         .orb-1 { width: 70%; height: 60%; top: 0; left: 0; animation: float1 14s infinite alternate ease-in-out; }
         .orb-2 { width: 60%; height: 70%; top: 20%; right: 0; animation: float2 18s infinite alternate-reverse ease-in-out; }
         .orb-3 { width: 80%; height: 60%; bottom: 0; left: 10%; animation: float3 22s infinite alternate ease-in-out; }
@@ -485,31 +483,21 @@ export default function Home() {
         .noise-overlay {
           position: fixed; inset: 0; z-index: -2;
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-          opacity: 0.05; pointer-events: none;
-          -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0);
+          opacity: 0.05; pointer-events: none; -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0);
         }
 
         .ios-glass {
-          background: var(--glass-bg);
-          backdrop-filter: blur(48px) saturate(200%);
-          -webkit-backdrop-filter: blur(48px) saturate(200%);
-          border: 1px solid var(--glass-border);
-          border-top: 1px solid var(--glass-border-top);
-          border-left: 1px solid var(--glass-border-left);
-          box-shadow: var(--glass-shadow);
-          border-radius: 32px;
-          position: relative;
-          overflow: hidden;
+          background: var(--glass-bg); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%);
+          border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-border-top); border-left: 1px solid var(--glass-border-left);
+          box-shadow: var(--glass-shadow); border-radius: 32px; position: relative; overflow: hidden;
           transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
-          -webkit-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0);
-          -webkit-backface-visibility: hidden; backface-visibility: hidden;
+          -webkit-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0); -webkit-backface-visibility: hidden; backface-visibility: hidden;
         }
 
         .glass-nav {
           position: fixed; top: 16px; left: 50%; width: calc(100% - 32px); max-width: 600px;
           height: 64px; border-radius: 99px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 16px; z-index: 100;
-          transform: translateX(-50%) translateZ(0); 
-          -webkit-transform: translateX(-50%) translateZ(0);
+          transform: translateX(-50%) translateZ(0); -webkit-transform: translateX(-50%) translateZ(0);
         }
 
         .nav-badge { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--input-border); }
@@ -518,10 +506,8 @@ export default function Home() {
         .glass-btn:hover { background: var(--input-border); transform: translateY(-2px); }
 
         .main-container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; padding: 0 16px; position: relative; z-index: 1; }
-        
         .liquid-glow { position: absolute; border-radius: 50%; filter: blur(60px); z-index: 0; opacity: 0.3; pointer-events: none; }
         html[data-theme="light"] .liquid-glow { opacity: 0.6; filter: blur(40px); }
-
         .glass-content { position: relative; z-index: 2; padding: var(--card-pad); }
 
         input[type="date"] { -webkit-appearance: none; appearance: none; min-height: 52px; line-height: normal; text-align: center; color: var(--ink); }
@@ -533,9 +519,15 @@ export default function Home() {
 
         input:not(.glass-date-pill), select, textarea { background: var(--input-bg); border: 1px solid var(--input-border); padding: 14px; border-radius: 16px; color: var(--ink); font-size: 16px; outline: none; width: 100%; transition: border 0.3s; box-sizing: border-box; }
         input:focus:not(.glass-date-pill), select:focus, textarea:focus { border-color: var(--ink-dim); }
+        
+        /* PIN INPUT STYL PRO PÁROVÁNÍ */
+        .pin-input { font-family: var(--font-mono); font-size: 28px !important; letter-spacing: 0.3em; text-align: center; font-weight: bold; text-transform: uppercase; }
+        .pin-input::placeholder { font-weight: normal; letter-spacing: 0.1em; opacity: 0.4; }
+
         .field span { display: block; font-size: 13px; color: var(--ink-dim); text-transform: uppercase; margin-bottom: 8px; }
         .btn-primary { background: var(--btn-bg); color: var(--btn-text); padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
         .btn-primary:hover { transform: scale(1.02); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         .emoji-icon { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; line-height: normal; display: inline-flex; align-items: center; justify-content: center; padding-bottom: 2px; }
 
@@ -560,10 +552,7 @@ export default function Home() {
           .glass-nav { padding: 0 12px; }
           .glass-date-pill { padding: 10px 12px; font-size: 14px; }
           h2 { font-size: 26px !important; }
-          
           .nav-brand-text { display: none !important; }
-          .nav-brand-icon { display: block !important; }
-          
           .forecast-chip { min-width: 52px; padding: 10px 6px; border-radius: 14px; }
           .forecast-chip > span:nth-child(1) { font-size: 10px !important; }
           .forecast-chip > span:nth-child(2) { font-size: 15px !important; margin: 2px 0 !important; }
@@ -577,6 +566,27 @@ export default function Home() {
         <div className="mesh-orb orb-3" style={{ background: colors.c3 }}></div>
       </div>
       <div className="noise-overlay"></div>
+
+      {/* MODÁLNÍ OKNO PRO QR KÓD (Dostupné pro oba) */}
+      {showQRModal && (
+        <div 
+          style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }} 
+          onClick={() => setShowQRModal(false)}
+        >
+          <div className="ios-glass" style={{ padding: "40px 24px", textAlign: "center", width: "100%", maxWidth: "340px", background: "rgba(30,30,30,0.8)" }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ marginBottom: "8px", fontFamily: "var(--font-display)", fontSize: "24px", color: "#fff" }}>Naskenuj mě</h3>
+            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginBottom: "24px" }}>Ať si partner/ka zapne foťák.</p>
+            
+            <div style={{ background: "#fff", padding: "16px", borderRadius: "24px", display: "inline-block", marginBottom: "24px", boxShadow: "0 20px 40px rgba(0,0,0,0.5)" }}>
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${settings.syncCode}&margin=0`} alt="QR kód" style={{ display: "block", borderRadius: "8px" }} />
+            </div>
+            
+            <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.5)", marginBottom: "24px" }}>Nebo zadejte kód:<br/><strong style={{ color: "#fff", letterSpacing: "2px" }}>{settings.syncCode}</strong></p>
+            
+            <button className="btn-primary" onClick={() => setShowQRModal(false)} style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}>Zavřít</button>
+          </div>
+        </div>
+      )}
 
       <nav className="glass-nav ios-glass">
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -592,7 +602,6 @@ export default function Home() {
         </div>
         
         <div style={{ display: "flex", gap: "12px", alignItems: "center", marginLeft: "auto" }}>
-          
           <div className="nav-badge" onClick={() => document.getElementById('top-radar').scrollIntoView({behavior: 'smooth'})} style={{cursor: 'pointer'}}>
             <span className="nav-dot" style={{ background: `var(${PHASE_ACCENTS[phaseKey]})`, boxShadow: `0 0 10px var(${PHASE_ACCENTS[phaseKey]})` }}></span>
             <span style={{ fontSize: "13px", fontFamily: "var(--font-mono)", letterSpacing: "0.02em", display: "flex", alignItems: "center", gap: "6px" }}>
@@ -600,7 +609,6 @@ export default function Home() {
               <span style={{ paddingTop: "1px" }}>{currentDay}. den</span>
             </span>
           </div>
-
           <button className="glass-btn" onClick={() => toggleSection('journal')}>
             <span style={{ position: "relative", top: "-1px", left: "1px" }}>➕</span>
           </button>
@@ -613,17 +621,9 @@ export default function Home() {
         <section id="top-radar" className="ios-glass" style={{ textAlign: "center", padding: "40px 20px" }}>
           <div className="liquid-glow" style={{ width: "250px", height: "250px", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: `var(${PHASE_ACCENTS[phaseKey]})` }}></div>
           <div style={{ position: "relative", zIndex: 2 }}>
-            
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
               <button className="glass-btn" onClick={() => setSelectedDate(new Date(selectedDate.getTime() - 86400000))}>‹</button>
-              
-              <input 
-                type="date" 
-                value={toIso(selectedDate)} 
-                onChange={(e) => e.target.value && setSelectedDate(new Date(e.target.value))} 
-                className="glass-date-pill"
-              />
-
+              <input type="date" value={toIso(selectedDate)} onChange={(e) => e.target.value && setSelectedDate(new Date(e.target.value))} className="glass-date-pill" />
               <button className="glass-btn" onClick={() => setSelectedDate(new Date(selectedDate.getTime() + 86400000))}>›</button>
             </div>
 
@@ -640,11 +640,9 @@ export default function Home() {
                 <span style={{ fontSize: "14px", color: `var(${PHASE_ACCENTS[phaseKey]})`, fontWeight: 600, marginTop: "4px" }}>{phaseGeneral.season}</span>
               </div>
             </div>
-
           </div>
         </section>
 
-        {/* SEKCE: PŘEDPOVĚĎ A TIPY (DYNAMICKY PODLE ROLE) */}
         <section className="ios-glass">
           <div className="glass-content">
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", marginBottom: "8px" }}>{phaseGeneral.name}</h2>
@@ -662,10 +660,7 @@ export default function Home() {
               </div>
             </div>
 
-            <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>
-              {roleSpecificData.dos_heading}
-            </h3>
-            
+            <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>{roleSpecificData.dos_heading}</h3>
             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px 0", display: "flex", flexDirection: "column", gap: "12px" }}>
               {ctxTips.map((tip, i) => <li key={`ctx-${i}`} style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px", borderLeft: "3px solid var(--summer)" }}>{tip}</li>)}
               {roleSpecificData.dos.map((tip, i) => <li key={`dos-${i}`} style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px" }}>{tip}</li>)}
@@ -709,7 +704,6 @@ export default function Home() {
           <div className={`accordion-body ${openSection === 'journal' ? 'open' : ''}`}>
             <div className="accordion-content-inner glass-content" style={{ paddingTop: "24px" }}>
               <form onSubmit={handleSaveJournal}>
-                
                 <label className="field" style={{ marginBottom: "24px" }}>
                   <span>{t('j_date_label')}</span>
                   <input type="date" value={toIso(selectedDate)} onChange={e => e.target.value && setSelectedDate(new Date(e.target.value))} required />
@@ -769,7 +763,64 @@ export default function Home() {
           <div className={`accordion-body ${openSection === 'settings' ? 'open' : ''}`}>
             <div className="accordion-content-inner glass-content" style={{ paddingTop: "24px" }}>
               
-              <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>Parametry cyklu</h3>
+              {/* === UNIVERZÁLNÍ SEKCE PRO PÁROVÁNÍ ÚČTŮ (PRO OBA) === */}
+              <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>Propojení radarů</h3>
+              
+              {settings.pairedWith ? (
+                // 1. Zobrazení po úspěšném propojení
+                <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--spring)", marginBottom: "32px" }}>
+                  <span className="emoji-icon" style={{ fontSize: "32px", marginBottom: "12px" }}>❤️</span>
+                  <h4 style={{ margin: "0 0 8px 0", color: "var(--spring)", fontSize: "18px" }}>Úspěšně propojeno</h4>
+                  <p style={{ fontSize: "14px", color: "var(--ink-dim)", margin: 0 }}>Váš radar sdílí data s: <strong>{settings.pairedWith}</strong></p>
+                </div>
+              ) : (
+                // 2. Otevřená možnost propojení pro každého
+                <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--input-border)", marginBottom: "32px" }}>
+                  
+                  {/* Horní polovina: ZADÁNÍ KÓDU */}
+                  <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px", lineHeight: 1.5 }}>
+                    Zadej 6místný kód z druhé aplikace pro okamžité propojení.
+                  </p>
+                  <input 
+                    type="text" 
+                    value={pairCodeInput} 
+                    onChange={e => setPairCodeInput(e.target.value.toUpperCase())}
+                    maxLength={6}
+                    placeholder="X Y Z 1 2 3"
+                    className="pin-input"
+                    style={{ background: "var(--bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "16px", width: "100%", marginBottom: "16px", color: "var(--ink)" }}
+                  />
+                  <button type="button" onClick={handlePairAccount} disabled={pairCodeInput.length < 6} className="btn-primary" style={{ background: "var(--summer)", color: "#000", marginBottom: "16px" }}>
+                    Propojit účty
+                  </button>
+                  {pairError && <p style={{ color: "var(--winter)", fontSize: "13px", marginTop: "-4px", marginBottom: "16px", fontWeight: "bold" }}>{pairError}</p>}
+
+                  {/* Elegantní oddělovač */}
+                  <div style={{ margin: "24px 0", color: "var(--ink-dim)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "2px" }}>
+                    — nebo —
+                  </div>
+
+                  {/* Spodní polovina: ZOBRAZENÍ VLASTNÍHO KÓDU */}
+                  {settings.syncCode ? (
+                    <>
+                      <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px" }}>Ukaž partnerovi svůj kód pro naskenování:</p>
+                      <div style={{ fontSize: "32px", fontFamily: "var(--font-mono)", letterSpacing: "0.2em", fontWeight: "bold", background: "var(--bg)", padding: "16px", borderRadius: "16px", marginBottom: "16px", color: "var(--spring)" }}>
+                        {settings.syncCode}
+                      </div>
+                      <button type="button" onClick={() => setShowQRModal(true)} className="glass-btn" style={{ width: "auto", padding: "0 24px", borderRadius: "99px", margin: "0 auto" }}>
+                        <span style={{ fontSize: "15px", marginRight: "8px" }}>📷</span> Ukázat QR kód
+                      </button>
+                    </>
+                  ) : (
+                    <button type="button" onClick={handleGenerateSyncCode} className="btn-primary" style={{ background: "transparent", color: "var(--ink)", border: "1px solid var(--input-border)" }}>
+                      Vygenerovat můj kód
+                    </button>
+                  )}
+                </div>
+              )}
+              {/* ======================================= */}
+
+              <h3 style={{ fontSize: "18px", marginBottom: "16px", paddingTop: "16px", borderTop: "1px solid var(--input-border)" }}>Parametry cyklu</h3>
               <form onSubmit={handleSystemSave} style={{ marginBottom: "32px" }}>
                 <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
                   <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('set_cycle_label')}</span><input type="number" name="cycleLength" defaultValue={settings.cycleLength} required /></label>
