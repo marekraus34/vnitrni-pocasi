@@ -14,13 +14,16 @@ const PHASE_ENERGY_PCT = { menstrual: 18, follicular: 60, ovulatory: 95, luteal:
 
 const I18N = {
   cs: {
-    eyebrow: 'Čtyři roční období', title: 'Vnitřní počasí', subtitle: 'Pohled na to, v jaké je fázi – a jak jí dnes můžeš usnadnit den.',
+    eyebrow: 'Čtyři roční období', 
+    title: 'Vnitřní počasí', 
+    subtitle_female: 'Přehled o tvé aktuální fázi a tom, jak si dnes můžeš udělat hezčí den.',
+    subtitle_partner: 'Přehled o tom, v jaké je fázi – a jak jí dnes můžeš usnadnit den.',
     loading: 'Načítám data...', today_btn: 'Dnes', wheel_day_label: 'Den cyklu', energy_label: 'Energie',
-    dos_heading: 'Co dělat', avoid_label: 'Vyvaruj se:', forecast_heading: 'Dalších 10 dní',
+    forecast_heading: 'Dalších 10 dní',
     insights_summary: 'Přehledy a analýza', ins_trend_title: 'Trend délky cyklu',
     profile_summary: 'Profil a životní styl', prof_age: 'Věk', prof_activity: 'Úroveň fyzické aktivity',
     act_sedentary: 'Sedavý', act_light: 'Mírně aktivní', act_active: 'Aktivní (trénink, sport)', act_athlete: 'Sportovec / Vysoká zátěž',
-    prof_pill: 'Užívá hormonální antikoncepci', journal_summary: 'Deník nálad', j_date_label: 'Datum',
+    prof_pill: 'Užívá hormonální antikoncepci', journal_summary: 'Deník cyklu', j_date_label: 'Datum',
     j_rating_legend: 'Nálada (1-5)', j_sleep_legend: 'Spánek (1=špatný, 5=skvělý)', j_stress_legend: 'Stres (1=klid, 5=max)',
     j_symptoms_legend: 'Příznaky', j_note_label: 'Poznámka', journal_submit: 'Uložit zápis',
     history_summary: 'Historie cyklu', history_add_btn: 'Přidat', settings_summary: 'Systém & Účet',
@@ -28,22 +31,99 @@ const I18N = {
     pill_warning: 'Při hormonální antikoncepci jsou přirozené hormonální výkyvy potlačeny. Fáze berte spíše jako orientační.',
     dow_short: ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'],
     symptoms: { cramps: 'Křeče', headache: 'Bolest hlavy', bloating: 'Nadýmání', fatigue: 'Únava', irritability: 'Podrážděnost', anxiety: 'Úzkost', sugar_cravings: 'Chuť na sladké' },
-    ob_h2: 'Než začneme', ob_start_label: 'Začátek poslední menstruace', ob_cycle_label: 'Délka cyklu (dny)', ob_period_label: 'Délka menstruace', ob_submit: 'Uložit a začít',
+    ob_h2: 'Než začneme', ob_start_label_female: 'Začátek tvé poslední menstruace', ob_start_label_partner: 'Začátek její poslední menstruace', ob_cycle_label: 'Délka cyklu (dny)', ob_period_label: 'Délka menstruace', ob_submit: 'Uložit a začít',
+    
+    // DVOJITÝ MOZEK (Role-based data)
     phases: {
-      menstrual: { season: 'Zima', emoji: '❄️', name: 'Menstruační fáze', energy_label: 'Nízká', mood: 'Tělo zpomaluje a bere si zpátečku. Časté jsou křeče, únava a chuť stáhnout se do klidu.', dos: ['Navrhni klidný večer doma – deka, čaj, film.', 'Termofor nebo teplá koupel.', 'Dej jí prostor, pokud ho chce.'], avoid: 'Náročné výlety a bagatelizování bolesti.' },
-      follicular: { season: 'Jaro', emoji: '🌱', name: 'Folikulární fáze', energy_label: 'Stoupající', mood: 'Hormony se probouzí. Nálada se zlepšuje a roste chuť do nových věcí.', dos: ['Navrhni něco nového – výlet, kurz.', 'Plánujte společné věci a dovolenou.', 'Podpoř její nápady.'], avoid: 'Nic zvláštního.' },
-      ovulatory: { season: 'Léto', emoji: '☀️', name: 'Ovulační fáze', energy_label: 'Nejvyšší', mood: 'Vrchol cyklu. Energie a chuť na blízkost jsou na maximu.', dos: ['Naplánuj rande nebo společenskou akci.', 'Dobrý čas na důležité rozhovory.', 'Dej prostor spontánnosti.'], avoid: 'Rutina.' },
-      luteal: { season: 'Podzim', emoji: '🍂', name: 'Luteální fáze', energy_label: 'Klesající', mood: 'Energie klesá. Poslední dny (PMS) často přináší podrážděnost nebo úzkost.', dos: ['Buď trpělivý – výkyvy nálad nejsou o tobě.', 'Držte volnější režim bez stresu.', 'Zeptej se, co právě potřebuje.'], avoid: 'Hádky o maličkosti a tlačení do akcí.' }
+      menstrual: { 
+        season: 'Zima', emoji: '❄️', name: 'Menstruační fáze', energy_label: 'Nízká', 
+        female: {
+          mood: 'Tvoje tělo zpomaluje a bere si zpátečku. Časté jsou křeče, únava a přirozená chuť stáhnout se do klidu.',
+          dos_heading: 'Doporučení pro tebe',
+          dos: ['Dopřej si klidný večer doma – deka, čaj, kniha nebo film.', 'Zkus termofor nebo teplou koupel k uvolnění.', 'Dovol si odpočívat, pokud to tvé tělo potřebuje.'],
+          avoid_label: 'Na co si dát pozor:',
+          avoid: 'Náročné fyzické výkony a příliš mnoho společenských závazků.'
+        },
+        partner: {
+          mood: 'Její tělo zpomaluje a bere si zpátečku. Časté jsou křeče, únava a chuť stáhnout se do klidu.',
+          dos_heading: 'Co pro ni dělat',
+          dos: ['Navrhni klidný večer doma – deka, čaj, film.', 'Nabídni jí termofor nebo napusť teplou koupel.', 'Dej jí prostor, pokud ho chce.'],
+          avoid_label: 'Vyvaruj se:',
+          avoid: 'Náročné výlety a bagatelizování bolesti.'
+        }
+      },
+      follicular: { 
+        season: 'Jaro', emoji: '🌱', name: 'Folikulární fáze', energy_label: 'Stoupající', 
+        female: {
+          mood: 'Hormony se probouzí. Tvá nálada se přirozeně zlepšuje a roste chuť pouštět se do nových věcí.',
+          dos_heading: 'Doporučení pro tebe',
+          dos: ['Pusť se do nových projektů, práce ti teď půjde od ruky.', 'Plánuj výlety, dovolenou nebo společenské akce.', 'Využij rostoucí energii pro trénink.'],
+          avoid_label: 'Na co si dát pozor:',
+          avoid: 'Prokrastinace – tohle je tvé nejproduktivnější okno.'
+        },
+        partner: {
+          mood: 'Hormony se probouzí. Její nálada se zlepšuje a roste chuť do nových věcí.',
+          dos_heading: 'Co pro ni dělat',
+          dos: ['Navrhni něco nového – výlet, sport, kurz.', 'Plánujte společné věci a dovolenou.', 'Podpoř její nápady a kreativitu.'],
+          avoid_label: 'Vyvaruj se:',
+          avoid: 'Nic zvláštního, užijte si skvělou náladu.'
+        }
+      },
+      ovulatory: { 
+        season: 'Léto', emoji: '☀️', name: 'Ovulační fáze', energy_label: 'Nejvyšší', 
+        female: {
+          mood: 'Vrchol cyklu. Tvá energie, sebevědomí i chuť na intimitu jsou aktuálně na absolutním maximu.',
+          dos_heading: 'Doporučení pro tebe',
+          dos: ['Vyraž do společnosti nebo si naplánuj rande.', 'Ideální čas na důležité schůzky nebo prezentace.', 'Užívej si svou sílu a sebevědomí.'],
+          avoid_label: 'Na co si dát pozor:',
+          avoid: 'Zbytečné sezení doma o samotě.'
+        },
+        partner: {
+          mood: 'Vrchol cyklu. Její energie, sebevědomí a chuť na blízkost jsou na maximu.',
+          dos_heading: 'Co pro ni dělat',
+          dos: ['Naplánuj rande nebo společenskou akci.', 'Skvělý čas na důležité i hlubší rozhovory.', 'Dej prostor spontánnosti a intimitě.'],
+          avoid_label: 'Vyvaruj se:',
+          avoid: 'Přílišná rutina a stereotyp.'
+        }
+      },
+      luteal: { 
+        season: 'Podzim', emoji: '🍂', name: 'Luteální fáze', energy_label: 'Klesající', 
+        female: {
+          mood: 'Energie začíná klesat. Poslední dny před menstruací (PMS) mohou přinést podrážděnost, únavu nebo citlivost.',
+          dos_heading: 'Doporučení pro tebe',
+          dos: ['Buď k sobě laskavá, výkyvy nálad jsou hormonální, ne osobní.', 'Drž volnější režim, víc spi a omez stres.', 'Dopřej si jídlo, na které máš chuť, ale nezapomínej na živiny.'],
+          avoid_label: 'Na co si dát pozor:',
+          avoid: 'Dělání velkých životních rozhodnutí a vyhrocené hádky.'
+        },
+        partner: {
+          mood: 'Energie klesá. Poslední dny (PMS) často přináší podrážděnost nebo úzkost.',
+          dos_heading: 'Co pro ni dělat',
+          dos: ['Buď trpělivý – výkyvy nálad nejsou o tobě.', 'Držte volnější režim bez stresu.', 'Zeptej se jí na rovinu, co právě teď potřebuje.'],
+          avoid_label: 'Vyvaruj se:',
+          avoid: 'Hádky o maličkosti a tlačení do akcí, na které nemá energii.'
+        }
+      }
     },
     ctx: {
-      high_stress: 'V posledních dnech zaznamenán vyšší stres. Uberte na nárocích, dej jí dnes absolutní klid.',
-      bad_sleep: 'Měla horší spánek. Nabídni jí, že dnes převezmeš část jejích povinností.',
-      active_luteal: 'V této fázi klesá fyzická síla. Podpoř ji v regeneraci.',
-      active_follicular: 'Fyzická síla a tolerance tréninku je teď na vrcholu. Skvělý čas na společný sport.',
-      trend_stress: 'Data naznačují, že v cyklech s vyšším stresem dochází k jejich prodlužování.',
-      trend_ok: 'Cyklus vypadá stabilně.'
+      female: {
+        high_stress: 'Zaznamenala jsi vyšší úroveň stresu. Uber dnes na nárocích a dopřej si klid.',
+        bad_sleep: 'Měla jsi horší spánek. Zkus si dnes najít čas na odpočinek nebo si jít dřív lehnout.',
+        active_luteal: 'Tvá fyzická síla v této fázi klesá. Podpoř tělo v regeneraci a nenapínej síly na 100 %.',
+        active_follicular: 'Fyzická síla i tolerance tréninku je na vrcholu. Skvělý den na to se zapotit!',
+        trend_stress: 'Tvá data naznačují, že v cyklech s vyšším stresem dochází k jejich prodlužování.',
+        trend_ok: 'Tvůj cyklus vypadá stabilně a zdravě.'
+      },
+      partner: {
+        high_stress: 'V posledních dnech zaznamenán vyšší stres. Uberte na nárocích, dej jí dnes absolutní klid.',
+        bad_sleep: 'Měla horší spánek. Nabídni jí, že dnes převezmeš část jejích povinností.',
+        active_luteal: 'V této fázi přirozeně klesá fyzická síla. Podpoř ji v regeneraci.',
+        active_follicular: 'Fyzická síla a tolerance tréninku je teď na vrcholu. Skvělý čas na společný sport.',
+        trend_stress: 'Data naznačují, že v cyklech s vyšším stresem dochází k jejich prodlužování.',
+        trend_ok: 'Její cyklus vypadá stabilně.'
+      }
     }
-  }
+  },
+  en: {} // Anglickou část můžeš v budoucnu strukturovat stejně
 };
 
 /* ================================================================
@@ -97,7 +177,6 @@ export default function Home() {
   const [openSection, setOpenSection] = useState(null);
   const [theme, setTheme] = useState("dark"); 
 
-  // PŘIDÁNO: Nový stav pro dvoufázový Onboarding
   const [onboardingRole, setOnboardingRole] = useState(null); // 'female' nebo 'partner'
 
   const [jMood, setJMood] = useState(null);
@@ -147,7 +226,7 @@ export default function Home() {
     e.preventDefault();
     const fd = new FormData(e.target);
     const newSettings = {
-      role: onboardingRole, // PŘIDÁNO: Uložení vybrané role (female / partner)
+      role: onboardingRole,
       periods: [fd.get('start')],
       cycleLength: parseInt(fd.get('cycle')),
       periodLength: parseInt(fd.get('period')),
@@ -204,9 +283,6 @@ export default function Home() {
   if (loading) return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)", background: "var(--bg)" }}>Načítám data...</div>;
   if (!session) return null;
 
-  // =========================================================================
-  // OPRAVA: PŘEPRACOVANÝ DVOJFÁZOVÝ ONBOARDING
-  // =========================================================================
   if (!settings || !settings.periods || settings.periods.length === 0) {
     return (
       <div className="app-wrapper">
@@ -226,31 +302,16 @@ export default function Home() {
           input, select { background: rgba(120,120,120,0.1); border: 1px solid rgba(120,120,120,0.2); padding: 14px; border-radius: 16px; color: inherit; font-size: 16px; outline: none; transition: border 0.3s; }
           .btn-primary { background: var(--ink); color: var(--bg); padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
           
-          /* Styly pro nové výběrové karty rolí */
-          .role-card {
-            background: rgba(120,120,120,0.1);
-            border: 1px solid rgba(120,120,120,0.2);
-            border-radius: 24px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            margin-bottom: 16px;
-          }
+          .role-card { background: rgba(120,120,120,0.1); border: 1px solid rgba(120,120,120,0.2); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); margin-bottom: 16px; }
           .role-card:hover { transform: scale(1.02); background: rgba(120,120,120,0.15); border-color: rgba(255,255,255,0.4); }
           .role-icon { font-size: 40px; line-height: 1; }
           .role-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; }
           .role-desc { font-size: 14px; color: var(--ink-dim); line-height: 1.4; }
-          
-          /* Tlačítko zpět pro formulář */
           .btn-back { background: none; border: none; color: var(--ink-dim); font-size: 14px; padding: 0; cursor: pointer; text-decoration: underline; margin-bottom: 24px; display: inline-block; }
         `}} />
 
         <div className="ios-glass">
           {!onboardingRole ? (
-            // KROK 1: VÝBĚR ROLE
             <>
               <h2 style={{ fontSize: "28px", marginBottom: "8px", fontFamily: "var(--font-display)" }}>Vítej uvnitř</h2>
               <p style={{ color: "var(--ink-dim)", marginBottom: "32px", fontSize: "15px", lineHeight: 1.5 }}>
@@ -259,33 +320,31 @@ export default function Home() {
 
               <div className="role-card" onClick={() => setOnboardingRole('female')}>
                 <div className="role-icon">👩‍🦰</div>
-                <div className="role-title">Pro mě</div>
+                <div className="role-title">Žena</div>
                 <div className="role-desc">Chci sledovat svůj vlastní cyklus, zapisovat si příznaky a lépe rozumět svému tělu.</div>
               </div>
 
               <div className="role-card" onClick={() => setOnboardingRole('partner')}>
                 <div className="role-icon">👨‍🦱</div>
-                <div className="role-title">Pro partnera</div>
+                <div className="role-title">Muž</div>
                 <div className="role-desc">Chci sledovat cyklus své partnerky a vědět, jak jí daný den můžu nejlépe podpořit.</div>
               </div>
             </>
           ) : (
-            // KROK 2: KALIBRAČNÍ FORMULÁŘ
             <>
               <button className="btn-back" onClick={() => setOnboardingRole(null)}>‹ Zpět na výběr</button>
-              
               <h2 style={{ fontSize: "28px", marginBottom: "8px", fontFamily: "var(--font-display)" }}>
-                {onboardingRole === 'female' ? "Tvé údaje" : "Údaje partnerky"}
+                {onboardingRole === 'female' ? "Tvé údaje" : "Její údaje"}
               </h2>
               <p style={{ color: "var(--ink-dim)", marginBottom: "32px", fontSize: "15px" }}>
                 {onboardingRole === 'female' 
                   ? "Vyplň základní parametry pro kalibraci tvého osobního radaru." 
-                  : "Vyplň její základní parametry, aby ti radar mohl radit správně."}
+                  : "Vyplň její základní parametry, aby ti radar mohl radit co nejpřesněji."}
               </p>
               
               <form onSubmit={handleOnboarding}>
                 <label className="field">
-                  <span>{onboardingRole === 'female' ? "Začátek tvé poslední menstruace" : "Začátek její poslední menstruace"}</span>
+                  <span>{onboardingRole === 'female' ? t('ob_start_label_female') : t('ob_start_label_partner')}</span>
                   <input type="date" name="start" required />
                 </label>
                 <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
@@ -301,14 +360,17 @@ export default function Home() {
     );
   }
 
-  // =========================================================================
-  // HLAVNÍ APLIKACE ZŮSTÁVÁ ZATÍM NEZMĚNĚNA
-  // =========================================================================
+  // Zjištění role pro dynamické generování textů (fallback na 'female' pro jistotu)
+  const currentRole = settings.role || 'female';
 
   const ranges = getPhaseDayRanges(settings.cycleLength, settings.periodLength);
   const currentDay = getCycleDay(selectedDate, settings.periods, settings.cycleLength);
   const phaseKey = getPhaseKey(currentDay, ranges);
-  const phaseData = I18N[lang].phases[phaseKey];
+  
+  // Získání dat z I18N specificky pro danou roli (female / partner)
+  const phaseGeneral = I18N[lang].phases[phaseKey];
+  const roleSpecificData = phaseGeneral[currentRole]; 
+  const roleCtxTips = I18N[lang].ctx[currentRole];
 
   const getGradientColors = (phase) => {
     switch (phase) {
@@ -335,9 +397,10 @@ export default function Home() {
     const diff = (selectedDate.getTime() - new Date(e.date + 'T00:00:00').getTime()) / 86400000;
     return diff >= 0 && diff <= 2;
   });
+  
   const ctxTips = [];
-  if (recentEntries.some(e => e.stress >= 4)) ctxTips.push(t('ctx').high_stress);
-  if (recentEntries.some(e => e.sleep <= 2)) ctxTips.push(t('ctx').bad_sleep);
+  if (recentEntries.some(e => e.stress >= 4)) ctxTips.push(roleCtxTips.high_stress);
+  if (recentEntries.some(e => e.sleep <= 2)) ctxTips.push(roleCtxTips.bad_sleep);
   
   const ascPeriods = [...settings.periods].sort();
 
@@ -362,8 +425,6 @@ export default function Home() {
           --spring: #9FCBA4;
           --summer: #F0BB6C;
           --autumn: #E0875B;
-          
-          /* Dark Mode (Výchozí) */
           --bg: #09070b;
           --ink: #ffffff;
           --ink-dim: rgba(255,255,255,0.6);
@@ -535,7 +596,7 @@ export default function Home() {
           <div className="nav-badge" onClick={() => document.getElementById('top-radar').scrollIntoView({behavior: 'smooth'})} style={{cursor: 'pointer'}}>
             <span className="nav-dot" style={{ background: `var(${PHASE_ACCENTS[phaseKey]})`, boxShadow: `0 0 10px var(${PHASE_ACCENTS[phaseKey]})` }}></span>
             <span style={{ fontSize: "13px", fontFamily: "var(--font-mono)", letterSpacing: "0.02em", display: "flex", alignItems: "center", gap: "6px" }}>
-              <span className="emoji-icon" style={{ fontSize: "15px" }}>{phaseData.emoji}</span> 
+              <span className="emoji-icon" style={{ fontSize: "15px" }}>{phaseGeneral.emoji}</span> 
               <span style={{ paddingTop: "1px" }}>{currentDay}. den</span>
             </span>
           </div>
@@ -576,22 +637,25 @@ export default function Home() {
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <span style={{ fontSize: "12px", color: "var(--ink-dim)", textTransform: "uppercase", letterSpacing: "1px" }}>{t('wheel_day_label')}</span>
                 <span style={{ fontSize: "48px", fontFamily: "var(--font-display)", fontWeight: 500, lineHeight: 1 }}>{currentDay}</span>
-                <span style={{ fontSize: "14px", color: `var(${PHASE_ACCENTS[phaseKey]})`, fontWeight: 600, marginTop: "4px" }}>{phaseData.season}</span>
+                <span style={{ fontSize: "14px", color: `var(${PHASE_ACCENTS[phaseKey]})`, fontWeight: 600, marginTop: "4px" }}>{phaseGeneral.season}</span>
               </div>
             </div>
 
           </div>
         </section>
 
+        {/* SEKCE: PŘEDPOVĚĎ A TIPY (DYNAMICKY PODLE ROLE) */}
         <section className="ios-glass">
           <div className="glass-content">
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", marginBottom: "8px" }}>{phaseData.name}</h2>
-            <p style={{ fontSize: "16px", color: "var(--ink)", opacity: 0.8, lineHeight: 1.6, marginBottom: "24px" }}>{phaseData.mood}</p>
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", marginBottom: "8px" }}>{phaseGeneral.name}</h2>
+            <p style={{ fontSize: "16px", color: "var(--ink)", opacity: 0.8, lineHeight: 1.6, marginBottom: "24px" }}>
+              {roleSpecificData.mood}
+            </p>
             
             <div style={{ background: "var(--surface-2)", borderRadius: "20px", padding: "20px", marginBottom: "24px", border: "1px solid var(--input-border)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "14px" }}>
                 <span style={{ color: "var(--ink-dim)" }}>{t('energy_label')}</span>
-                <span style={{ fontWeight: 600, color: `var(${PHASE_ACCENTS[phaseKey]})` }}>{phaseData.energy_label}</span>
+                <span style={{ fontWeight: 600, color: `var(${PHASE_ACCENTS[phaseKey]})` }}>{phaseGeneral.energy_label}</span>
               </div>
               <div style={{ height: "6px", background: "var(--input-border)", borderRadius: "99px", overflow: "hidden" }}>
                 <div style={{ height: "100%", width: `${PHASE_ENERGY_PCT[phaseKey]}%`, background: `var(${PHASE_ACCENTS[phaseKey]})`, borderRadius: "99px", transition: "width 1s cubic-bezier(0.2, 0.8, 0.2, 1)" }}></div>
@@ -599,16 +663,16 @@ export default function Home() {
             </div>
 
             <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>
-              {t('dos_heading')}
+              {roleSpecificData.dos_heading}
             </h3>
             
             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px 0", display: "flex", flexDirection: "column", gap: "12px" }}>
               {ctxTips.map((tip, i) => <li key={`ctx-${i}`} style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px", borderLeft: "3px solid var(--summer)" }}>{tip}</li>)}
-              {phaseData.dos.map((tip, i) => <li key={`dos-${i}`} style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px" }}>{tip}</li>)}
+              {roleSpecificData.dos.map((tip, i) => <li key={`dos-${i}`} style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px" }}>{tip}</li>)}
             </ul>
 
             <div style={{ background: "rgba(226,146,156,0.1)", border: "1px solid rgba(226,146,156,0.2)", padding: "16px", borderRadius: "16px", color: "var(--ink)", fontSize: "15px" }}>
-              <strong style={{ color: "var(--winter)" }}>{t('avoid_label')}</strong> {phaseData.avoid}
+              <strong style={{ color: "var(--winter)" }}>{roleSpecificData.avoid_label}</strong> {roleSpecificData.avoid}
             </div>
           </div>
         </section>
