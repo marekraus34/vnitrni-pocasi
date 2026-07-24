@@ -29,7 +29,7 @@ export async function PUT(req) {
     const data = await req.json();
     await connectToDatabase();
 
-    // 1. SCÉNÁŘ: Vygenerování unikátního kódu kýmkoliv
+    // 1. SCÉNÁŘ: Vygenerování unikátního kódu
     if (data.action === 'generate_code') {
       const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       const updatedUser = await User.findOneAndUpdate(
@@ -47,7 +47,6 @@ export async function PUT(req) {
         return NextResponse.json({ message: "Tento kód neexistuje nebo vypršel." }, { status: 400 });
       }
 
-      // Propojíme oba účty navzájem
       await User.findOneAndUpdate(
         { email: session.user.email }, 
         { $set: { "settings.pairedWith": targetUser.email } }
@@ -61,7 +60,30 @@ export async function PUT(req) {
       return NextResponse.json({ settings: updatedUser.settings, journal: updatedUser.journal }, { status: 200 });
     }
 
-    // 3. SCÉNÁŘ: Běžné uložení (Deník nebo změna parametrů)
+    // 3. SCÉNÁŘ: Zrušení propojení (Odpojí V OBA SMĚRECH a smaže staré kódy)
+    if (data.action === 'unpair') {
+      const currentUser = await User.findOne({ email: session.user.email });
+      const partnerEmail = currentUser?.settings?.pairedWith;
+
+      // Odpojení aktuálního uživatele
+      await User.findOneAndUpdate(
+        { email: session.user.email },
+        { $set: { "settings.pairedWith": null, "settings.syncCode": null } }
+      );
+
+      // Odpojení partnera (pokud existuje)
+      if (partnerEmail) {
+        await User.findOneAndUpdate(
+          { email: partnerEmail },
+          { $set: { "settings.pairedWith": null, "settings.syncCode": null } }
+        );
+      }
+
+      const updatedUser = await User.findOne({ email: session.user.email });
+      return NextResponse.json({ settings: updatedUser.settings, journal: updatedUser.journal }, { status: 200 });
+    }
+
+    // 4. SCÉNÁŘ: Běžné uložení (Deník nebo změna parametrů)
     const updateDoc = {};
     if (data.settings) updateDoc.settings = data.settings;
     if (data.journal) updateDoc.journal = data.journal;
