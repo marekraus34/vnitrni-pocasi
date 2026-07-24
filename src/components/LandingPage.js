@@ -240,7 +240,7 @@ export default function LandingPage() {
           <p className="eyebrow" style={{ color: "var(--ink-dim)", marginBottom: "20px" }}>Pro ženu i pro partnera</p>
           <h1 className="hero-title">Žijte v souladu s cyklem.<br />Porozumění, které sbližuje.</h1>
           <p className="subtitle" style={{ maxWidth: "56ch", fontSize: "18px", margin: "0 auto 40px", color: "var(--ink-dim)", lineHeight: 1.6 }}>
-            Aplikace přizpůsobená na míru. Sledujte vlastní rytmus, nebo propojte své účty a získejte empatickou podporu a přehled pro každý den.
+            Aplikace pro partnery. Sleduj to jak se cítí tvoje drahá polovička nebo jako žena využívej detailní přehled cyklu s tipy a deníkem pocitů a nálad.
           </p>
           
           <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
