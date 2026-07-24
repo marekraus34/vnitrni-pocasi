@@ -88,7 +88,6 @@ export default function LandingPage() {
           z-index: 100;
         }
         
-        /* NOVÉ TŘÍDY PRO TLAČÍTKA A ŠTÍTKY V NAVIGACI */
         .glass-btn {
           transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
@@ -215,12 +214,10 @@ export default function LandingPage() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* VYLEPŠENÁ CHYTRÁ NAVIGACE S PRÉMIOVÝMI TLAČÍTKY A ŠTÍTKEM */}
       <nav className="glass-nav ios-glass">
         <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "18px", color: "var(--ink)" }}>Vnitřní počasí</span>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
           
-          {/* E-mail Badge s tekutým sklem a svítící tečkou */}
           {savedEmail && (
             <div className="nav-email user-badge ios-glass" style={{ border: "1px solid rgba(255,255,255,0.15)" }}>
               <span className="status-dot"></span>
@@ -230,7 +227,6 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* Přihlašovací tlačítko ve tvaru skleněné pilulky s hover efektem */}
           <Link href="/login" className="glass-btn ios-glass" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", borderRadius: "99px", textDecoration: "none", color: "var(--ink)", fontSize: "13px", fontWeight: 600, border: "1px solid rgba(255,255,255,0.25)" }}>
             {savedEmail ? "Znovu přihlásit" : "Přihlásit"}
           </Link>
@@ -241,10 +237,10 @@ export default function LandingPage() {
       <div style={{ maxWidth: "900px", margin: "0 auto", paddingBottom: "100px", position: "relative", zIndex: 1 }}>
         
         <header id="landing-header" style={{ textAlign: "center", paddingTop: "140px", paddingBottom: "40px" }}>
-          <p className="eyebrow" style={{ color: "var(--ink-dim)", marginBottom: "20px" }}>Odhalte její cyklus</p>
-          <h1 className="hero-title">Předpovězte náladu.<br />Mějte ve vztahu jasno.</h1>
-          <p className="subtitle" style={{ maxWidth: "54ch", fontSize: "18px", margin: "0 auto 40px", color: "var(--ink-dim)" }}>
-            Změny nálad nejsou náhodné. Jsou to roční období uvnitř jejího těla. Zjistěte včas, co se děje, a buďte o krok napřed.
+          <p className="eyebrow" style={{ color: "var(--ink-dim)", marginBottom: "20px" }}>Pro tebe i pro něj</p>
+          <h1 className="hero-title">Předpověz náladu.<br />Mějte ve vztahu jasno.</h1>
+          <p className="subtitle" style={{ maxWidth: "54ch", fontSize: "18px", margin: "0 auto 40px", color: "var(--ink-dim)", lineHeight: 1.6 }}>
+            Změny nálad nejsou náhodné. Jsou to roční období uvnitř těla. Sleduj svůj vlastní cyklus, nebo lépe porozuměj cyklu své partnerky.
           </p>
           
           <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
@@ -280,29 +276,29 @@ export default function LandingPage() {
             <div className={`season-card ios-glass ${activeSeason === 'spring' ? 'active' : ''}`} data-season="spring" style={{ '--card-accent': 'var(--spring)' }} onMouseEnter={() => setActiveSeason('spring')}>
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>🌱</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--spring)", marginBottom: "8px" }}>Jaro (Folikulární)</h3>
-              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Hormony se probouzí. Ideální čas navrhnout nový sport nebo naplánovat výlet.</p>
+              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Hormony se probouzí. Ideální čas vyzkoušet něco nového nebo naplánovat výlet.</p>
             </div>
             <div className={`season-card ios-glass ${activeSeason === 'summer' ? 'active' : ''}`} data-season="summer" style={{ '--card-accent': 'var(--summer)' }} onMouseEnter={() => setActiveSeason('summer')}>
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>☀️</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--summer)", marginBottom: "8px" }}>Léto (Ovulace)</h3>
-              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Vrchol měsíce. Energie a sebevědomí jsou na maximu. Čas na společenské akce.</p>
+              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Vrchol měsíce. Energie a sebevědomí jsou na maximu. Skvělý čas na společnost a hlubší sblížení.</p>
             </div>
             <div className={`season-card ios-glass ${activeSeason === 'autumn' ? 'active' : ''}`} data-season="autumn" style={{ '--card-accent': 'var(--autumn)' }} onMouseEnter={() => setActiveSeason('autumn')}>
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>🍂</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--autumn)", marginBottom: "8px" }}>Podzim (Luteální)</h3>
-              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie klesá, přichází PMS. Může být podrážděná. Buďte trpěliví a uberte na nárocích.</p>
+              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie klesá, přichází PMS. Tělo volá po zpomalení. Je čas na větší trpělivost a empatii.</p>
             </div>
             <div className={`season-card ios-glass ${activeSeason === 'winter' ? 'active' : ''}`} data-season="winter" style={{ '--card-accent': 'var(--winter)' }} onMouseEnter={() => setActiveSeason('winter')}>
               <span style={{ fontSize: "32px", display: "block", marginBottom: "16px" }}>❄️</span>
               <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--winter)", marginBottom: "8px" }}>Zima (Menstruace)</h3>
-              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie je na minimu. Tělo potřebuje klid. Skvělý čas na termofor a film.</p>
+              <p style={{ fontSize: "15px", color: "var(--ink-dim)", lineHeight: "1.6" }}>Energie je na minimu. Tělo potřebuje absolutní klid. Skvělý čas na termofor, čaj a odpočinek.</p>
             </div>
           </div>
         </section>
 
         <section style={{ marginTop: "160px", position: "relative", zIndex: 10 }}>
           <h2 className="section-title" style={{ textAlign: "center", marginBottom: "16px" }}>Všechno, co potřebujete</h2>
-          <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px", fontSize: "16px" }}>Žádné složité tabulky. Jen čistá data.</p>
+          <p style={{ textAlign: "center", color: "var(--ink-dim)", marginBottom: "40px", fontSize: "16px" }}>Žádné složité lékařské tabulky. Jen čistá data a pochopení.</p>
           
           <div className="bento-grid">
             <div className="bento-card ios-glass wide card-radar">
@@ -312,7 +308,7 @@ export default function LandingPage() {
               </div>
               <div className="text-content" style={{ marginTop: "auto" }}>
                 <h3>Přesný radar fází</h3>
-                <p>Okamžitě vidíte, v jakém ročním období se nachází a kolik jí zbývá energie.</p>
+                <p>Okamžitě vidíte, v jakém ročním období se cyklus nachází a kolik zbývá energie.</p>
               </div>
             </div>
 
@@ -320,7 +316,7 @@ export default function LandingPage() {
               <div className="liquid-glow" style={{ width: "250px", height: "250px", bottom: "-50px", left: "50%", transform: "translateX(-50%)", background: "rgba(226,146,156,0.35)" }}></div>
               <div className="text-content">
                 <h3>Trendová analýza</h3>
-                <p>Aplikace se učí. Zjistěte, jak moc stres ovlivňuje délku cyklu, a předvídejte krize.</p>
+                <p>Aplikace se učí z dat. Zjistěte včas, jak moc stres ovlivňuje délku cyklu, a předvídejte krize dřív, než nastanou.</p>
               </div>
               <div className="bento-visual" style={{ bottom: "0", left: "32px", right: "32px" }}>
                 <div className="mini-graph">
@@ -337,7 +333,7 @@ export default function LandingPage() {
               <div className="liquid-glow" style={{ width: "180px", height: "180px", top: "50%", left: "50%", marginTop: "-90px", marginLeft: "-90px", background: "rgba(159,203,164,0.3)" }}></div>
               <div className="text-content">
                 <h3>Deník nálad</h3>
-                <p>Zaznamenejte si, co zrovna prožívá.</p>
+                <p>Chytré a rychlé zaznamenání pocitů.</p>
               </div>
               <div className="mini-tags">
                 <div className="mini-tag highlight">Křeče</div>
@@ -353,8 +349,8 @@ export default function LandingPage() {
             <div className="bento-card ios-glass">
               <div className="liquid-glow" style={{ width: "150px", height: "150px", bottom: "-20px", right: "-20px", background: "rgba(224,135,91,0.35)" }}></div>
               <div className="text-content">
-                <h3 style={{ color: "var(--spring)", textShadow: "none" }}>Konkrétní tipy</h3>
-                <p>Ke každému dni seznam: Co dělat a čemu se vyhnout.</p>
+                <h3 style={{ color: "var(--spring)", textShadow: "none" }}>Osobní asistent</h3>
+                <p>Každý den přesně na míru: Co dělat a čemu se vyhnout pro maximální pohodu.</p>
               </div>
             </div>
           </div>
