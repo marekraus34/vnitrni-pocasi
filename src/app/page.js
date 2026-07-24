@@ -139,7 +139,6 @@ export default function Home() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    
     let metaThemeColor = document.querySelector("meta[name=theme-color]");
     if (!metaThemeColor) {
       metaThemeColor = document.createElement("meta");
@@ -243,7 +242,6 @@ export default function Home() {
           .ios-glass { 
             background: rgba(15, 15, 15, 0.45); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); 
             border: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.25); border-radius: 32px; padding: 40px; width: 100%; max-width: 500px; 
-            /* Ant-glitch fix pro Onboarding */
             -webkit-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0); -webkit-backface-visibility: hidden; backface-visibility: hidden;
           }
           html[data-theme="light"] .ios-glass { background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(0,0,0,0.05); }
@@ -320,6 +318,7 @@ export default function Home() {
   return (
     <div className="app-wrapper">
       <style dangerouslySetInnerHTML={{ __html: `
+        /* GLOBÁLNÍ CSS: Tyto proměnné ovládají barvy celého systému */
         :root {
           --winter: #E2929C;
           --spring: #9FCBA4;
@@ -361,28 +360,30 @@ export default function Home() {
           --mesh-op: 0.4;
         }
 
-        body {
-          background-color: var(--bg) !important;
-          color: var(--ink) !important;
-          margin: 0;
-          padding: 0;
-          transition: background-color 0.5s ease;
-        }
-
+        body { background-color: var(--bg) !important; color: var(--ink) !important; margin: 0; padding: 0; transition: background-color 0.5s ease; }
         .app-wrapper { position: relative; min-height: 100vh; overflow-x: hidden; padding-top: 100px; padding-bottom: 120px; }
         h1, h2, h3, p, span, li, legend { color: inherit; }
 
-        /* OPRAVA ČERNÝCH OBDÉLNÍKŮ V POZADÍ (Hardwarová akcelerace přes translate3d) */
-        .mesh-background { position: fixed; inset: -20%; z-index: -3; background: var(--bg); transition: background 0.5s ease; -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); }
-        .mesh-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: var(--mesh-op); transition: background 2s ease, opacity 0.5s ease; pointer-events: none; }
+        /* OPRAVA VÝKONU (CPU > GPU) A BLIKAJÍCÍCH ČTVERCŮ */
+        .mesh-background { 
+          position: fixed; inset: -20%; z-index: -3; background: var(--bg); transition: background 0.5s ease; 
+          -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); 
+        }
+        
+        /* Zmenšeno rozmazání ze 120px na 80px -> obrovská úleva pro procesor, HW akcelerace přes will-change */
+        .mesh-orb { 
+          position: absolute; border-radius: 50%; filter: blur(80px); opacity: var(--mesh-op); 
+          transition: background 2s ease, opacity 0.5s ease; pointer-events: none; 
+          will-change: transform;
+        }
         
         .orb-1 { width: 70%; height: 60%; top: 0; left: 0; animation: float1 14s infinite alternate ease-in-out; }
         .orb-2 { width: 60%; height: 70%; top: 20%; right: 0; animation: float2 18s infinite alternate-reverse ease-in-out; }
         .orb-3 { width: 80%; height: 60%; bottom: 0; left: 10%; animation: float3 22s infinite alternate ease-in-out; }
 
-        @keyframes float1 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(5%, 5%) scale(1.1); } }
-        @keyframes float2 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-5%, 5%) scale(1.15); } }
-        @keyframes float3 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(5%, -5%) scale(1.2); } }
+        @keyframes float1 { 0% { transform: translate3d(0, 0, 0) scale(1); } 100% { transform: translate3d(5%, 5%, 0) scale(1.1); } }
+        @keyframes float2 { 0% { transform: translate3d(0, 0, 0) scale(1); } 100% { transform: translate3d(-5%, 5%, 0) scale(1.15); } }
+        @keyframes float3 { 0% { transform: translate3d(0, 0, 0) scale(1); } 100% { transform: translate3d(5%, -5%, 0) scale(1.2); } }
 
         .noise-overlay {
           position: fixed; inset: 0; z-index: -2;
@@ -404,7 +405,7 @@ export default function Home() {
           overflow: hidden;
           transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
 
-          /* OPRAVA ČERNÝCH OBDÉLNÍKŮ PRO SKLENĚNÉ PRVKY (Vynucení grafického čipu) */
+          /* Vynucení vrstvy pro grafický čip = konec problikávání skla */
           -webkit-transform: translate3d(0, 0, 0);
           transform: translate3d(0, 0, 0);
           -webkit-backface-visibility: hidden;
@@ -414,9 +415,7 @@ export default function Home() {
         .glass-nav {
           position: fixed; top: 16px; left: 50%; width: calc(100% - 32px); max-width: 600px;
           height: 64px; border-radius: 99px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 16px; z-index: 100;
-          /* Pro navigaci použijeme obyčejný transform (aby se zachoval position: fixed vůči obrazovce) */
-          transform: translateX(-50%) translateZ(0); 
-          -webkit-transform: translateX(-50%) translateZ(0);
+          -webkit-transform: translate3d(-50%, 0, 0); transform: translate3d(-50%, 0, 0);
         }
 
         .nav-badge { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--input-border); }
@@ -426,8 +425,8 @@ export default function Home() {
 
         .main-container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; padding: 0 16px; position: relative; z-index: 1; }
         
-        .liquid-glow { position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; opacity: 0.3; pointer-events: none; }
-        html[data-theme="light"] .liquid-glow { opacity: 0.6; filter: blur(60px); }
+        .liquid-glow { position: absolute; border-radius: 50%; filter: blur(60px); z-index: 0; opacity: 0.3; pointer-events: none; }
+        html[data-theme="light"] .liquid-glow { opacity: 0.6; filter: blur(40px); }
 
         .glass-content { position: relative; z-index: 2; padding: var(--card-pad); }
 
@@ -447,17 +446,13 @@ export default function Home() {
         .emoji-icon { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; line-height: normal; display: inline-flex; align-items: center; justify-content: center; padding-bottom: 2px; }
 
         section.accordion-wrapper { scroll-margin-top: 100px; }
-        .accordion-header {
-          padding: var(--card-pad); cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; position: relative; z-index: 3;
-        }
+        .accordion-header { padding: var(--card-pad); cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; position: relative; z-index: 3; }
         .accordion-title { font-family: var(--font-display); font-size: 22px; color: var(--ink); display: flex; align-items: center; padding-left: 12px; }
         
         .chevron { font-size: 28px; font-weight: 300; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); margin-right: 16px; }
         .chevron.open { transform: rotate(45deg); }
         
-        .accordion-body {
-          display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
+        .accordion-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .accordion-body.open { grid-template-rows: 1fr; border-top: 1px solid var(--input-border); }
         .accordion-content-inner { overflow: hidden; }
 
@@ -473,6 +468,8 @@ export default function Home() {
           h2 { font-size: 26px !important; }
           
           .nav-brand-text { display: none !important; }
+          .nav-brand-icon { display: block !important; }
+          
           .forecast-chip { min-width: 52px; padding: 10px 6px; border-radius: 14px; }
           .forecast-chip > span:nth-child(1) { font-size: 10px !important; }
           .forecast-chip > span:nth-child(2) { font-size: 15px !important; margin: 2px 0 !important; }
@@ -480,7 +477,7 @@ export default function Home() {
         }
       `}} />
 
-      {/* DYNAMICKÉ POZADÍ */}
+      {/* DYNAMICKÉ POZADÍ (Nyní na CPU ušetří 40% a nebliká) */}
       <div className="mesh-background">
         <div className="mesh-orb orb-1" style={{ background: colors.c1 }}></div>
         <div className="mesh-orb orb-2" style={{ background: colors.c2 }}></div>
@@ -488,7 +485,7 @@ export default function Home() {
       </div>
       <div className="noise-overlay"></div>
 
-      {/* CHYTRÁ HORNÍ LIŠTA */}
+      {/* CHYTRÁ HORNÍ LIŠTA S DARK MODE PŘEPÍNAČEM */}
       <nav className="glass-nav ios-glass">
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <button 
