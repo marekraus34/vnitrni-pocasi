@@ -2,7 +2,6 @@
 
 import LandingPage from "@/components/LandingPage";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Scanner } from '@yudiel/react-qr-scanner';
 
@@ -163,7 +162,6 @@ function getPhaseKey(day, ranges) {
    ================================================================ */
 export default function Home() {
   const { data: session, status } = useSession();
-  const router = useRouter();
 
   const [lang] = useState("cs");
   const [loading, setLoading] = useState(true);
@@ -230,7 +228,9 @@ export default function Home() {
             if (data.settings) setSettings(data.settings);
             if (data.journal) setJournal(data.journal);
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error("Silent fetch error", e);
+        }
       };
 
       const intervalId = setInterval(silentFetch, 15000);
@@ -544,7 +544,7 @@ export default function Home() {
   const colors = getGradientColors(phaseKey);
 
   const circ = 2 * Math.PI * 88;
-  const wheelSegments = [['menstrual', ranges.menstrual], ['follicular', ranges.follicular], ['ovulatory', ranges.ovulatory], ['luteal', ranges.luteal']].map(p => {
+  const wheelSegments = [['menstrual', ranges.menstrual], ['follicular', ranges.follicular], ['ovulatory', ranges.ovulatory], ['luteal', ranges.luteal]].map(p => {
     const len = (p[1].end - p[1].start + 1) / settings.cycleLength;
     const dashBefore = ((p[1].start - 1) / settings.cycleLength) * circ;
     const dashLen = len * circ;
@@ -712,6 +712,7 @@ export default function Home() {
             <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginBottom: "24px" }}>Z druhé aplikace otevřete čtečku.</p>
             
             <div style={{ background: "#fff", padding: "16px", borderRadius: "24px", display: "inline-block", marginBottom: "24px", boxShadow: "0 20px 40px rgba(0,0,0,0.5)" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${settings.syncCode}&margin=0`} alt="QR kód" style={{ display: "block", borderRadius: "8px" }} />
             </div>
             
