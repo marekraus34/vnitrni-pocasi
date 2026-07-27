@@ -2,7 +2,9 @@ import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  
+  // OPRAVA: Heslo už není povinné (Google přihlášení ho nemá)
+  password: { type: String, required: false },
   
   settings: {
     role: { type: String, default: 'female' },
@@ -14,21 +16,17 @@ const UserSchema = new mongoose.Schema({
     contraception: { type: Boolean, default: false },
     periods: [{ type: String }],
     
+    // Párování
     syncCode: { type: String }, 
     pairedWith: { type: String, default: null },
     
+    // Notifikace a soukromí
     pushSubscription: { type: Object, default: null },
     reminderFrequency: { type: String, default: '3days' },
-    discreetMode: { type: Boolean, default: false },
-
-    // NOVÉ NASTAVENÍ NOTIFIKACÍ PRO ŽENU
     periodAlert: { type: Boolean, default: true },
-    pmsAlert: { type: Boolean, default: true },
-    ovulationAlert: { type: Boolean, default: false },
-
-    // NOVÉ NASTAVENÍ NOTIFIKACÍ PRO PARTNERA
-    partnerEntryAlert: { type: Boolean, default: true },
-    partnerPhaseAlert: { type: Boolean, default: true }
+    phaseAlert: { type: Boolean, default: true },
+    ovulationAlert: { type: Boolean, default: true },
+    discreetMode: { type: Boolean, default: false }
   },
   
   journal: [{
