@@ -25,7 +25,6 @@ export async function POST(req) {
 
     await connectToDatabase();
     
-    // Zajištění, že uživatel existuje, i když to posílá poprvé
     let currentUser = await User.findOne({ email: session.user.email });
     if (!currentUser) {
       currentUser = await User.create({ email: session.user.email });
@@ -79,10 +78,6 @@ export async function PUT(req) {
     const data = await req.json();
     await connectToDatabase();
 
-    // =========================================================================
-    // OPRAVA: ZALOŽENÍ UŽIVATELE PŘI ONBOARDINGU (Google Auth)
-    // Pokud uživatel ještě v databázi není, vytvoříme ho dřív, než do něj zkusíme zapisovat.
-    // =========================================================================
     let currentUser = await User.findOne({ email: session.user.email });
     if (!currentUser) {
       currentUser = await User.create({ email: session.user.email });
@@ -109,48 +104,57 @@ export async function PUT(req) {
 
     if (data.action === 'unpair') {
       const partnerEmail = currentUser?.settings?.pairedWith;
-
       await User.findOneAndUpdate({ email: session.user.email }, { $set: { "settings.pairedWith": null, "settings.syncCode": null } });
       if (partnerEmail) await User.findOneAndUpdate({ email: partnerEmail }, { $set: { "settings.pairedWith": null, "settings.syncCode": null } });
       return await GET(req);
     }
 
     let targetEmailForBioData = session.user.email; 
-
     if (currentUser.settings.pairedWith && currentUser.settings.role === 'partner') {
       const partner = await User.findOne({ email: currentUser.settings.pairedWith });
       if (partner && partner.settings.role === 'female') targetEmailForBioData = partner.email; 
     }
 
-    // Ukládání bio parametrů případně pro partnerku
-    if (targetEmailForBioData !== session.user.email) {
-      const updatePartnerDoc = {};
-      if (data.settings) {
-        if (data.settings.periods) updatePartnerDoc["settings.periods"] = data.settings.periods;
-        if (data.settings.cycleLength) updatePartnerDoc["settings.cycleLength"] = data.settings.cycleLength;
-        if (data.settings.periodLength) updatePartnerDoc["settings.periodLength"] = data.settings.periodLength;
-        if (data.settings.lutealLength) updatePartnerDoc["settings.lutealLength"] = data.settings.lutealLength;
-      }
-      if (data.journal) updatePartnerDoc.journal = data.journal; 
-      if (Object.keys(updatePartnerDoc).length > 0) await User.findOneAndUpdate({ email: targetEmailForBioData }, { $set: updatePartnerDoc });
-    } 
-    
-    // Ukládání osobních nastavení (notifikace, diskrétní režim atd.)
+    // ==========================================
+    // OPRAVENO: LOGIKA UKLÁDÁNÍ DAT
+    // ==========================================
     const updateMyDoc = {};
+    const bioKeys = ['periods', 'cycleLength', 'periodLength', 'lutealLength'];
+
     if (data.settings) {
       for (const key in data.settings) {
-        if (targetEmailForBioData !== session.user.email || !['periods', 'cycleLength', 'periodLength', 'lutealLength'].includes(key)) {
-           updateMyDoc[`settings.${key}`] = data.settings[key];
+        // Pokud jsem muž a sdílím s partnerkou, neukládám si její bio data k sobě do profilu
+        if (targetEmailForBioData !== session.user.email && bioKeys.includes(key)) {
+          continue; 
         }
+        updateMyDoc[`settings.${key}`] = data.settings[key];
       }
     }
-    if (data.journal && targetEmailForBioData === session.user.email) updateMyDoc.journal = data.journal;
-    
+
+    if (data.journal && targetEmailForBioData === session.user.email) {
+      updateMyDoc.journal = data.journal;
+    }
+
     if (Object.keys(updateMyDoc).length > 0) {
       await User.findOneAndUpdate({ email: session.user.email }, { $set: updateMyDoc });
     }
 
-    // CHYTRÁ NOTIFIKACE PRO MUŽE
+    // Ukládání bio parametrů a deníku PRO PARTNERKU (pokud jsem propojený muž)
+    if (targetEmailForBioData !== session.user.email) {
+      const updatePartnerDoc = {};
+      if (data.settings) {
+        bioKeys.forEach(k => {
+          if (data.settings[k] !== undefined) updatePartnerDoc[`settings.${k}`] = data.settings[k];
+        });
+      }
+      if (data.journal) updatePartnerDoc.journal = data.journal; 
+      
+      if (Object.keys(updatePartnerDoc).length > 0) {
+        await User.findOneAndUpdate({ email: targetEmailForBioData }, { $set: updatePartnerDoc });
+      }
+    } 
+
+    // CHYTRÁ NOTIFIKACE PRO MUŽE (Nezměněno, funguje správně)
     if (data.journal && currentUser.settings.role === 'female' && currentUser.settings.pairedWith) {
       const partnerUser = await User.findOne({ email: currentUser.settings.pairedWith });
       if (partnerUser && partnerUser.settings?.pushSubscription && partnerUser.settings?.role === 'partner') {
