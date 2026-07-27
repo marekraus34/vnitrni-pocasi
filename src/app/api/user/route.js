@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]/route";
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
 import webpush from "web-push";
 
-// Nastavení web-push s VAPID klíči z prostředí Vercelu
+// Nastavení klíčů pro odesílání
 if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
     'mailto:support@vnitrnipocasi.cz',
@@ -14,192 +12,141 @@ if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   );
 }
 
-// POST metoda pro uložení push odběru z telefonu
-export async function POST(req) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ message: "Neautorizováno" }, { status: 401 });
-    }
-
-    const subscription = await req.json();
-    if (!subscription || !subscription.endpoint) {
-      return NextResponse.json({ message: "Neplatná data odběru" }, { status: 400 });
-    }
-
-    await connectToDatabase();
-
-    await User.findOneAndUpdate(
-      { email: session.user.email },
-      { $set: { "settings.pushSubscription": subscription } }
-    );
-
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    console.error("Chyba při ukládání push subscription:", error);
-    return NextResponse.json({ message: "Chyba serveru: " + error.message }, { status: 500 });
-  }
+// -----------------------------------------------------------------
+// POMOCNÉ FUNKCE PRO VÝPOČET FÁZÍ (Stejné jako v page.js)
+// -----------------------------------------------------------------
+function getCycleDay(dateObj, periods, cycleLength) {
+  if (!periods || !periods.length) return 1;
+  const asc = [...periods].sort();
+  const start = new Date(asc[asc.length - 1] + 'T00:00:00');
+  const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+  const diff = Math.round((d - start) / 86400000);
+  return ((diff % cycleLength) + cycleLength) % cycleLength + 1;
 }
 
-// Metoda pro NAČTENÍ dat
+function getPhaseDayRanges(cycleLength, periodLength, lutealLength = 14) {
+  const pl = Math.min(periodLength, cycleLength - 3);
+  const lutealLen = (cycleLength < 22) ? Math.floor(cycleLength / 2) : lutealLength;
+  const lutealStart = cycleLength - lutealLen + 1;
+  const ovulatoryStart = lutealStart - 4;
+  return {
+    menstrual: { start: 1, end: pl },
+    follicular: { start: pl + 1, end: ovulatoryStart - 1 },
+    ovulatory: { start: ovulatoryStart, end: lutealStart - 1 },
+    luteal: { start: lutealStart, end: cycleLength }
+  };
+}
+// -----------------------------------------------------------------
+
+
 export async function GET(req) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ message: "Neautorizováno" }, { status: 401 });
-
     await connectToDatabase();
-    const user = await User.findOne({ email: session.user.email });
     
-    if (!user) return NextResponse.json({ message: "Uživatel nenalezen" }, { status: 404 });
+    // Najdeme všechny uživatelky, které mají roli ženy a zapnuté push notifikace
+    const femaleUsers = await User.find({ 
+      "settings.role": "female",
+      "settings.pushSubscription": { $ne: null }
+    });
 
-    let responseSettings = { ...user.settings.toObject() };
-    let responseJournal = [...user.journal];
+    let sentCount = 0;
+    const now = new Date();
 
-    if (user.settings.pairedWith) {
-      const partner = await User.findOne({ email: user.settings.pairedWith });
-      if (partner) {
-        if (user.settings.role === 'partner' && partner.settings.role === 'female') {
-          responseSettings.periods = partner.settings.periods;
-          responseSettings.cycleLength = partner.settings.cycleLength;
-          responseSettings.periodLength = partner.settings.periodLength;
-          responseJournal = partner.journal;
-        }
+    for (const user of femaleUsers) {
+      const settings = user.settings;
+      const periods = settings.periods || [];
+      const journal = user.journal || [];
+      
+      // Pokud nemá zapsanou menstruaci, nemůžeme nic počítat
+      if (periods.length === 0) continue;
+
+      const cycleLength = settings.cycleLength || 28;
+      const periodLength = settings.periodLength || 5;
+      const lutealLength = settings.lutealLength || 14;
+
+      const currentDay = getCycleDay(now, periods, cycleLength);
+      const ranges = getPhaseDayRanges(cycleLength, periodLength, lutealLength);
+
+      let notificationToSend = null;
+
+      // ==========================================================
+      // 1. KONTROLA CYKLU (Prioritní notifikace)
+      // ==========================================================
+      
+      // Upozornění 2 dny před Menstruací (Zima)
+      if (settings.periodAlert !== false && currentDay === cycleLength - 1) {
+        notificationToSend = {
+          title: "Blíží se Zima ❄️",
+          body: "Za pár dní očekávej menstruaci (PMS). Udělej si pohodlí, naber síly a připrav si vše potřebné."
+        };
+      } 
+      // Upozornění před začátkem Ovulace (Léto)
+      else if (settings.ovulationAlert !== false && currentDay === ranges.ovulatory.start - 1) {
+        notificationToSend = {
+          title: "Léto je za rohem ☀️",
+          body: "Tvoje energie zítra dosáhne vrcholu a začínají plodné dny. Ideální čas vyrazit ven!"
+        };
       }
-    }
-
-    return NextResponse.json({ settings: responseSettings, journal: responseJournal }, { status: 200 });
-  } catch (error) {
-    console.error("Chyba při GET /api/user:", error);
-    return NextResponse.json({ message: "Interní chyba serveru" }, { status: 500 });
-  }
-}
-
-// Metoda pro ULOŽENÍ dat a ODESLÁNÍ NOTIFIKACE
-export async function PUT(req) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ message: "Neautorizováno" }, { status: 401 });
-
-    const data = await req.json();
-    await connectToDatabase();
-
-    if (data.action === 'generate_code') {
-      const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const updatedUser = await User.findOneAndUpdate(
-        { email: session.user.email },
-        { $set: { "settings.syncCode": newCode } },
-        { new: true }
-      );
-      return NextResponse.json({ settings: updatedUser.settings, journal: updatedUser.journal }, { status: 200 });
-    }
-
-    if (data.action === 'pair') {
-      const targetUser = await User.findOne({ "settings.syncCode": data.code });
-      if (!targetUser) {
-        return NextResponse.json({ message: "Tento kód neexistuje nebo vypršel." }, { status: 400 });
+      // Upozornění na změnu fáze: Příchod Jara (Folikulární)
+      else if (settings.phaseAlert !== false && currentDay === ranges.follicular.start) {
+        notificationToSend = {
+          title: "Vítej v Jaru 🌱",
+          body: "Menstruace končí a tvá energie začíná stoupat. Čas na nové projekty a lehký pohyb."
+        };
       }
-
-      await User.findOneAndUpdate(
-        { email: session.user.email }, 
-        { $set: { "settings.pairedWith": targetUser.email } }
-      );
-      await User.findOneAndUpdate(
-        { email: targetUser.email }, 
-        { $set: { "settings.pairedWith": session.user.email } }
-      );
-
-      return await GET(req);
-    }
-
-    if (data.action === 'unpair') {
-      const currentUser = await User.findOne({ email: session.user.email });
-      const partnerEmail = currentUser?.settings?.pairedWith;
-
-      await User.findOneAndUpdate(
-        { email: session.user.email },
-        { $set: { "settings.pairedWith": null, "settings.syncCode": null } }
-      );
-
-      if (partnerEmail) {
-        await User.findOneAndUpdate(
-          { email: partnerEmail },
-          { $set: { "settings.pairedWith": null, "settings.syncCode": null } }
-        );
+      // Upozornění na změnu fáze: Příchod Podzimu (Luteální)
+      else if (settings.phaseAlert !== false && currentDay === ranges.luteal.start) {
+        notificationToSend = {
+          title: "Podzimní zvolnění 🍂",
+          body: "Tvé tělo přechází do luteální fáze. Energie začne mírně klesat, dopřej si více laskavosti."
+        };
       }
 
-      return await GET(req);
-    }
-
-    const currentUser = await User.findOne({ email: session.user.email });
-    let targetEmailForBioData = session.user.email; 
-
-    if (currentUser.settings.pairedWith && currentUser.settings.role === 'partner') {
-      const partner = await User.findOne({ email: currentUser.settings.pairedWith });
-      if (partner && partner.settings.role === 'female') {
-        targetEmailForBioData = partner.email; 
-      }
-    }
-
-    if (targetEmailForBioData !== session.user.email) {
-      const updatePartnerDoc = {};
-      if (data.settings) {
-        if (data.settings.periods) updatePartnerDoc["settings.periods"] = data.settings.periods;
-        if (data.settings.cycleLength) updatePartnerDoc["settings.cycleLength"] = data.settings.cycleLength;
-        if (data.settings.periodLength) updatePartnerDoc["settings.periodLength"] = data.settings.periodLength;
-      }
-      if (data.journal) updatePartnerDoc.journal = data.journal; 
-
-      if (Object.keys(updatePartnerDoc).length > 0) {
-        await User.findOneAndUpdate({ email: targetEmailForBioData }, { $set: updatePartnerDoc });
-      }
-    } else {
-      const updateDoc = {};
-      if (data.settings) updateDoc.settings = data.settings;
-      if (data.journal) updateDoc.journal = data.journal;
-      await User.findOneAndUpdate({ email: session.user.email }, { $set: updateDoc });
-
-      // =========================================================================
-      // CHYTRÁ NOTIFIKACE PRO MUŽE (Když žena ukládá deník)
-      // =========================================================================
-      if (data.journal && currentUser.settings.role === 'female' && currentUser.settings.pairedWith) {
-        const partnerUser = await User.findOne({ email: currentUser.settings.pairedWith });
+      // ==========================================================
+      // 2. KONTROLA DENÍKU (Pokud není žádná priorita výše)
+      // ==========================================================
+      if (!notificationToSend && settings.reminderFrequency === '3days') {
+        let shouldRemind = false;
         
-        if (partnerUser && partnerUser.settings?.pushSubscription && partnerUser.settings?.role === 'partner') {
-          const latestEntry = data.journal[data.journal.length - 1];
-          let tipText = "Zapsala si nové poznámky do deníku. Mrkni do aplikace ❤️";
+        if (journal.length === 0) {
+          shouldRemind = true;
+        } else {
+          // Zjištění dnů od posledního zápisu
+          const sortedJournal = [...journal].sort((a,b) => a.date < b.date ? 1 : -1);
+          const lastEntryDate = new Date(sortedJournal[0].date);
+          const diffTime = Math.abs(now - lastEntryDate);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+          
+          if (diffDays >= 3) shouldRemind = true;
+        }
 
-          if (latestEntry) {
-            if (latestEntry.stress >= 4) {
-              tipText = "⚠️ Dnes má vysoký stres. Dopřej jí klid, nenaléhej a třeba jí uvař čaj nebo pomoz s úklidem.";
-            } else if (latestEntry.mood && latestEntry.mood <= 2) {
-              tipText = "🌧️ Dnes se necítí úplně nejlíp. Zkus k ní být trpělivý a zeptej se, jestli nepotřebuje obejmout.";
-            } else if (latestEntry.mood === 5) {
-              tipText = "☀️ Dnes má skvělou náladu! Vezmi ji někam ven nebo naplánuj něco spontánního.";
-            } else if (latestEntry.symptoms && latestEntry.symptoms.length > 0) {
-              tipText = `💊 Fyzicky jí není nejlépe. Zkus jí nabídnout termofor, masáž nebo jí ulevit od povinností.`;
-            }
-          }
-
-          try {
-            await webpush.sendNotification(
-              partnerUser.settings.pushSubscription,
-              JSON.stringify({
-                title: "Vnitřní počasí 🌤️",
-                body: tipText
-              })
-            );
-          } catch (pushErr) {
-            console.error("Chyba při odesílání push notifikace partnerovi:", pushErr);
-          }
+        if (shouldRemind) {
+          notificationToSend = {
+            title: "Jak se dnes cítíš? 🌸",
+            body: "Nezapomeň si zapsat dnešní náladu a mrknout na denní tip. Zabere to jen vteřinu."
+          };
         }
       }
-      // =========================================================================
+
+      // ==========================================================
+      // 3. ODESLÁNÍ NOTIFIKACE
+      // ==========================================================
+      if (notificationToSend) {
+        try {
+          await webpush.sendNotification(
+            settings.pushSubscription,
+            JSON.stringify(notificationToSend)
+          );
+          sentCount++;
+        } catch (e) {
+          console.error(`Chyba odeslání pro ${user.email}:`, e);
+        }
+      }
     }
 
-    return await GET(req);
-
+    return NextResponse.json({ success: true, sent: sentCount }, { status: 200 });
   } catch (error) {
-    console.error("Chyba při PUT /api/user:", error);
-    return NextResponse.json({ message: "Interní chyba serveru" }, { status: 500 });
+    console.error("Cron chyba:", error);
+    return NextResponse.json({ message: "Chyba na serveru" }, { status: 500 });
   }
 }
