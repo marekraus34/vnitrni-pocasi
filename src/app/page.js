@@ -172,7 +172,6 @@ export default function Home() {
   const [openSection, setOpenSection] = useState(null);
   const [theme, setTheme] = useState("dark"); 
 
-  // --- NOVÉ ONBOARDING STAVY ---
   const [onboardingRole, setOnboardingRole] = useState(null); 
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [pendingSettings, setPendingSettings] = useState(null);
@@ -249,13 +248,21 @@ export default function Home() {
     }
   }, [status, session]);
 
-  const syncData = async (newSettings, newJournal) => {
+  // ====================================================================
+  // OPRAVA: PŘIDÁN PARAMETR 'actionName' PRO IDENTIFIKACI AKCE
+  // ====================================================================
+  const syncData = async (newSettings, newJournal, actionName = null) => {
     setSettings(newSettings);
     if (newJournal) setJournal(newJournal);
+    
+    const payload = { settings: newSettings };
+    if (newJournal) payload.journal = newJournal;
+    if (actionName) payload.action = actionName;
+
     await fetch("/api/user", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ settings: newSettings, journal: newJournal })
+      body: JSON.stringify(payload)
     });
   };
 
@@ -406,12 +413,15 @@ export default function Home() {
     setNewPeriodDate("");
   };
 
+  // ====================================================================
+  // OPRAVA: PŘI ULOŽENÍ DENÍKU ODEŠLEME EXPLICITNÍ ZNAČKU 'save_journal'
+  // ====================================================================
   const handleSaveJournal = (e) => {
     e.preventDefault();
     const dateStr = toIso(selectedDate);
     const entry = { date: dateStr, mood: jMood, sleep: jSleep, stress: jStress, symptoms: jSymptoms, note: jNote };
     const newJournal = [...journal.filter(j => j.date !== dateStr), entry];
-    syncData(settings, newJournal);
+    syncData(settings, newJournal, 'save_journal');
     setJMood(null); setJSleep(null); setJStress(null); setJSymptoms([]); setJNote("");
   };
 
@@ -462,7 +472,7 @@ export default function Home() {
         body: JSON.stringify(subscription)
       });
       if (res.ok) {
-        setSettings({ ...settings, pushSubscription: subscription }); // Okamžitá změna UI
+        setSettings({ ...settings, pushSubscription: subscription }); 
         alert('Úspěch! Notifikace jsou zapnuté 🚀');
       } else {
         alert('Chyba při ukládání odběru na server.');
