@@ -115,18 +115,12 @@ export async function PUT(req) {
       if (partner && partner.settings.role === 'female') targetEmailForBioData = partner.email; 
     }
 
-    // ==========================================
-    // OPRAVENO: LOGIKA UKLÁDÁNÍ DAT
-    // ==========================================
     const updateMyDoc = {};
     const bioKeys = ['periods', 'cycleLength', 'periodLength', 'lutealLength'];
 
     if (data.settings) {
       for (const key in data.settings) {
-        // Pokud jsem muž a sdílím s partnerkou, neukládám si její bio data k sobě do profilu
-        if (targetEmailForBioData !== session.user.email && bioKeys.includes(key)) {
-          continue; 
-        }
+        if (targetEmailForBioData !== session.user.email && bioKeys.includes(key)) continue; 
         updateMyDoc[`settings.${key}`] = data.settings[key];
       }
     }
@@ -139,7 +133,6 @@ export async function PUT(req) {
       await User.findOneAndUpdate({ email: session.user.email }, { $set: updateMyDoc });
     }
 
-    // Ukládání bio parametrů a deníku PRO PARTNERKU (pokud jsem propojený muž)
     if (targetEmailForBioData !== session.user.email) {
       const updatePartnerDoc = {};
       if (data.settings) {
@@ -154,8 +147,10 @@ export async function PUT(req) {
       }
     } 
 
-    // CHYTRÁ NOTIFIKACE PRO MUŽE (Nezměněno, funguje správně)
-    if (data.journal && currentUser.settings.role === 'female' && currentUser.settings.pairedWith) {
+    // ====================================================================
+    // OPRAVA: PŘÍSNÁ PODMÍNKA - ODESLAT JEN PŘI EXPLICITNÍM ULOŽENÍ ZÁPISU
+    // ====================================================================
+    if (data.action === 'save_journal' && data.journal && currentUser.settings.role === 'female' && currentUser.settings.pairedWith) {
       const partnerUser = await User.findOne({ email: currentUser.settings.pairedWith });
       if (partnerUser && partnerUser.settings?.pushSubscription && partnerUser.settings?.role === 'partner') {
         const latestEntry = data.journal[data.journal.length - 1];
