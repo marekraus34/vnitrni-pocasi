@@ -276,7 +276,7 @@ export default function Home() {
       pushSubscription: null
     };
     setPendingSettings(newSettings);
-    setOnboardingStep(3); // Posun na krok notifikací
+    setOnboardingStep(3);
   };
 
   const urlBase64ToUint8Array = (base64String) => {
@@ -314,7 +314,6 @@ export default function Home() {
       }
     }
     
-    // Uložit do databáze a vstoupit do aplikace
     await syncData(finalSettings, journal);
   };
 
@@ -456,17 +455,38 @@ export default function Home() {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
       });
+      
       const res = await fetch("/api/user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subscription)
       });
-      if (res.ok) alert('Úspěch! Notifikace jsou zapnuté 🚀');
-      else alert('Chyba při ukládání odběru na server.');
+      if (res.ok) {
+        setSettings({ ...settings, pushSubscription: subscription }); // Okamžitá změna UI
+        alert('Úspěch! Notifikace jsou zapnuté 🚀');
+      } else {
+        alert('Chyba při ukládání odběru na server.');
+      }
     } catch (error) {
       console.error('Chyba:', error);
       alert('Nastala chyba při aktivaci notifikací: ' + error.message);
     }
+  };
+
+  const handleDisableNotifications = async () => {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+        }
+      } catch (err) {
+        console.error("Chyba při odhlašování z push:", err);
+      }
+    }
+    await syncData({ ...settings, pushSubscription: null }, journal);
+    alert('Notifikace byly úspěšně vypnuty 🔕');
   };
 
   const toggleSection = (sectionId) => {
@@ -1084,9 +1104,16 @@ export default function Home() {
                 {/* 1. Nastavení upozornění */}
                 <h3 className="settings-section-title">Oznámení a soukromí</h3>
                 <div style={{ background: "var(--surface-2)", padding: "20px", borderRadius: "20px", marginBottom: "32px" }}>
-                  <button type="button" onClick={handleEnableNotifications} className="btn-primary" style={{ background: "var(--ink)", color: "var(--bg)", marginBottom: "24px" }}>
-                    🔔 Zapnout push notifikace na telefon
-                  </button>
+                  
+                  {settings.pushSubscription ? (
+                    <button type="button" onClick={handleDisableNotifications} className="btn-primary" style={{ background: "transparent", color: "var(--ink)", border: "1px solid var(--input-border)", marginBottom: "24px" }}>
+                      🔕 Vypnout notifikace na tomto zařízení
+                    </button>
+                  ) : (
+                    <button type="button" onClick={handleEnableNotifications} className="btn-primary" style={{ background: "var(--ink)", color: "var(--bg)", marginBottom: "24px" }}>
+                      🔔 Zapnout push notifikace na telefon
+                    </button>
+                  )}
 
                   <label className="field">
                     <span>Frekvence připomínek zápisu</span>
