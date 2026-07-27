@@ -267,11 +267,16 @@ export default function Home() {
       lutealLength: 14,
       reminderFrequency: '3days',
       periodAlert: true,
+      pmsAlert: true,
+      ovulationAlert: false,
+      partnerEntryAlert: true,
+      partnerPhaseAlert: true,
       discreetMode: false
     };
     syncData(newSettings, journal);
   };
 
+  // Ukládání detailního nastavení
   const handleSystemSave = (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -280,12 +285,22 @@ export default function Home() {
       cycleLength: parseInt(fd.get('cycleLength') || settings.cycleLength),
       periodLength: parseInt(fd.get('periodLength') || settings.periodLength),
       lutealLength: parseInt(fd.get('lutealLength') || settings.lutealLength || 14),
-      reminderFrequency: fd.get('reminderFrequency') || '3days',
-      periodAlert: fd.get('periodAlert') === 'on',
       discreetMode: fd.get('discreetMode') === 'on',
     };
+
+    // V závislosti na roli ukládáme jen jejich příslušné checkbox hodnoty
+    if (settings.role === 'female') {
+      updatedSettings.reminderFrequency = fd.get('reminderFrequency') || '3days';
+      updatedSettings.periodAlert = fd.get('periodAlert') === 'on';
+      updatedSettings.pmsAlert = fd.get('pmsAlert') === 'on';
+      updatedSettings.ovulationAlert = fd.get('ovulationAlert') === 'on';
+    } else {
+      updatedSettings.partnerEntryAlert = fd.get('partnerEntryAlert') === 'on';
+      updatedSettings.partnerPhaseAlert = fd.get('partnerPhaseAlert') === 'on';
+    }
+
     syncData(updatedSettings, journal);
-    alert("Změny uloženy! ✅");
+    alert("Změny úspěšně uloženy! ✅");
   };
 
   const handleGenerateSyncCode = async () => {
@@ -359,19 +374,16 @@ export default function Home() {
     setNewPeriodDate("");
   };
 
-  // Uložení nového zápisu (nebo přepis existujícího pro daný den)
   const handleSaveJournal = (e) => {
     e.preventDefault();
     const dateStr = toIso(selectedDate);
     const entry = { date: dateStr, mood: jMood, sleep: jSleep, stress: jStress, symptoms: jSymptoms, note: jNote };
-    // Vyfiltruje starý záznam pro tento den a přidá tento nový
     const newJournal = [...journal.filter(j => j.date !== dateStr), entry];
     syncData(settings, newJournal);
-    // Vyčištění formuláře po uložení
     setJMood(null); setJSleep(null); setJStress(null); setJSymptoms([]); setJNote("");
   };
 
-  // PŘIDÁNO: Načtení vybraného zápisu zpět do formuláře pro jeho úpravu
+  // Natažení starého záznamu zpět do formuláře pro úpravu
   const handleEditEntry = (entry) => {
     setSelectedDate(new Date(entry.date));
     setJMood(entry.mood || null);
@@ -380,12 +392,8 @@ export default function Home() {
     setJSymptoms(entry.symptoms || []);
     setJNote(entry.note || "");
     
-    // Pokud je sekce deníku zavřená, otevřeme ji
-    if (openSection !== 'journal') {
-      setOpenSection('journal');
-    }
+    if (openSection !== 'journal') setOpenSection('journal');
     
-    // Jemné a plynulé odrolování přímo k formuláři
     setTimeout(() => {
       const el = document.getElementById('journal');
       if (el) {
@@ -476,9 +484,11 @@ export default function Home() {
           html[data-theme="light"] .ios-glass { background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(0,0,0,0.05); }
           .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
           .field span { font-size: 13px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 1px; }
-          input, select { background: rgba(120,120,120,0.1); border: 1px solid rgba(120,120,120,0.2); padding: 14px; border-radius: 16px; color: inherit; font-size: 16px; outline: none; transition: border 0.3s; }
+          input, select, textarea { background: rgba(120,120,120,0.1); border: 1px solid rgba(120,120,120,0.2); padding: 14px; border-radius: 16px; color: inherit; font-size: 16px; outline: none; transition: border 0.3s; }
+          /* OPRAVA BARVY U SELECT OPTION V TMAVÉM REŽIMU */
+          select option { background: var(--bg); color: var(--ink); }
+
           .btn-primary { background: var(--ink); color: var(--bg); padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
-          
           .role-card { background: rgba(120,120,120,0.1); border: 1px solid rgba(120,120,120,0.2); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); margin-bottom: 16px; }
           .role-card:hover { transform: scale(1.02); background: rgba(120,120,120,0.15); border-color: rgba(255,255,255,0.4); }
           .role-icon { font-size: 40px; line-height: 1; }
@@ -677,9 +687,11 @@ export default function Home() {
         ::-webkit-calendar-picker-indicator { cursor: pointer; filter: invert(1); }
         html[data-theme="light"] ::-webkit-calendar-picker-indicator { filter: invert(0); }
 
+        /* OPRAVA SELECT A TEXTAREA */
         input:not(.glass-date-pill), select, textarea { background: var(--input-bg); border: 1px solid var(--input-border); padding: 14px; border-radius: 16px; color: var(--ink); font-size: 16px; outline: none; width: 100%; transition: border 0.3s; box-sizing: border-box; }
         input:focus:not(.glass-date-pill), select:focus, textarea:focus { border-color: var(--ink-dim); }
-        
+        select option { background-color: var(--bg); color: var(--ink); font-size: 16px; }
+
         .pin-input { font-family: var(--font-mono); font-size: 28px !important; letter-spacing: 0.3em; text-align: center; font-weight: bold; text-transform: uppercase; }
         .pin-input::placeholder { font-weight: normal; letter-spacing: 0.1em; opacity: 0.4; }
 
@@ -706,7 +718,7 @@ export default function Home() {
         .forecast-chip.active { background: var(--accent); color: #000; border: none; font-weight: 600; }
         .forecast-chip:hover:not(.active) { background: var(--input-border); }
 
-        .settings-section-title { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-dim); margin-top: 32px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--input-border); }
+        .settings-section-title { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-dim); margin-top: 32px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--input-border); font-weight: 600; }
 
         .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -1010,43 +1022,99 @@ export default function Home() {
               )}
 
               <form onSubmit={handleSystemSave}>
-                {/* 1. Nastavení upozornění */}
                 <h3 className="settings-section-title">Oznámení a soukromí</h3>
                 <div style={{ background: "var(--surface-2)", padding: "20px", borderRadius: "20px", marginBottom: "32px" }}>
                   <button type="button" onClick={handleEnableNotifications} className="btn-primary" style={{ background: "var(--ink)", color: "var(--bg)", marginBottom: "24px" }}>
                     🔔 Zapnout push notifikace na telefon
                   </button>
 
-                  <label className="field">
-                    <span>Frekvence připomínek zápisu</span>
-                    <select name="reminderFrequency" defaultValue={settings.reminderFrequency || '3days'}>
-                      <option value="daily">Každý den (19:00)</option>
-                      <option value="3days">Každé 3 dny (doporučeno)</option>
-                      <option value="never">Neposílat vůbec</option>
-                    </select>
-                  </label>
+                  {/* Nastavení pro ŽENU */}
+                  {settings.role === 'female' && (
+                    <>
+                      <label className="field" style={{ marginBottom: "24px" }}>
+                        <span>Frekvence připomínek zápisu</span>
+                        <select name="reminderFrequency" defaultValue={settings.reminderFrequency || '3days'}>
+                          <option value="daily">Každý den (19:00)</option>
+                          <option value="3days">Každé 3 dny (doporučeno)</option>
+                          <option value="never">Neposílat vůbec</option>
+                        </select>
+                      </label>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "24px" }}>
-                    <span style={{ fontSize: "15px", color: "var(--ink)" }}>Upozornit 2 dny před MS</span>
-                    <label className="toggle-switch">
-                      <input type="checkbox" name="periodAlert" defaultChecked={settings.periodAlert !== false} />
-                      <span className="slider"></span>
-                    </label>
-                  </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "16px", borderBottom: "1px solid var(--surface-2)" }}>
+                        <div style={{ paddingRight: "16px" }}>
+                          <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Blížící se menstruace</span>
+                          <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Upozorní tě 2 dny předem</span>
+                        </div>
+                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
+                          <input type="checkbox" name="periodAlert" defaultChecked={settings.periodAlert !== false} />
+                          <span className="slider"></span>
+                        </label>
+                      </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}>
-                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--surface-2)" }}>
+                        <div style={{ paddingRight: "16px" }}>
+                          <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Upozornění na PMS</span>
+                          <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Dá vědět o blížícím se poklesu energie</span>
+                        </div>
+                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
+                          <input type="checkbox" name="pmsAlert" defaultChecked={settings.pmsAlert !== false} />
+                          <span className="slider"></span>
+                        </label>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--surface-2)" }}>
+                        <div style={{ paddingRight: "16px" }}>
+                          <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Upozornění na ovulaci</span>
+                          <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Ohlásí vrchol energie a plodnosti</span>
+                        </div>
+                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
+                          <input type="checkbox" name="ovulationAlert" defaultChecked={settings.ovulationAlert === true} />
+                          <span className="slider"></span>
+                        </label>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Nastavení pro MUŽE */}
+                  {settings.role === 'partner' && (
+                    <>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "16px", borderBottom: "1px solid var(--surface-2)" }}>
+                        <div style={{ paddingRight: "16px" }}>
+                          <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Nové poznámky</span>
+                          <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Upozorní, když si partnerka uloží zápis</span>
+                        </div>
+                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
+                          <input type="checkbox" name="partnerEntryAlert" defaultChecked={settings.partnerEntryAlert !== false} />
+                          <span className="slider"></span>
+                        </label>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--surface-2)" }}>
+                        <div style={{ paddingRight: "16px" }}>
+                          <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Změna fáze cyklu</span>
+                          <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Dá vědět, že začalo nové období</span>
+                        </div>
+                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
+                          <input type="checkbox" name="partnerPhaseAlert" defaultChecked={settings.partnerPhaseAlert !== false} />
+                          <span className="slider"></span>
+                        </label>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Společné */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "16px" }}>
+                    <div style={{ paddingRight: "16px" }}>
                       <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Diskrétní režim</span>
-                      <span style={{ fontSize: "12px", color: "var(--ink-dim)" }}>Skryje popisky textů na obrazovce</span>
+                      <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Skryje popisky textů na obrazovce</span>
                     </div>
-                    <label className="toggle-switch">
+                    <label className="toggle-switch" style={{ flexShrink: 0 }}>
                       <input type="checkbox" name="discreetMode" defaultChecked={settings.discreetMode === true} />
                       <span className="slider"></span>
                     </label>
                   </div>
                 </div>
 
-                {/* 2. Parametry cyklu */}
                 <h3 className="settings-section-title">Parametry cyklu</h3>
                 <div style={{ background: "var(--surface-2)", padding: "20px", borderRadius: "20px", marginBottom: "32px" }}>
                   <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "16px" }}>
@@ -1062,7 +1130,7 @@ export default function Home() {
                 <button type="submit" className="btn-primary" style={{ padding: "16px", fontSize: "16px" }}>{t('settings_submit')}</button>
               </form>
 
-              {/* 3. Správa dat */}
+              {/* Správa dat */}
               <h3 className="settings-section-title" style={{ marginTop: "40px" }}>Správa kalendáře</h3>
               <form onSubmit={handleAddPeriod} style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
                 <input type="date" value={newPeriodDate} onChange={e => setNewPeriodDate(e.target.value)} required style={{ flex: "1 1 200px" }} />
