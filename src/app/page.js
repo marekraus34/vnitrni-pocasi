@@ -172,7 +172,10 @@ export default function Home() {
   const [openSection, setOpenSection] = useState(null);
   const [theme, setTheme] = useState("dark"); 
 
+  // --- NOVÉ ONBOARDING STAVY ---
   const [onboardingRole, setOnboardingRole] = useState(null); 
+  const [onboardingStep, setOnboardingStep] = useState(1);
+  const [pendingSettings, setPendingSettings] = useState(null);
 
   const [pairCodeInput, setPairCodeInput] = useState("");
   const [pairError, setPairError] = useState("");
@@ -256,7 +259,7 @@ export default function Home() {
     });
   };
 
-  const handleOnboarding = (e) => {
+  const handleOnboardingForm = (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
     const newSettings = {
@@ -267,16 +270,54 @@ export default function Home() {
       lutealLength: 14,
       reminderFrequency: '3days',
       periodAlert: true,
-      pmsAlert: true,
-      ovulationAlert: false,
-      partnerEntryAlert: true,
-      partnerPhaseAlert: true,
-      discreetMode: false
+      phaseAlert: true,
+      ovulationAlert: true,
+      discreetMode: false,
+      pushSubscription: null
     };
-    syncData(newSettings, journal);
+    setPendingSettings(newSettings);
+    setOnboardingStep(3); // Posun na krok notifikací
   };
 
-  // Ukládání detailního nastavení
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  const finalizeOnboarding = async (wantsPush) => {
+    let finalSettings = { ...pendingSettings };
+    
+    if (wantsPush) {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert('Tento prohlížeč nepodporuje push notifikace.');
+      } else {
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+            const registration = await navigator.serviceWorker.ready;
+            const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+            const subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+            });
+            finalSettings.pushSubscription = subscription;
+          }
+        } catch (err) {
+          console.error('Chyba při žádosti o push během onboardingu:', err);
+        }
+      }
+    }
+    
+    // Uložit do databáze a vstoupit do aplikace
+    await syncData(finalSettings, journal);
+  };
+
   const handleSystemSave = (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -285,22 +326,14 @@ export default function Home() {
       cycleLength: parseInt(fd.get('cycleLength') || settings.cycleLength),
       periodLength: parseInt(fd.get('periodLength') || settings.periodLength),
       lutealLength: parseInt(fd.get('lutealLength') || settings.lutealLength || 14),
+      reminderFrequency: fd.get('reminderFrequency') || '3days',
+      periodAlert: fd.get('periodAlert') === 'on',
+      phaseAlert: fd.get('phaseAlert') === 'on',
+      ovulationAlert: fd.get('ovulationAlert') === 'on',
       discreetMode: fd.get('discreetMode') === 'on',
     };
-
-    // V závislosti na roli ukládáme jen jejich příslušné checkbox hodnoty
-    if (settings.role === 'female') {
-      updatedSettings.reminderFrequency = fd.get('reminderFrequency') || '3days';
-      updatedSettings.periodAlert = fd.get('periodAlert') === 'on';
-      updatedSettings.pmsAlert = fd.get('pmsAlert') === 'on';
-      updatedSettings.ovulationAlert = fd.get('ovulationAlert') === 'on';
-    } else {
-      updatedSettings.partnerEntryAlert = fd.get('partnerEntryAlert') === 'on';
-      updatedSettings.partnerPhaseAlert = fd.get('partnerPhaseAlert') === 'on';
-    }
-
     syncData(updatedSettings, journal);
-    alert("Změny úspěšně uloženy! ✅");
+    alert("Změny uloženy! ✅");
   };
 
   const handleGenerateSyncCode = async () => {
@@ -383,7 +416,6 @@ export default function Home() {
     setJMood(null); setJSleep(null); setJStress(null); setJSymptoms([]); setJNote("");
   };
 
-  // Natažení starého záznamu zpět do formuláře pro úpravu
   const handleEditEntry = (entry) => {
     setSelectedDate(new Date(entry.date));
     setJMood(entry.mood || null);
@@ -401,17 +433,6 @@ export default function Home() {
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
     }, 100);
-  };
-
-  const urlBase64ToUint8Array = (base64String) => {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
   };
 
   const handleEnableNotifications = async () => {
@@ -468,6 +489,9 @@ export default function Home() {
   if (loading) return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink)", background: "var(--bg)" }}>Načítám data...</div>;
   if (!session) return null;
 
+  // =========================================================================
+  // ONBOARDING (Krok 1, 2, 3)
+  // =========================================================================
   if (!settings || !settings.periods || settings.periods.length === 0) {
     return (
       <div className="app-wrapper">
@@ -484,42 +508,46 @@ export default function Home() {
           html[data-theme="light"] .ios-glass { background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(0,0,0,0.05); }
           .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
           .field span { font-size: 13px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 1px; }
-          input, select, textarea { background: rgba(120,120,120,0.1); border: 1px solid rgba(120,120,120,0.2); padding: 14px; border-radius: 16px; color: inherit; font-size: 16px; outline: none; transition: border 0.3s; }
-          /* OPRAVA BARVY U SELECT OPTION V TMAVÉM REŽIMU */
-          select option { background: var(--bg); color: var(--ink); }
-
+          input, select { background: rgba(120,120,120,0.1); border: 1px solid rgba(120,120,120,0.2); padding: 14px; border-radius: 16px; color: inherit; font-size: 16px; outline: none; transition: border 0.3s; }
           .btn-primary { background: var(--ink); color: var(--bg); padding: 16px; border-radius: 99px; font-weight: 600; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: transform 0.2s; }
+          
           .role-card { background: rgba(120,120,120,0.1); border: 1px solid rgba(120,120,120,0.2); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); margin-bottom: 16px; }
           .role-card:hover { transform: scale(1.02); background: rgba(120,120,120,0.15); border-color: rgba(255,255,255,0.4); }
           .role-icon { font-size: 40px; line-height: 1; }
           .role-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; }
           .role-desc { font-size: 14px; color: var(--ink-dim); line-height: 1.4; }
           .btn-back { background: none; border: none; color: var(--ink-dim); font-size: 14px; padding: 0; cursor: pointer; text-decoration: underline; margin-bottom: 24px; display: inline-block; }
+          select option { background-color: var(--bg); color: var(--ink); }
         `}} />
 
         <div className="ios-glass">
-          {!onboardingRole ? (
+          
+          {/* KROK 1: VÝBĚR ROLE */}
+          {onboardingStep === 1 && !onboardingRole && (
             <>
               <h2 style={{ fontSize: "28px", marginBottom: "8px", fontFamily: "var(--font-display)" }}>Vítej uvnitř</h2>
               <p style={{ color: "var(--ink-dim)", marginBottom: "32px", fontSize: "15px", lineHeight: 1.5 }}>
                 Aby se ti radar dokonale přizpůsobil, řekni nám, jak ho chceš používat.
               </p>
 
-              <div className="role-card" onClick={() => setOnboardingRole('female')}>
+              <div className="role-card" onClick={() => { setOnboardingRole('female'); setOnboardingStep(2); }}>
                 <div className="role-icon">👩‍🦰</div>
                 <div className="role-title">Žena</div>
                 <div className="role-desc">Chci sledovat svůj vlastní cyklus, zapisovat si nálady a lépe rozumět svému tělu.</div>
               </div>
 
-              <div className="role-card" onClick={() => setOnboardingRole('partner')}>
+              <div className="role-card" onClick={() => { setOnboardingRole('partner'); setOnboardingStep(2); }}>
                 <div className="role-icon">👨‍🦱</div>
                 <div className="role-title">Muž</div>
                 <div className="role-desc">Chci sledovat cyklus své partnerky a vědět, jak jí daný den můžu nejlépe podpořit.</div>
               </div>
             </>
-          ) : (
+          )}
+
+          {/* KROK 2: DATA CYKLU */}
+          {onboardingStep === 2 && (
             <>
-              <button className="btn-back" onClick={() => setOnboardingRole(null)}>‹ Zpět na výběr</button>
+              <button className="btn-back" onClick={() => { setOnboardingRole(null); setOnboardingStep(1); }}>‹ Zpět na výběr</button>
               <h2 style={{ fontSize: "28px", marginBottom: "8px", fontFamily: "var(--font-display)" }}>
                 {onboardingRole === 'female' ? "Tvé údaje" : "Její údaje"}
               </h2>
@@ -529,7 +557,7 @@ export default function Home() {
                   : "Vyplň její základní parametry, aby ti radar mohl radit co nejpřesněji."}
               </p>
               
-              <form onSubmit={handleOnboarding}>
+              <form onSubmit={handleOnboardingForm}>
                 <label className="field">
                   <span>{onboardingRole === 'female' ? t('ob_start_label_female') : t('ob_start_label_partner')}</span>
                   <input type="date" name="start" required />
@@ -538,15 +566,42 @@ export default function Home() {
                   <label className="field" style={{ flex: "1 1 120px" }}><span>{t('ob_cycle_label')}</span><input type="number" name="cycle" defaultValue="28" required /></label>
                   <label className="field" style={{ flex: "1 1 120px" }}><span>{t('ob_period_label')}</span><input type="number" name="period" defaultValue="5" required /></label>
                 </div>
-                <button type="submit" className="btn-primary" style={{ marginTop: "16px" }}>Vstoupit do aplikace</button>
+                <button type="submit" className="btn-primary" style={{ marginTop: "16px" }}>Pokračovat</button>
               </form>
             </>
           )}
+
+          {/* KROK 3: NOTIFIKACE */}
+          {onboardingStep === 3 && (
+            <>
+              <div style={{ textAlign: "center" }}>
+                <span style={{ fontSize: "48px", display: "block", marginBottom: "16px" }}>🔔</span>
+                <h2 style={{ fontSize: "28px", marginBottom: "16px", fontFamily: "var(--font-display)" }}>Ještě jeden krok</h2>
+                <p style={{ color: "var(--ink-dim)", marginBottom: "32px", fontSize: "15px", lineHeight: 1.6 }}>
+                  {onboardingRole === 'female' 
+                    ? "Abys nepřišla o upozornění na blížící se fáze a připomínky zápisu, povol aplikaci zasílat upozornění." 
+                    : "Aby tě radar mohl diskrétně upozornit přesně ve chvíli, kdy partnerka něco zapíše do deníku, povol mu zasílat upozornění."}
+                </p>
+                
+                <button type="button" onClick={() => finalizeOnboarding(true)} className="btn-primary" style={{ background: "var(--summer)", color: "#000", marginBottom: "16px" }}>
+                  Zapnout upozornění
+                </button>
+                <br />
+                <button type="button" onClick={() => finalizeOnboarding(false)} style={{ background: "none", border: "none", color: "var(--ink-dim)", fontSize: "14px", textDecoration: "underline", cursor: "pointer", padding: "8px" }}>
+                  Možná později (Přeskočit)
+                </button>
+              </div>
+            </>
+          )}
+
         </div>
       </div>
     );
   }
 
+  // =========================================================================
+  // HLAVNÍ APLIKACE (Běžný provoz)
+  // =========================================================================
   const currentRole = settings.role || 'female';
   const ranges = getPhaseDayRanges(settings.cycleLength, settings.periodLength, settings.lutealLength);
   const currentDay = getCycleDay(selectedDate, settings.periods, settings.cycleLength);
@@ -687,10 +742,14 @@ export default function Home() {
         ::-webkit-calendar-picker-indicator { cursor: pointer; filter: invert(1); }
         html[data-theme="light"] ::-webkit-calendar-picker-indicator { filter: invert(0); }
 
-        /* OPRAVA SELECT A TEXTAREA */
         input:not(.glass-date-pill), select, textarea { background: var(--input-bg); border: 1px solid var(--input-border); padding: 14px; border-radius: 16px; color: var(--ink); font-size: 16px; outline: none; width: 100%; transition: border 0.3s; box-sizing: border-box; }
         input:focus:not(.glass-date-pill), select:focus, textarea:focus { border-color: var(--ink-dim); }
-        select option { background-color: var(--bg); color: var(--ink); font-size: 16px; }
+        
+        /* FIX PRO VYBÍRACÍ MENU - Obarvení option tagů pro čitelnost */
+        select option {
+          background-color: var(--bg);
+          color: var(--ink);
+        }
 
         .pin-input { font-family: var(--font-mono); font-size: 28px !important; letter-spacing: 0.3em; text-align: center; font-weight: bold; text-transform: uppercase; }
         .pin-input::placeholder { font-weight: normal; letter-spacing: 0.1em; opacity: 0.4; }
@@ -718,7 +777,7 @@ export default function Home() {
         .forecast-chip.active { background: var(--accent); color: #000; border: none; font-weight: 600; }
         .forecast-chip:hover:not(.active) { background: var(--input-border); }
 
-        .settings-section-title { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-dim); margin-top: 32px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--input-border); font-weight: 600; }
+        .settings-section-title { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-dim); margin-top: 32px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--input-border); }
 
         .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -957,7 +1016,7 @@ export default function Home() {
                           e.stopPropagation(); 
                           syncData(settings, journal.filter(x => x.date !== j.date)); 
                         }} 
-                        style={{ background: "none", border: "none", color: "var(--ink-dim)", fontSize: "20px", cursor: "pointer" }}
+                        style={{ background: "none", border: "none", color: "var(--ink-dim)", fontSize: "20px", cursor: "pointer", padding: "0 8px" }}
                       >
                         ×
                       </button>
@@ -1022,99 +1081,65 @@ export default function Home() {
               )}
 
               <form onSubmit={handleSystemSave}>
+                {/* 1. Nastavení upozornění */}
                 <h3 className="settings-section-title">Oznámení a soukromí</h3>
                 <div style={{ background: "var(--surface-2)", padding: "20px", borderRadius: "20px", marginBottom: "32px" }}>
                   <button type="button" onClick={handleEnableNotifications} className="btn-primary" style={{ background: "var(--ink)", color: "var(--bg)", marginBottom: "24px" }}>
                     🔔 Zapnout push notifikace na telefon
                   </button>
 
-                  {/* Nastavení pro ŽENU */}
-                  {settings.role === 'female' && (
-                    <>
-                      <label className="field" style={{ marginBottom: "24px" }}>
-                        <span>Frekvence připomínek zápisu</span>
-                        <select name="reminderFrequency" defaultValue={settings.reminderFrequency || '3days'}>
-                          <option value="daily">Každý den (19:00)</option>
-                          <option value="3days">Každé 3 dny (doporučeno)</option>
-                          <option value="never">Neposílat vůbec</option>
-                        </select>
-                      </label>
+                  <label className="field">
+                    <span>Frekvence připomínek zápisu</span>
+                    <select name="reminderFrequency" defaultValue={settings.reminderFrequency || '3days'}>
+                      <option value="daily">Každý den (19:00)</option>
+                      <option value="3days">Každé 3 dny (doporučeno)</option>
+                      <option value="never">Neposílat vůbec</option>
+                    </select>
+                  </label>
 
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "16px", borderBottom: "1px solid var(--surface-2)" }}>
-                        <div style={{ paddingRight: "16px" }}>
-                          <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Blížící se menstruace</span>
-                          <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Upozorní tě 2 dny předem</span>
-                        </div>
-                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
-                          <input type="checkbox" name="periodAlert" defaultChecked={settings.periodAlert !== false} />
-                          <span className="slider"></span>
-                        </label>
-                      </div>
-
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--surface-2)" }}>
-                        <div style={{ paddingRight: "16px" }}>
-                          <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Upozornění na PMS</span>
-                          <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Dá vědět o blížícím se poklesu energie</span>
-                        </div>
-                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
-                          <input type="checkbox" name="pmsAlert" defaultChecked={settings.pmsAlert !== false} />
-                          <span className="slider"></span>
-                        </label>
-                      </div>
-
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--surface-2)" }}>
-                        <div style={{ paddingRight: "16px" }}>
-                          <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Upozornění na ovulaci</span>
-                          <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Ohlásí vrchol energie a plodnosti</span>
-                        </div>
-                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
-                          <input type="checkbox" name="ovulationAlert" defaultChecked={settings.ovulationAlert === true} />
-                          <span className="slider"></span>
-                        </label>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Nastavení pro MUŽE */}
-                  {settings.role === 'partner' && (
-                    <>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "16px", borderBottom: "1px solid var(--surface-2)" }}>
-                        <div style={{ paddingRight: "16px" }}>
-                          <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Nové poznámky</span>
-                          <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Upozorní, když si partnerka uloží zápis</span>
-                        </div>
-                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
-                          <input type="checkbox" name="partnerEntryAlert" defaultChecked={settings.partnerEntryAlert !== false} />
-                          <span className="slider"></span>
-                        </label>
-                      </div>
-
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 0", borderBottom: "1px solid var(--surface-2)" }}>
-                        <div style={{ paddingRight: "16px" }}>
-                          <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Změna fáze cyklu</span>
-                          <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Dá vědět, že začalo nové období</span>
-                        </div>
-                        <label className="toggle-switch" style={{ flexShrink: 0 }}>
-                          <input type="checkbox" name="partnerPhaseAlert" defaultChecked={settings.partnerPhaseAlert !== false} />
-                          <span className="slider"></span>
-                        </label>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Společné */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "16px" }}>
-                    <div style={{ paddingRight: "16px" }}>
-                      <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Diskrétní režim</span>
-                      <span style={{ fontSize: "12px", color: "var(--ink-dim)", marginTop: "4px", display: "block" }}>Skryje popisky textů na obrazovce</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "24px" }}>
+                    <span style={{ fontSize: "15px", color: "var(--ink)" }}>Upozornit 2 dny před MS</span>
+                    <label className="toggle-switch">
+                      <input type="checkbox" name="periodAlert" defaultChecked={settings.periodAlert !== false} />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                  
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}>
+                    <div>
+                      <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Upozornění na změnu fáze</span>
+                      <span style={{ fontSize: "12px", color: "var(--ink-dim)" }}>Jaro, Léto, Podzim, Zima</span>
                     </div>
-                    <label className="toggle-switch" style={{ flexShrink: 0 }}>
+                    <label className="toggle-switch">
+                      <input type="checkbox" name="phaseAlert" defaultChecked={settings.phaseAlert !== false} />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                  
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}>
+                    <div>
+                      <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Upozornit na plodné dny</span>
+                      <span style={{ fontSize: "12px", color: "var(--ink-dim)" }}>Blížící se ovulace (Léto)</span>
+                    </div>
+                    <label className="toggle-switch">
+                      <input type="checkbox" name="ovulationAlert" defaultChecked={settings.ovulationAlert !== false} />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", borderTop: "1px solid var(--input-border)", paddingTop: "20px" }}>
+                    <div>
+                      <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Diskrétní režim</span>
+                      <span style={{ fontSize: "12px", color: "var(--ink-dim)" }}>Skryje popisky textů na obrazovce</span>
+                    </div>
+                    <label className="toggle-switch">
                       <input type="checkbox" name="discreetMode" defaultChecked={settings.discreetMode === true} />
                       <span className="slider"></span>
                     </label>
                   </div>
                 </div>
 
+                {/* 2. Parametry cyklu */}
                 <h3 className="settings-section-title">Parametry cyklu</h3>
                 <div style={{ background: "var(--surface-2)", padding: "20px", borderRadius: "20px", marginBottom: "32px" }}>
                   <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "16px" }}>
@@ -1130,7 +1155,7 @@ export default function Home() {
                 <button type="submit" className="btn-primary" style={{ padding: "16px", fontSize: "16px" }}>{t('settings_submit')}</button>
               </form>
 
-              {/* Správa dat */}
+              {/* 3. Správa dat */}
               <h3 className="settings-section-title" style={{ marginTop: "40px" }}>Správa kalendáře</h3>
               <form onSubmit={handleAddPeriod} style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
                 <input type="date" value={newPeriodDate} onChange={e => setNewPeriodDate(e.target.value)} required style={{ flex: "1 1 200px" }} />
