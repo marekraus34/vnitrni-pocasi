@@ -25,7 +25,7 @@ const I18N = {
     j_rating_legend: 'Nálada (1-5)', j_sleep_legend: 'Spánek (1=špatný, 5=skvělý)', j_stress_legend: 'Stres (1=klid, 5=max)',
     j_symptoms_legend: 'Příznaky', j_note_label: 'Poznámka', journal_submit: 'Uložit zápis',
     history_summary: 'Historie cyklu', history_add_btn: 'Přidat', settings_summary: 'Systém & Účet',
-    set_cycle_label: 'Délka cyklu (dny)', set_period_label: 'Menstruace (dny)', settings_submit: 'Uložit změny',
+    set_cycle_label: 'Délka cyklu (dny)', set_period_label: 'Menstruace (dny)', set_luteal_label: 'Luteální fáze (dny)', settings_submit: 'Uložit nastavení',
     pill_warning: 'Při hormonální antikoncepci jsou přirozené hormonální výkyvy potlačeny. Fáze berte spíše jako orientační.',
     dow_short: ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'],
     symptoms: { cramps: 'Křeče', headache: 'Bolest hlavy', bloating: 'Nadýmání', fatigue: 'Únava', irritability: 'Podrážděnost', anxiety: 'Úzkost', sugar_cravings: 'Chuť na sladké' },
@@ -128,9 +128,9 @@ const I18N = {
 const toIso = (d) => d.toISOString().split('T')[0];
 const formatDate = (d) => `${d.getDate()}. ${d.getMonth() + 1}. ${d.getFullYear()}`;
 
-function getPhaseDayRanges(cycleLength, periodLength) {
+function getPhaseDayRanges(cycleLength, periodLength, lutealLength = 14) {
   const pl = Math.min(periodLength, cycleLength - 3);
-  const lutealLen = (cycleLength < 22) ? Math.floor(cycleLength / 2) : 14;
+  const lutealLen = (cycleLength < 22) ? Math.floor(cycleLength / 2) : lutealLength;
   const lutealStart = cycleLength - lutealLen + 1;
   const ovulatoryStart = lutealStart - 4;
   return {
@@ -188,7 +188,6 @@ export default function Home() {
 
   const t = (key) => I18N[lang][key];
 
-  // Registrace Service Workeru pro PWA a push notifikace
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
@@ -265,9 +264,10 @@ export default function Home() {
       periods: [fd.get('start')],
       cycleLength: parseInt(fd.get('cycle')),
       periodLength: parseInt(fd.get('period')),
-      age: fd.get('age') || null,
-      activity: fd.get('activity') || 'light',
-      contraception: fd.get('pill') === 'on'
+      lutealLength: 14,
+      reminderFrequency: '3days',
+      periodAlert: true,
+      discreetMode: false
     };
     syncData(newSettings, journal);
   };
@@ -275,11 +275,17 @@ export default function Home() {
   const handleSystemSave = (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
-    syncData({
+    const updatedSettings = {
       ...settings,
-      cycleLength: parseInt(fd.get('cycleLength')),
-      periodLength: parseInt(fd.get('periodLength'))
-    }, journal);
+      cycleLength: parseInt(fd.get('cycleLength') || settings.cycleLength),
+      periodLength: parseInt(fd.get('periodLength') || settings.periodLength),
+      lutealLength: parseInt(fd.get('lutealLength') || settings.lutealLength || 14),
+      reminderFrequency: fd.get('reminderFrequency') || '3days',
+      periodAlert: fd.get('periodAlert') === 'on',
+      discreetMode: fd.get('discreetMode') === 'on',
+    };
+    syncData(updatedSettings, journal);
+    alert("Změny uloženy! ✅");
   };
 
   const handleGenerateSyncCode = async () => {
@@ -353,13 +359,40 @@ export default function Home() {
     setNewPeriodDate("");
   };
 
+  // Uložení nového zápisu (nebo přepis existujícího pro daný den)
   const handleSaveJournal = (e) => {
     e.preventDefault();
     const dateStr = toIso(selectedDate);
     const entry = { date: dateStr, mood: jMood, sleep: jSleep, stress: jStress, symptoms: jSymptoms, note: jNote };
+    // Vyfiltruje starý záznam pro tento den a přidá tento nový
     const newJournal = [...journal.filter(j => j.date !== dateStr), entry];
     syncData(settings, newJournal);
+    // Vyčištění formuláře po uložení
     setJMood(null); setJSleep(null); setJStress(null); setJSymptoms([]); setJNote("");
+  };
+
+  // PŘIDÁNO: Načtení vybraného zápisu zpět do formuláře pro jeho úpravu
+  const handleEditEntry = (entry) => {
+    setSelectedDate(new Date(entry.date));
+    setJMood(entry.mood || null);
+    setJSleep(entry.sleep || null);
+    setJStress(entry.stress || null);
+    setJSymptoms(entry.symptoms || []);
+    setJNote(entry.note || "");
+    
+    // Pokud je sekce deníku zavřená, otevřeme ji
+    if (openSection !== 'journal') {
+      setOpenSection('journal');
+    }
+    
+    // Jemné a plynulé odrolování přímo k formuláři
+    setTimeout(() => {
+      const el = document.getElementById('journal');
+      if (el) {
+        const y = el.getBoundingClientRect().top + window.scrollY - 90;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   const urlBase64ToUint8Array = (base64String) => {
@@ -378,38 +411,29 @@ export default function Home() {
       alert('Tento prohlížeč nepodporuje push notifikace.');
       return;
     }
-
     try {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
         alert('Povolení k notifikacím bylo zamítnuto.');
         return;
       }
-
       const registration = await navigator.serviceWorker.ready;
-      
       const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!publicVapidKey) {
         alert('Chybí veřejný VAPID klíč na serveru.');
         return;
       }
-
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
       });
-
       const res = await fetch("/api/user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subscription)
       });
-
-      if (res.ok) {
-        alert('Úspěch! Notifikace jsou zapnuté 🚀');
-      } else {
-        alert('Chyba při ukládání odběru na server.');
-      }
+      if (res.ok) alert('Úspěch! Notifikace jsou zapnuté 🚀');
+      else alert('Chyba při ukládání odběru na server.');
     } catch (error) {
       console.error('Chyba:', error);
       alert('Nastala chyba při aktivaci notifikací: ' + error.message);
@@ -514,7 +538,7 @@ export default function Home() {
   }
 
   const currentRole = settings.role || 'female';
-  const ranges = getPhaseDayRanges(settings.cycleLength, settings.periodLength);
+  const ranges = getPhaseDayRanges(settings.cycleLength, settings.periodLength, settings.lutealLength);
   const currentDay = getCycleDay(selectedDate, settings.periods, settings.cycleLength);
   const phaseKey = getPhaseKey(currentDay, ranges);
   
@@ -682,6 +706,15 @@ export default function Home() {
         .forecast-chip.active { background: var(--accent); color: #000; border: none; font-weight: 600; }
         .forecast-chip:hover:not(.active) { background: var(--input-border); }
 
+        .settings-section-title { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-dim); margin-top: 32px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--input-border); }
+
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--input-bg); transition: .4s; border-radius: 34px; border: 1px solid var(--input-border); }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: var(--ink); transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--summer); border-color: var(--summer); }
+        input:checked + .slider:before { transform: translateX(22px); background-color: #000; }
+
         @media (max-width: 600px) {
           :root { --card-pad: 24px; }
           .glass-nav { padding: 0 12px; }
@@ -771,6 +804,7 @@ export default function Home() {
 
       <div className="main-container">
 
+        {/* RADAR */}
         <section id="top-radar" className="ios-glass" style={{ textAlign: "center", padding: "40px 20px" }}>
           <div className="liquid-glow" style={{ width: "250px", height: "250px", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: `var(${PHASE_ACCENTS[phaseKey]})` }}></div>
           <div style={{ position: "relative", zIndex: 2 }}>
@@ -796,12 +830,17 @@ export default function Home() {
           </div>
         </section>
 
+        {/* AKTUALNÍ FÁZE */}
         <section className="ios-glass">
           <div className="glass-content">
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", marginBottom: "8px" }}>{phaseGeneral.name}</h2>
-            <p style={{ fontSize: "16px", color: "var(--ink)", opacity: 0.8, lineHeight: 1.6, marginBottom: "24px" }}>
-              {roleSpecificData.mood}
-            </p>
+            
+            {/* Diskrétní mód */}
+            {(!settings.discreetMode || currentRole === 'partner') && (
+              <p style={{ fontSize: "16px", color: "var(--ink)", opacity: 0.8, lineHeight: 1.6, marginBottom: "24px" }}>
+                {roleSpecificData.mood}
+              </p>
+            )}
             
             <div style={{ background: "var(--surface-2)", borderRadius: "20px", padding: "20px", marginBottom: "24px", border: "1px solid var(--input-border)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "14px" }}>
@@ -819,12 +858,15 @@ export default function Home() {
               {roleSpecificData.dos.map((tip, i) => <li key={`dos-${i}`} style={{ background: "var(--surface-2)", padding: "12px 16px", borderRadius: "12px", fontSize: "15px" }}>{tip}</li>)}
             </ul>
 
-            <div style={{ background: "rgba(226,146,156,0.1)", border: "1px solid rgba(226,146,156,0.2)", padding: "16px", borderRadius: "16px", color: "var(--ink)", fontSize: "15px" }}>
-              <strong style={{ color: "var(--winter)" }}>{roleSpecificData.avoid_label}</strong> {roleSpecificData.avoid}
-            </div>
+            {(!settings.discreetMode || currentRole === 'partner') && (
+              <div style={{ background: "rgba(226,146,156,0.1)", border: "1px solid rgba(226,146,156,0.2)", padding: "16px", borderRadius: "16px", color: "var(--ink)", fontSize: "15px" }}>
+                <strong style={{ color: "var(--winter)" }}>{roleSpecificData.avoid_label}</strong> {roleSpecificData.avoid}
+              </div>
+            )}
           </div>
         </section>
 
+        {/* PŘEDPOVĚĎ */}
         <section className="ios-glass">
           <div className="glass-content">
             <h3 style={{ fontSize: "18px", marginBottom: "20px" }}>{t('forecast_heading')}</h3>
@@ -845,6 +887,7 @@ export default function Home() {
           </div>
         </section>
 
+        {/* DENÍK */}
         <section id="journal" className="ios-glass accordion-wrapper">
           <div className="accordion-header" onClick={() => toggleSection('journal')}>
             <div className="accordion-title">
@@ -887,16 +930,34 @@ export default function Home() {
 
               <div style={{ marginTop: "32px", display: "flex", flexDirection: "column", gap: "12px" }}>
                 {[...journal].sort((a,b) => a.date < b.date ? 1 : -1).map(j => (
-                  <div key={j.date} style={{ background: "var(--surface-2)", padding: "16px", borderRadius: "16px", border: "1px solid var(--input-border)" }}>
+                  <div 
+                    key={j.date} 
+                    onClick={() => handleEditEntry(j)}
+                    style={{ background: "var(--surface-2)", padding: "16px", borderRadius: "16px", border: "1px solid var(--input-border)", cursor: "pointer", transition: "transform 0.2s" }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'} 
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                  >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                       <span style={{ fontWeight: 600 }}>{formatDate(new Date(j.date))}</span>
-                      <button type="button" onClick={() => syncData(settings, journal.filter(x => x.date !== j.date))} style={{ background: "none", border: "none", color: "var(--ink-dim)", fontSize: "20px", cursor: "pointer" }}>×</button>
+                      <button 
+                        type="button" 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          syncData(settings, journal.filter(x => x.date !== j.date)); 
+                        }} 
+                        style={{ background: "none", border: "none", color: "var(--ink-dim)", fontSize: "20px", cursor: "pointer" }}
+                      >
+                        ×
+                      </button>
                     </div>
                     <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                       {j.mood && <span style={{ fontSize: "12px", background: "var(--input-bg)", border: "1px solid var(--input-border)", padding: "4px 8px", borderRadius: "6px" }}>Nálada: {j.mood}</span>}
                       {j.stress >= 4 && <span style={{ fontSize: "12px", background: "rgba(226,146,156,0.2)", color: "var(--winter)", padding: "4px 8px", borderRadius: "6px" }}>Vysoký stres</span>}
                     </div>
-                    {j.note && <p style={{ fontSize: "14px", color: "var(--ink)", opacity: 0.8, marginTop: "12px", marginBottom: 0 }}>{j.note}</p>}
+                    {(!settings.discreetMode || currentRole === 'partner') && j.note && (
+                      <p style={{ fontSize: "14px", color: "var(--ink)", opacity: 0.8, marginTop: "12px", marginBottom: 0 }}>{j.note}</p>
+                    )}
+                    <div style={{ fontSize: "11px", color: "var(--ink-dim)", marginTop: "12px", textAlign: "right", fontStyle: "italic" }}>Klikni pro úpravu ✎</div>
                   </div>
                 ))}
               </div>
@@ -904,6 +965,7 @@ export default function Home() {
           </div>
         </section>
 
+        {/* NASTAVENÍ */}
         <section id="settings" className="ios-glass accordion-wrapper">
           <div className="accordion-header" onClick={() => toggleSection('settings')}>
             <div className="accordion-title">
@@ -916,89 +978,92 @@ export default function Home() {
           <div className={`accordion-body ${openSection === 'settings' ? 'open' : ''}`}>
             <div className="accordion-content-inner glass-content" style={{ paddingTop: "24px" }}>
               
-              <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>Propojení radarů</h3>
-              
+              <h3 className="settings-section-title" style={{ marginTop: 0 }}>Párování radarů</h3>
               {settings.pairedWith ? (
                 <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--spring)", marginBottom: "32px" }}>
                   <span className="emoji-icon" style={{ fontSize: "32px", marginBottom: "12px" }}>❤️</span>
                   <h4 style={{ margin: "0 0 8px 0", color: "var(--spring)", fontSize: "18px" }}>Úspěšně propojeno</h4>
-                  <p style={{ fontSize: "14px", color: "var(--ink-dim)", margin: "0 0 20px 0" }}>Váš radar sdílí data s:<br/><strong style={{color: "var(--ink)"}}>{settings.pairedWith}</strong></p>
-                  
-                  <button type="button" onClick={handleUnpairAccount} style={{ background: "transparent", border: "1px solid var(--winter)", color: "var(--winter)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", transition: "all 0.2s" }}>
-                    Zrušit propojení
-                  </button>
+                  <p style={{ fontSize: "14px", color: "var(--ink-dim)", margin: "0 0 20px 0" }}>Sdílíte data s:<br/><strong style={{color: "var(--ink)"}}>{settings.pairedWith}</strong></p>
+                  <button type="button" onClick={handleUnpairAccount} style={{ background: "transparent", border: "1px solid var(--winter)", color: "var(--winter)", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", fontWeight: "bold", cursor: "pointer" }}>Zrušit propojení</button>
                 </div>
               ) : (
                 <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--input-border)", marginBottom: "32px" }}>
-                  
-                  <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px", lineHeight: 1.5 }}>
-                    Zadejte 6místný kód z druhé aplikace nebo ho rovnou naskenujte kamerou.
-                  </p>
-                  
+                  <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px", lineHeight: 1.5 }}>Zadejte 6místný kód nebo ho naskenujte.</p>
                   <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-                    <input 
-                      type="text" 
-                      value={pairCodeInput} 
-                      onChange={e => setPairCodeInput(e.target.value.toUpperCase())}
-                      maxLength={6}
-                      placeholder="KÓD"
-                      className="pin-input"
-                      style={{ background: "var(--bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "16px", flex: 1, margin: 0, color: "var(--ink)" }}
-                    />
-                    
-                    <button 
-                      type="button" 
-                      onClick={() => setShowCameraScanner(true)} 
-                      className="glass-btn" 
-                      style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "0 20px", color: "var(--ink)", width: "auto", height: "auto" }}
-                    >
-                      <span style={{ fontSize: "24px" }}>📷</span>
-                    </button>
+                    <input type="text" value={pairCodeInput} onChange={e => setPairCodeInput(e.target.value.toUpperCase())} maxLength={6} placeholder="KÓD" className="pin-input" style={{ flex: 1 }} />
+                    <button type="button" onClick={() => setShowCameraScanner(true)} className="glass-btn" style={{ padding: "0 20px", width: "auto" }}>📷</button>
                   </div>
-
-                  <button type="button" onClick={handlePairAccount} disabled={pairCodeInput.length < 6} className="btn-primary" style={{ background: "var(--summer)", color: "#000", marginBottom: "16px" }}>
-                    Propojit účty
-                  </button>
-                  {pairError && <p style={{ color: "var(--winter)", fontSize: "13px", marginTop: "-4px", marginBottom: "16px", fontWeight: "bold" }}>{pairError}</p>}
-
-                  <div style={{ margin: "24px 0", color: "var(--ink-dim)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "2px" }}>
-                    — nebo —
-                  </div>
+                  <button type="button" onClick={handlePairAccount} disabled={pairCodeInput.length < 6} className="btn-primary" style={{ background: "var(--summer)", color: "#000", marginBottom: "16px" }}>Propojit účty</button>
+                  {pairError && <p style={{ color: "var(--winter)", fontSize: "13px", marginTop: "-4px", marginBottom: "16px" }}>{pairError}</p>}
+                  
+                  <div style={{ margin: "24px 0", color: "var(--ink-dim)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "2px" }}>— nebo —</div>
 
                   {settings.syncCode ? (
                     <>
-                      <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px" }}>Ukažte svůj kód pro naskenování:</p>
-                      <div style={{ fontSize: "32px", fontFamily: "var(--font-mono)", letterSpacing: "0.2em", fontWeight: "bold", background: "var(--bg)", padding: "16px", borderRadius: "16px", marginBottom: "16px", color: "var(--spring)" }}>
-                        {settings.syncCode}
-                      </div>
-                      <button type="button" onClick={() => setShowQRModal(true)} className="glass-btn" style={{ width: "auto", padding: "0 24px", borderRadius: "99px", margin: "0 auto" }}>
-                        <span style={{ fontSize: "15px", marginRight: "8px" }}>📱</span> Ukázat QR kód
-                      </button>
+                      <div style={{ fontSize: "32px", fontFamily: "var(--font-mono)", letterSpacing: "0.2em", fontWeight: "bold", background: "var(--bg)", padding: "16px", borderRadius: "16px", marginBottom: "16px", color: "var(--spring)" }}>{settings.syncCode}</div>
+                      <button type="button" onClick={() => setShowQRModal(true)} className="glass-btn" style={{ width: "auto", padding: "0 24px", borderRadius: "99px", margin: "0 auto" }}>📱 Ukázat QR kód</button>
                     </>
                   ) : (
-                    <button type="button" onClick={handleGenerateSyncCode} className="btn-primary" style={{ background: "transparent", color: "var(--ink)", border: "1px solid var(--input-border)" }}>
-                      Vygenerovat můj kód
-                    </button>
+                    <button type="button" onClick={handleGenerateSyncCode} className="btn-primary" style={{ background: "transparent", color: "var(--ink)", border: "1px solid var(--input-border)" }}>Vygenerovat můj kód</button>
                   )}
                 </div>
               )}
 
-              {/* Push Notifikace */}
-              <h3 style={{ fontSize: "18px", marginBottom: "16px", paddingTop: "16px", borderTop: "1px solid var(--input-border)" }}>Oznámení</h3>
-              <button type="button" onClick={handleEnableNotifications} className="btn-primary" style={{ background: "var(--surface-2)", color: "var(--ink)", border: "1px solid var(--input-border)", marginBottom: "32px" }}>
-                🔔 Zapnout push notifikace na telefon
-              </button>
+              <form onSubmit={handleSystemSave}>
+                {/* 1. Nastavení upozornění */}
+                <h3 className="settings-section-title">Oznámení a soukromí</h3>
+                <div style={{ background: "var(--surface-2)", padding: "20px", borderRadius: "20px", marginBottom: "32px" }}>
+                  <button type="button" onClick={handleEnableNotifications} className="btn-primary" style={{ background: "var(--ink)", color: "var(--bg)", marginBottom: "24px" }}>
+                    🔔 Zapnout push notifikace na telefon
+                  </button>
 
-              <h3 style={{ fontSize: "18px", marginBottom: "16px", paddingTop: "16px", borderTop: "1px solid var(--input-border)" }}>Parametry cyklu</h3>
-              <form onSubmit={handleSystemSave} style={{ marginBottom: "32px" }}>
-                <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
-                  <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('set_cycle_label')}</span><input type="number" name="cycleLength" defaultValue={settings.cycleLength} required /></label>
-                  <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('set_period_label')}</span><input type="number" name="periodLength" defaultValue={settings.periodLength} required /></label>
+                  <label className="field">
+                    <span>Frekvence připomínek zápisu</span>
+                    <select name="reminderFrequency" defaultValue={settings.reminderFrequency || '3days'}>
+                      <option value="daily">Každý den (19:00)</option>
+                      <option value="3days">Každé 3 dny (doporučeno)</option>
+                      <option value="never">Neposílat vůbec</option>
+                    </select>
+                  </label>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "24px" }}>
+                    <span style={{ fontSize: "15px", color: "var(--ink)" }}>Upozornit 2 dny před MS</span>
+                    <label className="toggle-switch">
+                      <input type="checkbox" name="periodAlert" defaultChecked={settings.periodAlert !== false} />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}>
+                    <div>
+                      <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Diskrétní režim</span>
+                      <span style={{ fontSize: "12px", color: "var(--ink-dim)" }}>Skryje popisky textů na obrazovce</span>
+                    </div>
+                    <label className="toggle-switch">
+                      <input type="checkbox" name="discreetMode" defaultChecked={settings.discreetMode === true} />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
                 </div>
-                <button type="submit" className="btn-primary" style={{ padding: "12px", fontSize: "15px" }}>{t('settings_submit')}</button>
+
+                {/* 2. Parametry cyklu */}
+                <h3 className="settings-section-title">Parametry cyklu</h3>
+                <div style={{ background: "var(--surface-2)", padding: "20px", borderRadius: "20px", marginBottom: "32px" }}>
+                  <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "16px" }}>
+                    <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('set_cycle_label')}</span><input type="number" name="cycleLength" defaultValue={settings.cycleLength} required /></label>
+                    <label className="field" style={{ flex: "1 1 120px", marginBottom: 0 }}><span>{t('set_period_label')}</span><input type="number" name="periodLength" defaultValue={settings.periodLength} required /></label>
+                  </div>
+                  <label className="field" style={{ marginBottom: 0 }}>
+                    <span>{t('set_luteal_label')} (Standardně 14)</span>
+                    <input type="number" name="lutealLength" defaultValue={settings.lutealLength || 14} required />
+                  </label>
+                </div>
+
+                <button type="submit" className="btn-primary" style={{ padding: "16px", fontSize: "16px" }}>{t('settings_submit')}</button>
               </form>
 
-              <h3 style={{ fontSize: "18px", marginBottom: "16px", paddingTop: "24px", borderTop: "1px solid var(--input-border)" }}>{t('history_summary')}</h3>
+              {/* 3. Správa dat */}
+              <h3 className="settings-section-title" style={{ marginTop: "40px" }}>Správa kalendáře</h3>
               <form onSubmit={handleAddPeriod} style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
                 <input type="date" value={newPeriodDate} onChange={e => setNewPeriodDate(e.target.value)} required style={{ flex: "1 1 200px" }} />
                 <button type="submit" className="btn-primary" style={{ flex: "0 0 auto", width: "auto", padding: "0 24px" }}>{t('history_add_btn')}</button>
@@ -1016,11 +1081,11 @@ export default function Home() {
               <div style={{ marginTop: "40px", paddingTop: "32px", borderTop: "1px solid var(--input-border)", textAlign: "center" }}>
                 <p style={{ fontSize: "14px", color: "var(--ink-dim)", marginBottom: "16px" }}>Přihlášen jako: {session.user.email}</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <button onClick={() => signOut()} style={{ background: "var(--surface-2)", border: "1px solid var(--input-border)", color: "var(--ink)", padding: "14px", borderRadius: "16px", fontSize: "15px", fontWeight: 600, cursor: "pointer", transition: "background 0.2s" }}>
-                    Odhlásit (Nechat e-mail v paměti)
+                  <button onClick={() => signOut()} style={{ background: "var(--surface-2)", border: "1px solid var(--input-border)", color: "var(--ink)", padding: "14px", borderRadius: "16px", fontSize: "15px", fontWeight: 600, cursor: "pointer" }}>
+                    Odhlásit bez smazání paměti
                   </button>
                   <button onClick={() => { localStorage.removeItem("lastUserEmail"); signOut(); }} style={{ background: "rgba(226,146,156,0.15)", border: "1px solid rgba(226,146,156,0.3)", color: "var(--winter)", padding: "14px", borderRadius: "16px", fontSize: "15px", fontWeight: 600, cursor: "pointer" }}>
-                    Odhlásit a zapomenout účet
+                    Odhlásit a zapomenout e-mail
                   </button>
                 </div>
               </div>
