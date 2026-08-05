@@ -188,6 +188,9 @@ export default function Home() {
   const [jNote, setJNote] = useState("");
   const [newPeriodDate, setNewPeriodDate] = useState("");
 
+  // STAV PRO TESTOVACÍ ČAS
+  const [testTime, setTestTime] = useState("");
+
   const t = (key) => I18N[lang][key];
 
   useEffect(() => {
@@ -248,9 +251,6 @@ export default function Home() {
     }
   }, [status, session]);
 
-  // ====================================================================
-  // OPRAVA: PŘIDÁN PARAMETR 'actionName' PRO IDENTIFIKACI AKCE
-  // ====================================================================
   const syncData = async (newSettings, newJournal, actionName = null) => {
     setSettings(newSettings);
     if (newJournal) setJournal(newJournal);
@@ -413,9 +413,6 @@ export default function Home() {
     setNewPeriodDate("");
   };
 
-  // ====================================================================
-  // OPRAVA: PŘI ULOŽENÍ DENÍKU ODEŠLEME EXPLICITNÍ ZNAČKU 'save_journal'
-  // ====================================================================
   const handleSaveJournal = (e) => {
     e.preventDefault();
     const dateStr = toIso(selectedDate);
@@ -497,6 +494,34 @@ export default function Home() {
     }
     await syncData({ ...settings, pushSubscription: null }, journal);
     alert('Notifikace byly úspěšně vypnuty 🔕');
+  };
+
+  // ====================================================================
+  // FUNKCE PRO TESTOVÁNÍ NOTIFIKACÍ (BUDE POZDĚJI ODSTRANĚNA)
+  // ====================================================================
+  const handleScheduleTest = () => {
+    if (!testTime) return;
+    const [hours, minutes] = testTime.split(':');
+    const now = new Date();
+    const target = new Date();
+    target.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+
+    const delay = target.getTime() - now.getTime();
+    if (delay < 0) {
+      alert('Tento čas už dnes byl! Vyber čas v budoucnosti.');
+      return;
+    }
+
+    alert(`⏳ Test naplánován na ${testTime}.\n\nDŮLEŽITÉ: Neukončuj aplikaci úplně, nech ji běžet (nebo uspanou) na pozadí, jinak telefon skript zabije.`);
+    
+    setTimeout(async () => {
+      try {
+        await fetch('/api/cron');
+        console.log('Cron spuštěn z testu');
+      } catch (e) {
+        console.error("Chyba při testovacím volání cronu:", e);
+      }
+    }, delay);
   };
 
   const toggleSection = (sectionId) => {
@@ -765,7 +790,7 @@ export default function Home() {
         html[data-theme="light"] .liquid-glow { opacity: 0.6; filter: blur(40px); }
         .glass-content { position: relative; z-index: 2; padding: var(--card-pad); }
 
-        input[type="date"] { -webkit-appearance: none; appearance: none; min-height: 52px; line-height: normal; text-align: center; color: var(--ink); }
+        input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: none; min-height: 52px; line-height: normal; text-align: center; color: var(--ink); }
         .glass-date-pill { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--ink); padding: 10px 20px; border-radius: 99px; font-family: inherit; font-size: 15px; font-weight: 500; outline: none; cursor: pointer; transition: border 0.3s; }
         .glass-date-pill:focus { border-color: var(--ink-dim); }
         
@@ -1079,6 +1104,18 @@ export default function Home() {
           <div className={`accordion-body ${openSection === 'settings' ? 'open' : ''}`}>
             <div className="accordion-content-inner glass-content" style={{ paddingTop: "24px" }}>
               
+              {/* VÝVOJÁŘSKÝ TESTOVACÍ BLOK */}
+              {currentRole === 'female' && (
+                <div style={{ background: "rgba(226, 146, 156, 0.1)", border: "1px solid rgba(226, 146, 156, 0.3)", padding: "20px", borderRadius: "20px", marginBottom: "32px" }}>
+                  <h4 style={{ color: "var(--winter)", marginTop: 0, marginBottom: "12px", textTransform: "uppercase", fontSize: "13px", letterSpacing: "1px" }}>🧪 Testovací nástroj</h4>
+                  <p style={{ fontSize: "13px", color: "var(--ink-dim)", marginBottom: "16px", lineHeight: 1.4 }}>Zadej čas, kdy chceš nechat aplikací vyvolat testovací připomínku cronu (musí být v budoucnosti).</p>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                    <input type="time" value={testTime} onChange={e => setTestTime(e.target.value)} style={{ flex: 1 }} />
+                    <button type="button" onClick={handleScheduleTest} className="btn-primary" style={{ width: "auto", padding: "14px 20px" }}>Test</button>
+                  </div>
+                </div>
+              )}
+
               <h3 className="settings-section-title" style={{ marginTop: 0 }}>Párování radarů</h3>
               {settings.pairedWith ? (
                 <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--spring)", marginBottom: "32px" }}>
