@@ -1148,17 +1148,30 @@ export default function Home() {
                     </button>
                   )}
 
-                  <label className="field">
-                    <span>Frekvence připomínek zápisu</span>
-                    <select name="reminderFrequency" defaultValue={settings.reminderFrequency || '3days'}>
-                      <option value="daily">Každý den (19:00)</option>
-                      <option value="3days">Každé 3 dny (doporučeno)</option>
-                      <option value="never">Neposílat vůbec</option>
-                    </select>
-                  </label>
+                  {currentRole === 'female' && (
+                    <label className="field">
+                      <span>Frekvence připomínek zápisu</span>
+                      <select name="reminderFrequency" defaultValue={settings.reminderFrequency || '3days'}>
+                        <option value="daily">Každý den (19:00)</option>
+                        <option value="3days">Každé 3 dny (doporučeno)</option>
+                        <option value="never">Neposílat vůbec</option>
+                      </select>
+                    </label>
+                  )}
+
+                  {currentRole === 'partner' && (
+                    <div style={{ marginBottom: "24px", color: "var(--spring)", fontSize: "14px", lineHeight: 1.5 }}>
+                      <em>Jako partner nevyplňuješ deník, proto tu nemáš připomínky k zápisu. Můžeš si ale přesně zvolit, na které změny fází tě má radar dopředu upozornit:</em>
+                    </div>
+                  )}
 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "24px" }}>
-                    <span style={{ fontSize: "15px", color: "var(--ink)" }}>Upozornit 2 dny před MS</span>
+                    <div>
+                      <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>
+                        {currentRole === 'female' ? 'Upozornit 2 dny před MS' : 'Upozornit na PMS (3 dny předem)'}
+                      </span>
+                      {currentRole === 'partner' && <span style={{ fontSize: "12px", color: "var(--ink-dim)" }}>Blížící se Zima a pokles energie</span>}
+                    </div>
                     <label className="toggle-switch">
                       <input type="checkbox" name="periodAlert" defaultChecked={settings.periodAlert !== false} />
                       <span className="slider"></span>
@@ -1167,22 +1180,28 @@ export default function Home() {
                   
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}>
                     <div>
-                      <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Upozornění na změnu fáze</span>
-                      <span style={{ fontSize: "12px", color: "var(--ink-dim)" }}>Jaro, Léto, Podzim, Zima</span>
-                    </div>
-                    <label className="toggle-switch">
-                      <input type="checkbox" name="phaseAlert" defaultChecked={settings.phaseAlert !== false} />
-                      <span className="slider"></span>
-                    </label>
-                  </div>
-                  
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}>
-                    <div>
-                      <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Upozornit na plodné dny</span>
-                      <span style={{ fontSize: "12px", color: "var(--ink-dim)" }}>Blížící se ovulace (Léto)</span>
+                      <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>
+                        {currentRole === 'female' ? 'Upozornit na plodné dny' : 'Upozornit na vrchol energie'}
+                      </span>
+                      {currentRole === 'partner' ? (
+                        <span style={{ fontSize: "12px", color: "var(--ink-dim)" }}>Blížící se ovulace (Léto) 2 dny předem</span>
+                      ) : (
+                        <span style={{ fontSize: "12px", color: "var(--ink-dim)" }}>Blížící se ovulace (Léto)</span>
+                      )}
                     </div>
                     <label className="toggle-switch">
                       <input type="checkbox" name="ovulationAlert" defaultChecked={settings.ovulationAlert !== false} />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}>
+                    <div>
+                      <span style={{ fontSize: "15px", color: "var(--ink)", display: "block" }}>Upozornění na změnu fáze</span>
+                      <span style={{ fontSize: "12px", color: "var(--ink-dim)" }}>Jaro a Podzim</span>
+                    </div>
+                    <label className="toggle-switch">
+                      <input type="checkbox" name="phaseAlert" defaultChecked={settings.phaseAlert !== false} />
                       <span className="slider"></span>
                     </label>
                   </div>
