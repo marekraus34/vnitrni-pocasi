@@ -248,9 +248,6 @@ export default function Home() {
     }
   }, [status, session]);
 
-  // ====================================================================
-  // OPRAVA: PŘIDÁN PARAMETR 'actionName' PRO IDENTIFIKACI AKCE
-  // ====================================================================
   const syncData = async (newSettings, newJournal, actionName = null) => {
     setSettings(newSettings);
     if (newJournal) setJournal(newJournal);
@@ -413,9 +410,6 @@ export default function Home() {
     setNewPeriodDate("");
   };
 
-  // ====================================================================
-  // OPRAVA: PŘI ULOŽENÍ DENÍKU ODEŠLEME EXPLICITNÍ ZNAČKU 'save_journal'
-  // ====================================================================
   const handleSaveJournal = (e) => {
     e.preventDefault();
     const dateStr = toIso(selectedDate);
@@ -641,6 +635,40 @@ export default function Home() {
   const roleSpecificData = phaseGeneral[currentRole]; 
   const roleCtxTips = I18N[lang].ctx[currentRole];
 
+  // -------------------------------------------------------------------------
+  // FUNKCE PRO DYNAMICKÉ TEXTY PODLE INTENZITY FÁZE
+  // -------------------------------------------------------------------------
+  const getDynamicPhaseText = () => {
+    let text = roleSpecificData.mood;
+    
+    // VRCHOL PMS (Poslední 3 dny Podzimu)
+    if (phaseKey === 'luteal' && currentDay >= ranges.luteal.end - 3) {
+      if (currentRole === 'partner') text = "Podzim vrcholí (tzv. PMS). Její energie dramaticky klesá a tělo se chystá na menstruaci. Může být velmi citlivá, unavená a podrážděná. Zkus převzít otěže, uvař a buď maximálně trpělivý.";
+      else text = "Fáze vrcholí (tzv. PMS). Tvá energie strmě klesá, tělo zadržuje vodu a připravuje se na krvácení. Můžeš cítit silnou únavu, úzkost nebo podrážděnost. Všechno je v pořádku, dovol si zpomalit a nic nehrotit.";
+    }
+    // NEJTĚŽŠÍ ZIMA (První 2 dny menstruace)
+    else if (phaseKey === 'menstrual' && currentDay <= 2) {
+      if (currentRole === 'partner') text = "Nejtěžší dny Zimy. Fyzicky je jí teď pravděpodobně nejhůř z celého měsíce. Nechtěj po ní žádné výkony, buď tu pro ni a ulev jí od všech povinností, co jdou.";
+      else text = "Nejtěžší dny Zimy. Tvé tělo teď vydává obrovské množství energie na čištění. Bolesti a vyčerpání jsou na maximu. Úplně vypni a maximálně odpočívej.";
+    }
+    // ROZJEZD JARA (První dny po menstruaci)
+    else if (phaseKey === 'follicular' && currentDay <= ranges.follicular.start + 2) {
+      if (currentRole === 'partner') text = "Jaro se teprve probouzí. Zima sice skončila, ale energie ještě není úplně zpět. Dej tomu pár dnů a bude zase ve své kůži.";
+      else text = "Jaro se teprve probouzí. Menstruace sice skončila, ale tělo se po ní ještě srovnává. Dovol energii, ať se vrací pozvolna a přirozeně.";
+    }
+    // ABSOLUTNÍ VRCHOL LÉTA (Střed ovulace)
+    else if (phaseKey === 'ovulatory') {
+      const midSummer = Math.floor((ranges.ovulatory.start + ranges.ovulatory.end) / 2);
+      if (currentDay === midSummer || currentDay === midSummer + 1) {
+        if (currentRole === 'partner') text = "Absolutní vrchol Léta! Biologicky je teď na vrcholu sil. Její energie, nálada i sebevědomí dosahují maxima. Skvělý den podniknout společně něco výjimečného.";
+        else text = "Absolutní vrchol Léta! Tvá hladina hormonů je na maximu. Záříš sebevědomím, máš nejvíc energie z celého měsíce a jsi biologicky na vrcholu sil. Užij si to!";
+      }
+    }
+    return text;
+  };
+
+  const dynamicMoodText = getDynamicPhaseText();
+
   const getGradientColors = (phase) => {
     if (currentRole === 'partner') {
       switch (phase) {
@@ -765,7 +793,7 @@ export default function Home() {
         html[data-theme="light"] .liquid-glow { opacity: 0.6; filter: blur(40px); }
         .glass-content { position: relative; z-index: 2; padding: var(--card-pad); }
 
-        input[type="date"] { -webkit-appearance: none; appearance: none; min-height: 52px; line-height: normal; text-align: center; color: var(--ink); }
+        input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: none; min-height: 52px; line-height: normal; text-align: center; color: var(--ink); }
         .glass-date-pill { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--ink); padding: 10px 20px; border-radius: 99px; font-family: inherit; font-size: 15px; font-weight: 500; outline: none; cursor: pointer; transition: border 0.3s; }
         .glass-date-pill:focus { border-color: var(--ink-dim); }
         
@@ -775,11 +803,7 @@ export default function Home() {
         input:not(.glass-date-pill), select, textarea { background: var(--input-bg); border: 1px solid var(--input-border); padding: 14px; border-radius: 16px; color: var(--ink); font-size: 16px; outline: none; width: 100%; transition: border 0.3s; box-sizing: border-box; }
         input:focus:not(.glass-date-pill), select:focus, textarea:focus { border-color: var(--ink-dim); }
         
-        /* FIX PRO VYBÍRACÍ MENU - Obarvení option tagů pro čitelnost */
-        select option {
-          background-color: var(--bg);
-          color: var(--ink);
-        }
+        select option { background-color: var(--bg); color: var(--ink); }
 
         .pin-input { font-family: var(--font-mono); font-size: 28px !important; letter-spacing: 0.3em; text-align: center; font-weight: bold; text-transform: uppercase; }
         .pin-input::placeholder { font-weight: normal; letter-spacing: 0.1em; opacity: 0.4; }
@@ -936,10 +960,10 @@ export default function Home() {
           <div className="glass-content">
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", marginBottom: "8px" }}>{phaseGeneral.name}</h2>
             
-            {/* Diskrétní mód */}
+            {/* DYNAMICKÝ TEXT NÁLADY */}
             {(!settings.discreetMode || currentRole === 'partner') && (
               <p style={{ fontSize: "16px", color: "var(--ink)", opacity: 0.8, lineHeight: 1.6, marginBottom: "24px" }}>
-                {roleSpecificData.mood}
+                {dynamicMoodText}
               </p>
             )}
             
@@ -1078,7 +1102,7 @@ export default function Home() {
 
           <div className={`accordion-body ${openSection === 'settings' ? 'open' : ''}`}>
             <div className="accordion-content-inner glass-content" style={{ paddingTop: "24px" }}>
-              
+
               <h3 className="settings-section-title" style={{ marginTop: 0 }}>Párování radarů</h3>
               {settings.pairedWith ? (
                 <div style={{ background: "var(--surface-2)", borderRadius: "24px", padding: "24px", textAlign: "center", border: "1px solid var(--spring)", marginBottom: "32px" }}>
@@ -1111,7 +1135,6 @@ export default function Home() {
               )}
 
               <form onSubmit={handleSystemSave}>
-                {/* 1. Nastavení upozornění */}
                 <h3 className="settings-section-title">Oznámení a soukromí</h3>
                 <div style={{ background: "var(--surface-2)", padding: "20px", borderRadius: "20px", marginBottom: "32px" }}>
                   
@@ -1176,7 +1199,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* 2. Parametry cyklu */}
                 <h3 className="settings-section-title">Parametry cyklu</h3>
                 <div style={{ background: "var(--surface-2)", padding: "20px", borderRadius: "20px", marginBottom: "32px" }}>
                   <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "16px" }}>
@@ -1192,7 +1214,6 @@ export default function Home() {
                 <button type="submit" className="btn-primary" style={{ padding: "16px", fontSize: "16px" }}>{t('settings_submit')}</button>
               </form>
 
-              {/* 3. Správa dat */}
               <h3 className="settings-section-title" style={{ marginTop: "40px" }}>Správa kalendáře</h3>
               <form onSubmit={handleAddPeriod} style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
                 <input type="date" value={newPeriodDate} onChange={e => setNewPeriodDate(e.target.value)} required style={{ flex: "1 1 200px" }} />
