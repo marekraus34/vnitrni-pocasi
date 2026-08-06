@@ -70,7 +70,7 @@ export async function GET(req) {
   }
 }
 
-// Metoda pro ULOŽENÍ dat a ODESLÁNÍ NOTIFIKACE
+// Metoda pro ULOŽENÍ dat a ODESLÁNÍ NOTIFIKACE (při zápisu)
 export async function PUT(req) {
   try {
     const session = await getServerSession(authOptions);
